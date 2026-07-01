@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: gestor_cobros_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gestor
+      POSTGRES_PASSWORD: gestor_password
+      POSTGRES_DB: gestor_cobros
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
