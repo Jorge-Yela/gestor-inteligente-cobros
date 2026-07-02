@@ -90,7 +90,7 @@ export default async function InvoicesPage() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left text-sm">
+            <table className="w-full min-w-[980px] text-left text-sm">
               <thead className="border-b bg-muted/50 text-muted-foreground">
                 <tr>
                   <th className="px-5 py-3 font-medium">Factura</th>
@@ -99,6 +99,7 @@ export default async function InvoicesPage() {
                   <th className="px-5 py-3 font-medium">Importe</th>
                   <th className="px-5 py-3 font-medium">Estado</th>
                   <th className="px-5 py-3 font-medium">Cobro</th>
+                  <th className="px-5 py-3 font-medium">Accion</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -115,6 +116,11 @@ export default async function InvoicesPage() {
                     </td>
                     <td className="px-5 py-4 text-muted-foreground">
                       {formatPaymentStatus(invoice.paymentStatus)}
+                    </td>
+                    <td className="px-5 py-4">
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/invoices/${invoice.id}`}>Ver detalle</Link>
+                      </Button>
                     </td>
                   </tr>
                 ))}
