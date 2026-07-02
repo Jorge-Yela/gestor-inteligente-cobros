@@ -14,6 +14,24 @@ import {
 
 import { Button } from "@/components/ui/button";
 
+type DashboardStat = {
+  label: string;
+  value: string;
+  detail: string;
+};
+
+type DashboardInvoice = {
+  customer: string;
+  number: string;
+  amount: string;
+  status: string;
+};
+
+type AppShellProps = {
+  stats: DashboardStat[];
+  invoices: DashboardInvoice[];
+};
+
 const navigationItems = [
   { label: "Dashboard", icon: LayoutDashboard },
   { label: "Facturas", icon: FileText },
@@ -23,19 +41,7 @@ const navigationItems = [
   { label: "Informes", icon: BarChart3 },
 ];
 
-const stats = [
-  { label: "Pendiente de cobro", value: "24.850 EUR", detail: "18 facturas activas" },
-  { label: "Vencido", value: "8.420 EUR", detail: "6 facturas requieren revision" },
-  { label: "Cobra esta semana", value: "5.300 EUR", detail: "4 vencimientos proximos" },
-];
-
-const invoices = [
-  { customer: "Alba Consulting", number: "FAC-2026-014", amount: "2.450 EUR", status: "Vencida" },
-  { customer: "Norte Digital", number: "FAC-2026-019", amount: "1.180 EUR", status: "Seguimiento" },
-  { customer: "Mercurio Labs", number: "FAC-2026-021", amount: "3.900 EUR", status: "Pendiente" },
-];
-
-export function AppShell() {
+export function AppShell({ stats, invoices }: AppShellProps) {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
@@ -104,7 +110,7 @@ export function AppShell() {
                 <div className="border-b p-5">
                   <h2 className="font-semibold">Facturas en seguimiento</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Primer vistazo a las facturas que necesitan control.
+                    Datos leidos desde PostgreSQL mediante Prisma.
                   </p>
                 </div>
 
