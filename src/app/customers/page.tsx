@@ -83,6 +83,7 @@ export default async function CustomersPage() {
                   <th className="px-5 py-3 font-medium">Telefono</th>
                   <th className="px-5 py-3 font-medium">Facturas</th>
                   <th className="px-5 py-3 font-medium">Pendiente</th>
+                  <th className="px-5 py-3 font-medium">Accion</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -94,6 +95,11 @@ export default async function CustomersPage() {
                     <td className="px-5 py-4 text-muted-foreground">{customer.phone}</td>
                     <td className="px-5 py-4">{customer.invoiceCount}</td>
                     <td className="px-5 py-4 font-medium">{customer.pendingAmount}</td>
+                    <td className="px-5 py-4">
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/customers/${customer.id}`}>Ver detalle</Link>
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
