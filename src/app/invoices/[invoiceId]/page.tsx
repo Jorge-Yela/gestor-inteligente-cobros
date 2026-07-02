@@ -5,6 +5,7 @@ import { InvoiceStatus, PaymentStatus, TimelineEventType } from "@/generated/pri
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
+import { addInvoiceNote } from "@/server/actions/add-invoice-note";
 import { markInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
@@ -110,7 +111,9 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline">Anadir nota</Button>
+            <a href="#add-note" className="inline-flex h-10 items-center justify-center rounded-md border bg-background px-4 py-2 text-sm font-medium shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground">
+              Anadir nota
+            </a>
             <form action={markInvoiceAsPaid}>
               <input type="hidden" name="invoiceId" value={invoice.id} />
               <Button type="submit" disabled={invoice.paymentStatus === PaymentStatus.PAID}>
@@ -159,9 +162,24 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
 
             <article className="rounded-lg border bg-card p-5 shadow-sm">
               <h2 className="font-semibold">Notas internas</h2>
-              <p className="mt-4 text-sm leading-6 text-muted-foreground">
+              <p className="mt-4 whitespace-pre-line text-sm leading-6 text-muted-foreground">
                 {invoice.notes || "Todavia no hay notas internas para esta factura."}
               </p>
+            </article>
+
+            <article id="add-note" className="rounded-lg border bg-card p-5 shadow-sm">
+              <h2 className="font-semibold">Anadir nota interna</h2>
+              <form action={addInvoiceNote} className="mt-5 space-y-4">
+                <input type="hidden" name="invoiceId" value={invoice.id} />
+                <textarea
+                  name="note"
+                  required
+                  rows={4}
+                  placeholder="Ejemplo: Cliente contactado por telefono. Confirma que pagara el viernes."
+                  className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+                />
+                <Button type="submit">Guardar nota</Button>
+              </form>
             </article>
           </div>
 
