@@ -5,6 +5,7 @@ import { InvoiceStatus, PaymentStatus, TimelineEventType } from "@/generated/pri
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
+import { markInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -110,7 +111,12 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
 
           <div className="flex gap-2">
             <Button variant="outline">Anadir nota</Button>
-            <Button>Marcar como cobrada</Button>
+            <form action={markInvoiceAsPaid}>
+              <input type="hidden" name="invoiceId" value={invoice.id} />
+              <Button type="submit" disabled={invoice.paymentStatus === PaymentStatus.PAID}>
+                {invoice.paymentStatus === PaymentStatus.PAID ? "Ya cobrada" : "Marcar como cobrada"}
+              </Button>
+            </form>
           </div>
         </div>
 
