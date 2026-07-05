@@ -78,7 +78,9 @@ export default async function InvoicesPage() {
             </p>
           </div>
 
-          <Button>Subir factura</Button>
+          <Button asChild>
+            <Link href="/invoices/new">Registrar factura</Link>
+          </Button>
         </div>
 
         <section className="overflow-hidden rounded-lg border bg-card shadow-sm">

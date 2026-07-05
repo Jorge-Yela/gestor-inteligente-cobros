@@ -90,9 +90,11 @@ export function AppShell({ stats, invoices }: AppShellProps) {
               <Button variant="outline" size="icon" aria-label="Notificaciones">
                 <Bell className="size-4" />
               </Button>
-              <Button>
-                <Upload className="size-4" />
-                Subir factura
+              <Button asChild>
+                <Link href="/invoices/new">
+                  <Upload className="size-4" />
+                  Registrar factura
+                </Link>
               </Button>
             </div>
           </header>
