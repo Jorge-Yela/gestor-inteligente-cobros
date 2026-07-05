@@ -120,6 +120,9 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
           </div>
 
           <div className="flex gap-2">
+            <Button asChild variant="outline">
+              <Link href={`/invoices/${invoice.id}/claim-preview`}>Previsualizar reclamacion</Link>
+            </Button>
             <a href="#add-note" className="inline-flex h-10 items-center justify-center rounded-md border bg-background px-4 py-2 text-sm font-medium shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground">
               Anadir nota
             </a>
