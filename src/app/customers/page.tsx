@@ -62,7 +62,9 @@ export default async function CustomersPage() {
             </p>
           </div>
 
-          <Button>Nuevo cliente</Button>
+          <Button asChild>
+            <Link href="/customers/new">Nuevo cliente</Link>
+          </Button>
         </div>
 
         <section className="overflow-hidden rounded-lg border bg-card shadow-sm">
