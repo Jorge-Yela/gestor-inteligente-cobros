@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 import { renderTemplate } from "@/modules/templates/render-template";
 
 import { Button } from "@/components/ui/button";
+import { createClaimDraft } from "@/server/actions/create-claim-draft";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -121,12 +122,16 @@ export default async function ClaimPreviewPage({ params }: ClaimPreviewPageProps
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 border-t pt-5">
+            <form action={createClaimDraft} className="flex justify-end gap-2 border-t pt-5">
+              <input type="hidden" name="invoiceId" value={invoice.id} />
+              <input type="hidden" name="templateId" value={template.id} />
+              <input type="hidden" name="subject" value={subject} />
+              <input type="hidden" name="body" value={body} />
               <Button asChild variant="outline">
                 <Link href={`/invoices/${invoice.id}`}>Cancelar</Link>
               </Button>
-              <Button disabled>Enviar mas adelante</Button>
-            </div>
+              <Button type="submit">Guardar borrador</Button>
+            </form>
           </div>
         </section>
       </div>
