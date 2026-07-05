@@ -38,7 +38,7 @@ const navigationItems = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Facturas", href: "/invoices", icon: FileText },
   { label: "Clientes", href: "/customers", icon: Users },
-  { label: "Seguimientos", href: "/", icon: Clock3 },
+  { label: "Seguimientos", href: "/follow-ups", icon: Clock3 },
   { label: "Plantillas", href: "/", icon: Mail },
   { label: "Informes", href: "/", icon: BarChart3 },
 ];
