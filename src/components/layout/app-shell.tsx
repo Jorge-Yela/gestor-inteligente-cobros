@@ -40,7 +40,7 @@ const navigationItems = [
   { label: "Clientes", href: "/customers", icon: Users },
   { label: "Seguimientos", href: "/follow-ups", icon: Clock3 },
   { label: "Plantillas", href: "/templates", icon: Mail },
-  { label: "Informes", href: "/", icon: BarChart3 },
+  { label: "Borradores", href: "/claim-drafts", icon: BarChart3 },
 ];
 
 export function AppShell({ stats, invoices }: AppShellProps) {
