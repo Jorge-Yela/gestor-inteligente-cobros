@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   BarChart3,
   Bell,
@@ -33,12 +35,12 @@ type AppShellProps = {
 };
 
 const navigationItems = [
-  { label: "Dashboard", icon: LayoutDashboard },
-  { label: "Facturas", icon: FileText },
-  { label: "Clientes", icon: Users },
-  { label: "Seguimientos", icon: Clock3 },
-  { label: "Plantillas", icon: Mail },
-  { label: "Informes", icon: BarChart3 },
+  { label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { label: "Facturas", href: "/invoices", icon: FileText },
+  { label: "Clientes", href: "/customers", icon: Users },
+  { label: "Seguimientos", href: "/", icon: Clock3 },
+  { label: "Plantillas", href: "/", icon: Mail },
+  { label: "Informes", href: "/", icon: BarChart3 },
 ];
 
 export function AppShell({ stats, invoices }: AppShellProps) {
@@ -58,13 +60,14 @@ export function AppShell({ stats, invoices }: AppShellProps) {
 
           <nav className="flex-1 space-y-1 px-3 py-4">
             {navigationItems.map((item) => (
-              <button
+              <Link
                 key={item.label}
+                href={item.href}
                 className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-background hover:text-foreground"
               >
                 <item.icon className="size-4" />
                 {item.label}
-              </button>
+              </Link>
             ))}
           </nav>
 
