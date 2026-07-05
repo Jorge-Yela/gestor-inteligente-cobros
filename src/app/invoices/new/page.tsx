@@ -5,7 +5,26 @@ import { registerInvoice } from "@/server/actions/register-invoice";
 
 import { Button } from "@/components/ui/button";
 
-export default async function RegisterInvoicePage() {
+type RegisterInvoicePageProps = {
+  searchParams: Promise<{
+    error?: string;
+  }>;
+};
+
+function getErrorMessage(error?: string) {
+  const messages: Record<string, string> = {
+    "invalid-form": "Revisa los datos del formulario.",
+    "customer-not-found": "El cliente seleccionado no existe.",
+    "duplicate-invoice": "Ya existe una factura con ese numero.",
+  };
+
+  return error ? messages[error] : null;
+}
+
+export default async function RegisterInvoicePage({ searchParams }: RegisterInvoicePageProps) {
+  const { error } = await searchParams;
+  const errorMessage = getErrorMessage(error);
+
   const customers = await prisma.customer.findMany({
     where: {
       organizationId: "demo-organization",
@@ -27,6 +46,12 @@ export default async function RegisterInvoicePage() {
             Esta plataforma no emite facturas. Solo registra facturas existentes para controlar su cobro.
           </p>
         </div>
+
+        {errorMessage ? (
+          <div className="mb-5 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {errorMessage}
+          </div>
+        ) : null}
 
         <form action={registerInvoice} className="rounded-lg border bg-card p-5 shadow-sm">
           <div className="grid gap-5">

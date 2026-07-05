@@ -33,7 +33,7 @@ export async function registerInvoice(formData: FormData) {
   });
 
   if (!result.success) {
-    throw new Error("Invoice registration form is invalid");
+    redirect("/invoices/new?error=invalid-form");
   }
 
   const customer = await prisma.customer.findFirst({
@@ -44,7 +44,20 @@ export async function registerInvoice(formData: FormData) {
   });
 
   if (!customer) {
-    throw new Error("Customer not found");
+    redirect("/invoices/new?error=customer-not-found");
+  }
+
+  const existingInvoice = await prisma.invoice.findUnique({
+    where: {
+      organizationId_invoiceNumber: {
+        organizationId: "demo-organization",
+        invoiceNumber: result.data.invoiceNumber,
+      },
+    },
+  });
+
+  if (existingInvoice) {
+    redirect("/invoices/new?error=duplicate-invoice");
   }
 
   const invoice = await prisma.invoice.create({
