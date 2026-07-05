@@ -37,6 +37,12 @@ enum TimelineEventType {
   NOTE_ADDED
 }
 
+enum TemplateTone {
+  FRIENDLY
+  FIRM
+  FINAL_NOTICE
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String?
@@ -62,6 +68,7 @@ model Organization {
   customers      Customer[]
   invoices       Invoice[]
   timelineEvents TimelineEvent[]
+  templates      Template[]
 }
 
 model OrganizationMember {
@@ -143,4 +150,23 @@ model TimelineEvent {
   @@index([organizationId])
   @@index([invoiceId])
   @@index([userId])
+}
+
+
+model Template {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  subject        String
+  body           String
+  tone           TemplateTone @default(FRIENDLY)
+  language       String       @default("es")
+  isDefault      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([tone])
 }
