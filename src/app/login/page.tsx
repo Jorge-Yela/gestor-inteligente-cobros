@@ -1,8 +1,17 @@
+import { redirect } from "next/navigation";
+
+import { auth } from "@/../auth";
 import { signInWithCredentials } from "@/server/actions/sign-in";
 
 import { Button } from "@/components/ui/button";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const session = await auth();
+
+  if (session?.user) {
+    redirect("/");
+  }
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
       <section className="w-full max-w-md rounded-lg border bg-card p-8 shadow-sm">
