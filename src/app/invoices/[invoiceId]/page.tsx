@@ -103,6 +103,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
           createdAt: "desc",
         },
       },
+      file: true,
     },
   });
 
@@ -195,6 +196,34 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                 />
                 <Button type="submit">Guardar fecha</Button>
               </form>
+            </article>
+
+            <article className="rounded-lg border bg-card p-5 shadow-sm">
+              <h2 className="font-semibold">PDF asociado</h2>
+              {invoice.file ? (
+                <div className="mt-5 space-y-4">
+                  <div>
+                    <p className="text-sm font-medium">{invoice.file.fileName}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Archivo usado para crear o revisar esta factura.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/invoice-files/${invoice.file.id}`}>Ver archivo</Link>
+                    </Button>
+                    <Button asChild variant="outline" size="sm">
+                      <a href={invoice.file.fileUrl} target="_blank" rel="noreferrer">
+                        Ver PDF
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-5 text-sm text-muted-foreground">
+                  Esta factura no tiene ningun PDF asociado.
+                </p>
+              )}
             </article>
 
             <article className="rounded-lg border bg-card p-5 shadow-sm">
