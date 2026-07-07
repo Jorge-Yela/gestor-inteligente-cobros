@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { LogOut } from "lucide-react";
+
+import { signOutUser } from "@/server/actions/sign-out";
 
 import {
   BarChart3,
@@ -71,11 +74,21 @@ export function AppShell({ stats, invoices }: AppShellProps) {
             ))}
           </nav>
 
-          <div className="border-t p-4">
+          <div className="space-y-1 border-t p-4">
             <button className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-background hover:text-foreground">
               <Settings className="size-4" />
               Ajustes
             </button>
+
+            <form action={signOutUser}>
+              <button
+                type="submit"
+                className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-background hover:text-foreground"
+              >
+                <LogOut className="size-4" />
+                Cerrar sesion
+              </button>
+            </form>
           </div>
         </aside>
 
