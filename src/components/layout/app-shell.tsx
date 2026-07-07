@@ -40,6 +40,7 @@ type AppShellProps = {
 const navigationItems = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Facturas", href: "/invoices", icon: FileText },
+  { label: "Archivos", href: "/invoice-files", icon: Upload },
   { label: "Clientes", href: "/customers", icon: Users },
   { label: "Seguimientos", href: "/follow-ups", icon: Clock3 },
   { label: "Plantillas", href: "/templates", icon: Mail },
