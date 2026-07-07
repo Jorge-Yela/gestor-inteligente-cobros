@@ -68,7 +68,7 @@ export async function createInvoiceFromOcr(formData: FormData) {
   });
 
   if (existingInvoice) {
-    throw new Error("Ya existe una factura con ese numero");
+    redirect(`/invoice-files/${fileId}/review?error=duplicate-invoice`);
   }
 
   const amountCents = parseAmountToCents(amountValue);

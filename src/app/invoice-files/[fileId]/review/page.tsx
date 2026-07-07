@@ -10,7 +10,18 @@ type ReviewInvoiceFilePageProps = {
   params: Promise<{
     fileId: string;
   }>;
+  searchParams: Promise<{
+    error?: string;
+  }>;
 };
+
+function getErrorMessage(error?: string) {
+  const messages: Record<string, string> = {
+    "duplicate-invoice": "Ya existe una factura con ese numero. Puedes revisar el numero detectado por OCR antes de crear el seguimiento.",
+  };
+
+  return error ? messages[error] : null;
+}
 
 type ExtractedInvoiceData = {
   invoiceNumber?: string;
@@ -38,8 +49,10 @@ function formatAmountForInput(amountCents?: number) {
   return (amountCents / 100).toFixed(2);
 }
 
-export default async function ReviewInvoiceFilePage({ params }: ReviewInvoiceFilePageProps) {
+export default async function ReviewInvoiceFilePage({ params, searchParams }: ReviewInvoiceFilePageProps) {
   const { fileId } = await params;
+  const { error } = await searchParams;
+  const errorMessage = getErrorMessage(error);
   const organizationId = await getCurrentOrganizationId();
 
   const file = await prisma.invoiceFile.findFirst({
