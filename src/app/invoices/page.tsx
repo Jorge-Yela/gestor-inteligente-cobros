@@ -86,7 +86,7 @@ export default async function InvoicesPage() {
               <Link href="/invoice-files/upload">Subir PDF</Link>
             </Button>
             <Button asChild>
-              <Link href="/invoices/new">Registrar factura</Link>
+              <Link href="/invoices/new">Registrar manualmente</Link>
             </Button>
           </div>
         </div>

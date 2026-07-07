@@ -23,6 +23,7 @@ function getErrorMessage(error?: string) {
 }
 
 export default async function RegisterInvoicePage({ searchParams }: RegisterInvoicePageProps) {
+  const organizationId = await getCurrentOrganizationId();
   const { error } = await searchParams;
   const errorMessage = getErrorMessage(error);
 
@@ -42,7 +43,7 @@ export default async function RegisterInvoicePage({ searchParams }: RegisterInvo
           <Link href="/invoices" className="text-sm text-muted-foreground hover:text-foreground">
             Volver a facturas
           </Link>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight">Registrar factura</h1>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight">Registrar manualmente</h1>
           <p className="mt-2 text-muted-foreground">
             Esta plataforma no emite facturas. Solo registra facturas existentes para controlar su cobro.
           </p>
@@ -146,7 +147,7 @@ export default async function RegisterInvoicePage({ searchParams }: RegisterInvo
             <Button asChild variant="outline">
               <Link href="/invoices">Cancelar</Link>
             </Button>
-            <Button type="submit">Registrar factura</Button>
+            <Button type="submit">Registrar manualmente</Button>
           </div>
         </form>
       </div>
