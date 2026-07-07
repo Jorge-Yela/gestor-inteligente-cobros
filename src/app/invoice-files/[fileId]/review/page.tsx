@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { createInvoiceFromOcr } from "@/server/actions/create-invoice-from-ocr";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
@@ -76,7 +77,8 @@ export default async function ReviewInvoiceFilePage({ params }: ReviewInvoiceFil
               </p>
             </div>
 
-            <form className="grid gap-5 p-5 sm:grid-cols-2">
+            <form action={createInvoiceFromOcr} className="grid gap-5 p-5 sm:grid-cols-2">
+              <input type="hidden" name="fileId" value={file.id} />
               <div>
                 <label htmlFor="invoiceNumber" className="text-sm text-muted-foreground">
                   Numero de factura
@@ -165,7 +167,7 @@ export default async function ReviewInvoiceFilePage({ params }: ReviewInvoiceFil
               </div>
 
               <div className="sm:col-span-2">
-                <Button disabled>Crear seguimiento</Button>
+                <Button type="submit">Crear seguimiento</Button>
               </div>
             </form>
           </section>

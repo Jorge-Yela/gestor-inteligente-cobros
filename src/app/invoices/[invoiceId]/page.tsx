@@ -83,6 +83,7 @@ type InvoiceDetailPageProps = {
 };
 
 export default async function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
+  const organizationId = await getCurrentOrganizationId();
   const { invoiceId } = await params;
 
   const invoice = await prisma.invoice.findFirst({
