@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUserRole } from "@/lib/permissions/current-role";
+import { updateOrganizationSettings } from "@/server/actions/update-organization-settings";
 
 function formatRole(role: string) {
   const labels: Record<string, string> = {
@@ -61,24 +62,61 @@ export default async function SettingsPage() {
               </p>
             </div>
 
-            <dl className="grid gap-5 p-5 sm:grid-cols-2">
+            <form action={updateOrganizationSettings} className="grid gap-5 p-5 sm:grid-cols-2">
               <div>
-                <dt className="text-sm text-muted-foreground">Nombre</dt>
-                <dd className="mt-1 font-medium">{organization.name}</dd>
+                <label htmlFor="name" className="text-sm text-muted-foreground">
+                  Nombre
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  defaultValue={organization.name}
+                  className="mt-2 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
+                  required
+                />
               </div>
+
               <div>
-                <dt className="text-sm text-muted-foreground">NIF/CIF</dt>
-                <dd className="mt-1 font-medium">{organization.taxId || "No indicado"}</dd>
+                <label htmlFor="taxId" className="text-sm text-muted-foreground">
+                  NIF/CIF
+                </label>
+                <input
+                  id="taxId"
+                  name="taxId"
+                  defaultValue={organization.taxId || ""}
+                  className="mt-2 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
+                />
               </div>
+
               <div>
-                <dt className="text-sm text-muted-foreground">Email de facturacion</dt>
-                <dd className="mt-1 font-medium">{organization.billingEmail || "No indicado"}</dd>
+                <label htmlFor="billingEmail" className="text-sm text-muted-foreground">
+                  Email de facturacion
+                </label>
+                <input
+                  id="billingEmail"
+                  name="billingEmail"
+                  type="email"
+                  defaultValue={organization.billingEmail || ""}
+                  className="mt-2 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
+                />
               </div>
+
               <div>
-                <dt className="text-sm text-muted-foreground">Moneda</dt>
-                <dd className="mt-1 font-medium">{organization.defaultCurrency}</dd>
+                <span className="text-sm text-muted-foreground">Moneda</span>
+                <p className="mt-2 rounded-md border bg-muted/40 px-3 py-2 text-sm font-medium">
+                  {organization.defaultCurrency}
+                </p>
               </div>
-            </dl>
+
+              <div className="sm:col-span-2">
+                <button
+                  type="submit"
+                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+                >
+                  Guardar cambios
+                </button>
+              </div>
+            </form>
           </section>
 
           <aside className="rounded-lg border bg-card p-5 shadow-sm">
