@@ -6,6 +6,7 @@ import { renderTemplate } from "@/modules/templates/render-template";
 
 import { Button } from "@/components/ui/button";
 import { createClaimDraft } from "@/server/actions/create-claim-draft";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -42,7 +43,7 @@ export default async function ClaimPreviewPage({ params }: ClaimPreviewPageProps
   const invoice = await prisma.invoice.findFirst({
     where: {
       id: invoiceId,
-      organizationId: "demo-organization",
+      organizationId,
     },
     include: {
       customer: true,
@@ -55,7 +56,7 @@ export default async function ClaimPreviewPage({ params }: ClaimPreviewPageProps
 
   const template = await prisma.template.findFirst({
     where: {
-      organizationId: "demo-organization",
+      organizationId,
       isDefault: true,
     },
   });

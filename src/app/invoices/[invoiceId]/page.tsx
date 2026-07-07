@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { addInvoiceNote } from "@/server/actions/add-invoice-note";
 import { markInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
 import { updateInvoiceControlDate } from "@/server/actions/update-invoice-control-date";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -87,7 +88,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
   const invoice = await prisma.invoice.findFirst({
     where: {
       id: invoiceId,
-      organizationId: "demo-organization",
+      organizationId,
     },
     include: {
       customer: true,

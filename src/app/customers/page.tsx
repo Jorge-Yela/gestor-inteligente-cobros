@@ -4,6 +4,7 @@ import { PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -15,9 +16,11 @@ function formatAmount(amountCents: number) {
 }
 
 export default async function CustomersPage() {
+  const organizationId = await getCurrentOrganizationId();
+
   const customers = await prisma.customer.findMany({
     where: {
-      organizationId: "demo-organization",
+      organizationId,
     },
     orderBy: {
       name: "asc",

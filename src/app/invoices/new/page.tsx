@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { registerInvoice } from "@/server/actions/register-invoice";
 
 import { Button } from "@/components/ui/button";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 type RegisterInvoicePageProps = {
   searchParams: Promise<{
@@ -27,7 +28,7 @@ export default async function RegisterInvoicePage({ searchParams }: RegisterInvo
 
   const customers = await prisma.customer.findMany({
     where: {
-      organizationId: "demo-organization",
+      organizationId,
     },
     orderBy: {
       name: "asc",

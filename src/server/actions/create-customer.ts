@@ -5,8 +5,10 @@ import { redirect } from "next/navigation";
 
 import { createCustomerSchema } from "@/modules/customers/schemas/customer.schema";
 import { prisma } from "@/lib/db/prisma";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 export async function createCustomer(formData: FormData) {
+  const organizationId = await getCurrentOrganizationId();
   const result = createCustomerSchema.safeParse({
     name: formData.get("name"),
     taxId: formData.get("taxId"),
@@ -22,7 +24,7 @@ export async function createCustomer(formData: FormData) {
 
   await prisma.customer.create({
     data: {
-      organizationId: "demo-organization",
+      organizationId,
       name: result.data.name,
       taxId: result.data.taxId,
       contactName: result.data.contactName,

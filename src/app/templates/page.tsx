@@ -4,6 +4,7 @@ import { TemplateTone } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 function formatTone(tone: TemplateTone) {
   const labels: Record<TemplateTone, string> = {
@@ -16,9 +17,11 @@ function formatTone(tone: TemplateTone) {
 }
 
 export default async function TemplatesPage() {
+  const organizationId = await getCurrentOrganizationId();
+
   const templates = await prisma.template.findMany({
     where: {
-      organizationId: "demo-organization",
+      organizationId,
     },
     orderBy: {
       createdAt: "asc",

@@ -5,8 +5,10 @@ import { redirect } from "next/navigation";
 
 import { TimelineEventType } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 export async function createClaimDraft(formData: FormData) {
+  const organizationId = await getCurrentOrganizationId();
   const invoiceId = String(formData.get("invoiceId") || "");
   const templateId = String(formData.get("templateId") || "");
   const subject = String(formData.get("subject") || "").trim();
@@ -23,7 +25,7 @@ export async function createClaimDraft(formData: FormData) {
   const invoice = await prisma.invoice.findFirst({
     where: {
       id: invoiceId,
-      organizationId: "demo-organization",
+      organizationId,
     },
   });
 

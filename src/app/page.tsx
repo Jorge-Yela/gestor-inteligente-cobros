@@ -2,6 +2,7 @@ import { InvoiceStatus, PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
 import { AppShell } from "@/components/layout/app-shell";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -26,9 +27,11 @@ function formatInvoiceStatus(status: InvoiceStatus) {
 }
 
 export default async function Home() {
+  const organizationId = await getCurrentOrganizationId();
+
   const organization = await prisma.organization.findFirst({
     where: {
-      id: "demo-organization",
+      id: organizationId,
     },
     include: {
       invoices: {

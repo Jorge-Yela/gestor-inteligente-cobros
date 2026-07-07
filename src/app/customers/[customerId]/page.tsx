@@ -5,6 +5,7 @@ import { InvoiceStatus, PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -64,7 +65,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
   const customer = await prisma.customer.findFirst({
     where: {
       id: customerId,
-      organizationId: "demo-organization",
+      organizationId,
     },
     include: {
       invoices: {

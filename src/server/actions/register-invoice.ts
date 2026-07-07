@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { InvoiceStatus, PaymentStatus, TimelineEventType } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 import { registerInvoiceSchema } from "@/modules/invoices/schemas/invoice.schema";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 function parseOptionalDate(value: string | null) {
   if (!value) {
@@ -23,6 +24,7 @@ function parseAmountToCents(value: string) {
 }
 
 export async function registerInvoice(formData: FormData) {
+  const organizationId = await getCurrentOrganizationId();
   const result = registerInvoiceSchema.safeParse({
     customerId: formData.get("customerId"),
     invoiceNumber: formData.get("invoiceNumber"),
@@ -39,7 +41,7 @@ export async function registerInvoice(formData: FormData) {
   const customer = await prisma.customer.findFirst({
     where: {
       id: result.data.customerId,
-      organizationId: "demo-organization",
+      organizationId,
     },
   });
 
@@ -50,7 +52,7 @@ export async function registerInvoice(formData: FormData) {
   const existingInvoice = await prisma.invoice.findUnique({
     where: {
       organizationId_invoiceNumber: {
-        organizationId: "demo-organization",
+        organizationId,
         invoiceNumber: result.data.invoiceNumber,
       },
     },
@@ -62,7 +64,7 @@ export async function registerInvoice(formData: FormData) {
 
   const invoice = await prisma.invoice.create({
     data: {
-      organizationId: "demo-organization",
+      organizationId,
       customerId: customer.id,
       invoiceNumber: result.data.invoiceNumber,
       amountCents: parseAmountToCents(result.data.amount),
@@ -73,7 +75,7 @@ export async function registerInvoice(formData: FormData) {
       notes: result.data.notes,
       timelineEvents: {
         create: {
-          organizationId: "demo-organization",
+          organizationId,
           type: TimelineEventType.INVOICE_CREATED,
           title: "Factura registrada para seguimiento",
           description: "Se registro una factura existente para controlar su cobro.",

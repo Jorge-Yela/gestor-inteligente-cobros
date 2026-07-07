@@ -4,6 +4,7 @@ import { PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -43,12 +44,14 @@ function addDays(date: Date, days: number) {
 }
 
 export default async function FollowUpsPage() {
+  const organizationId = await getCurrentOrganizationId();
+
   const today = startOfToday();
   const nextSevenDays = addDays(today, 7);
 
   const invoices = await prisma.invoice.findMany({
     where: {
-      organizationId: "demo-organization",
+      organizationId,
       paymentStatus: PaymentStatus.UNPAID,
     },
     orderBy: {

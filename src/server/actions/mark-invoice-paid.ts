@@ -5,8 +5,10 @@ import { redirect } from "next/navigation";
 
 import { InvoiceStatus, PaymentStatus, TimelineEventType } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 export async function markInvoiceAsPaid(formData: FormData) {
+  const organizationId = await getCurrentOrganizationId();
   const invoiceId = String(formData.get("invoiceId") || "");
 
   if (!invoiceId) {
@@ -16,7 +18,7 @@ export async function markInvoiceAsPaid(formData: FormData) {
   const invoice = await prisma.invoice.findFirst({
     where: {
       id: invoiceId,
-      organizationId: "demo-organization",
+      organizationId,
     },
   });
 

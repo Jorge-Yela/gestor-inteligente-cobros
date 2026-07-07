@@ -4,6 +4,7 @@ import { ClaimDraftStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 function formatStatus(status: ClaimDraftStatus) {
   const labels: Record<ClaimDraftStatus, string> = {
@@ -27,9 +28,11 @@ function formatDate(date: Date) {
 }
 
 export default async function ClaimDraftsPage() {
+  const organizationId = await getCurrentOrganizationId();
+
   const drafts = await prisma.claimDraft.findMany({
     where: {
-      organizationId: "demo-organization",
+      organizationId,
     },
     orderBy: {
       createdAt: "desc",
