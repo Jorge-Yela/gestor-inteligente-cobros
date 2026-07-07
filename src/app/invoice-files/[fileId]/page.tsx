@@ -138,8 +138,8 @@ export default async function InvoiceFileDetailPage({ params }: InvoiceFileDetai
                   Simular OCR
                 </Button>
               </form>
-              <Button disabled variant="outline" className="w-full">
-                Revisar datos
+              <Button asChild variant="outline" className="w-full">
+                <Link href={`/invoice-files/${file.id}/review`}>Revisar datos</Link>
               </Button>
             </div>
           </aside>
