@@ -75,10 +75,13 @@ export function AppShell({ stats, invoices }: AppShellProps) {
           </nav>
 
           <div className="space-y-1 border-t p-4">
-            <button className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-background hover:text-foreground">
+            <Link
+              href="/settings"
+              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-background hover:text-foreground"
+            >
               <Settings className="size-4" />
               Ajustes
-            </button>
+            </Link>
 
             <form action={signOutUser}>
               <button
