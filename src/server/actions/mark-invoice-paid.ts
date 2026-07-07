@@ -6,8 +6,15 @@ import { redirect } from "next/navigation";
 import { InvoiceStatus, PaymentStatus, TimelineEventType } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { canManageData, getCurrentUserRole } from "@/lib/permissions/current-role";
 
 export async function markInvoiceAsPaid(formData: FormData) {
+  const currentRole = await getCurrentUserRole();
+
+  if (!canManageData(currentRole)) {
+    throw new Error("No tienes permisos para realizar esta accion");
+  }
+
   const organizationId = await getCurrentOrganizationId();
   const invoiceId = String(formData.get("invoiceId") || "");
 

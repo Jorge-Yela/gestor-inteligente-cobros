@@ -7,6 +7,7 @@ import { InvoiceStatus, PaymentStatus, TimelineEventType } from "@/generated/pri
 import { prisma } from "@/lib/db/prisma";
 import { registerInvoiceSchema } from "@/modules/invoices/schemas/invoice.schema";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { canManageData, getCurrentUserRole } from "@/lib/permissions/current-role";
 
 function parseOptionalDate(value: string | null) {
   if (!value) {
@@ -24,6 +25,12 @@ function parseAmountToCents(value: string) {
 }
 
 export async function registerInvoice(formData: FormData) {
+  const currentRole = await getCurrentUserRole();
+
+  if (!canManageData(currentRole)) {
+    throw new Error("No tienes permisos para realizar esta accion");
+  }
+
   const organizationId = await getCurrentOrganizationId();
   const result = registerInvoiceSchema.safeParse({
     customerId: formData.get("customerId"),
