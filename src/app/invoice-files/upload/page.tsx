@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FileUp, ShieldCheck, WandSparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { createDemoInvoiceFile } from "@/server/actions/create-demo-invoice-file";
 
 export default function UploadInvoiceFilePage() {
   return (
@@ -34,8 +35,13 @@ export default function UploadInvoiceFilePage() {
               <p className="mt-2 max-w-xl text-sm text-muted-foreground">
                 La configuracion tecnica ya esta creada. Activaremos el selector real de PDF cuando añadamos las claves de UploadThing.
               </p>
-              <div className="mt-6">
+              <div className="mt-6 flex flex-col gap-2 sm:flex-row">
                 <Button disabled>Seleccionar PDF</Button>
+                <form action={createDemoInvoiceFile}>
+                  <Button type="submit" variant="outline">
+                    Crear PDF de prueba
+                  </Button>
+                </form>
               </div>
             </div>
           </div>
