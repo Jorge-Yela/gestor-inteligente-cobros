@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { InvoiceFileStatus } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
+import { simulateInvoiceFileOcr } from "@/server/actions/simulate-invoice-file-ocr";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
@@ -131,9 +132,12 @@ export default async function InvoiceFileDetailPage({ params }: InvoiceFileDetai
                   Ver PDF
                 </a>
               </Button>
-              <Button disabled variant="outline" className="w-full">
-                Lanzar OCR
-              </Button>
+              <form action={simulateInvoiceFileOcr}>
+                <input type="hidden" name="fileId" value={file.id} />
+                <Button type="submit" variant="outline" className="w-full">
+                  Simular OCR
+                </Button>
+              </form>
               <Button disabled variant="outline" className="w-full">
                 Revisar datos
               </Button>
