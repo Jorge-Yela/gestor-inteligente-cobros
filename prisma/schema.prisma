@@ -29,6 +29,14 @@ enum PaymentStatus {
   DISPUTED
 }
 
+enum InvoiceFileStatus {
+  UPLOADED
+  OCR_PENDING
+  OCR_PROCESSING
+  OCR_COMPLETED
+  OCR_FAILED
+}
+
 enum TimelineEventType {
   INVOICE_CREATED
   INVOICE_UPDATED
@@ -74,6 +82,7 @@ model Organization {
   members        OrganizationMember[]
   customers      Customer[]
   invoices       Invoice[]
+  invoiceFiles   InvoiceFile[]
   timelineEvents TimelineEvent[]
   templates      Template[]
   claimDrafts    ClaimDraft[]
@@ -133,6 +142,7 @@ model Invoice {
   organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   customer       Customer        @relation(fields: [customerId], references: [id], onDelete: Restrict)
   timelineEvents TimelineEvent[]
+  file           InvoiceFile?
   claimDrafts    ClaimDraft[]
 
   @@unique([organizationId, invoiceNumber])
@@ -203,5 +213,29 @@ model ClaimDraft {
   @@index([organizationId])
   @@index([invoiceId])
   @@index([customerId])
+  @@index([status])
+}
+
+
+model InvoiceFile {
+  id              String            @id @default(cuid())
+  organizationId  String
+  invoiceId       String?           @unique
+  fileName        String
+  fileUrl         String
+  fileKey         String?
+  mimeType        String            @default("application/pdf")
+  sizeBytes       Int?
+  status          InvoiceFileStatus @default(UPLOADED)
+  extractedText   String?
+  extractedData   Json?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoice      Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([invoiceId])
   @@index([status])
 }
