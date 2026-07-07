@@ -117,8 +117,22 @@ export default async function InvoiceFileDetailPage({ params }: InvoiceFileDetai
               </div>
               <div>
                 <dt className="text-sm text-muted-foreground">Factura asociada</dt>
-                <dd className="mt-1 font-medium">
-                  {file.invoice ? file.invoice.invoiceNumber : "Sin asociar"}
+                <dd className="mt-1 space-y-3">
+                  {file.invoice ? (
+                    <>
+                      <div>
+                        <p className="font-medium">{file.invoice.invoiceNumber}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {file.invoice.customer.name}
+                        </p>
+                      </div>
+                      <Button asChild size="sm" variant="outline">
+                        <Link href={`/invoices/${file.invoice.id}`}>Ver factura</Link>
+                      </Button>
+                    </>
+                  ) : (
+                    <span className="font-medium">Sin asociar</span>
+                  )}
                 </dd>
               </div>
             </dl>
