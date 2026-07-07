@@ -118,11 +118,16 @@ export default async function InvoiceFilesPage() {
                       </td>
                       <td className="px-5 py-4 text-muted-foreground">{formatDate(file.createdAt)}</td>
                       <td className="px-5 py-4">
-                        <Button asChild variant="outline" size="sm">
-                          <a href={file.fileUrl} target="_blank" rel="noreferrer">
-                            Ver PDF
-                          </a>
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/invoice-files/${file.id}`}>Ver detalle</Link>
+                          </Button>
+                          <Button asChild variant="outline" size="sm">
+                            <a href={file.fileUrl} target="_blank" rel="noreferrer">
+                              Ver PDF
+                            </a>
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
