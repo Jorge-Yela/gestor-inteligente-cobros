@@ -107,9 +107,9 @@ export function AppShell({ stats, invoices }: AppShellProps) {
                 <Bell className="size-4" />
               </Button>
               <Button asChild>
-                <Link href="/invoices/new">
+                <Link href="/invoice-files/upload">
                   <Upload className="size-4" />
-                  Registrar factura
+                  Subir PDF
                 </Link>
               </Button>
             </div>
