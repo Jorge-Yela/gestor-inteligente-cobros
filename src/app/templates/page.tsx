@@ -22,6 +22,7 @@ export default async function TemplatesPage() {
   const templates = await prisma.template.findMany({
     where: {
       organizationId,
+      archivedAt: null,
     },
     orderBy: {
       createdAt: "asc",

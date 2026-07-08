@@ -182,6 +182,7 @@ model Template {
   tone           TemplateTone @default(FRIENDLY)
   language       String       @default("es")
   isDefault      Boolean      @default(false)
+  archivedAt     DateTime?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
