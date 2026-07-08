@@ -42,7 +42,9 @@ export default async function TemplatesPage() {
             </p>
           </div>
 
-          <Button>Nueva plantilla</Button>
+          <Button asChild>
+            <Link href="/templates/new">Nueva plantilla</Link>
+          </Button>
         </div>
 
         <section className="grid gap-4 lg:grid-cols-3">
