@@ -9,6 +9,7 @@ import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
+import { completeFollowUpStep } from "@/server/actions/complete-follow-up-step";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -192,6 +193,14 @@ export default async function FollowUpsPage() {
                         <p className="mt-3 text-xs text-muted-foreground">
                           Fecha: {formatDate(step.dueDate)}
                         </p>
+                        {step.status === FollowUpStepStatus.PENDING ? (
+                          <form action={completeFollowUpStep} className="mt-4">
+                            <input type="hidden" name="stepId" value={step.id} />
+                            <Button type="submit" variant="outline" size="sm">
+                              Marcar hecho
+                            </Button>
+                          </form>
+                        ) : null}
                       </div>
                     ))}
                   </div>
