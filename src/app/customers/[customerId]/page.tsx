@@ -53,6 +53,13 @@ function formatPaymentStatus(status: PaymentStatus) {
   return labels[status];
 }
 
+function startOfToday() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return today;
+}
+
 type CustomerDetailPageProps = {
   params: Promise<{
     customerId: string;
@@ -60,6 +67,7 @@ type CustomerDetailPageProps = {
 };
 
 export default async function CustomerDetailPage({ params }: CustomerDetailPageProps) {
+  const organizationId = await getCurrentOrganizationId();
   const { customerId } = await params;
 
   const customer = await prisma.customer.findFirst({
@@ -87,6 +95,21 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
   const overdueCount = customer.invoices.filter(
     (invoice) => invoice.status === InvoiceStatus.OVERDUE,
   ).length;
+
+  const today = startOfToday();
+
+  const invoicesToClaim = customer.invoices.filter(
+    (invoice) =>
+      invoice.paymentStatus === PaymentStatus.UNPAID &&
+      invoice.dueDate &&
+      invoice.dueDate <= today,
+  );
+
+  const invoicesWithoutControlDate = customer.invoices.filter(
+    (invoice) =>
+      invoice.paymentStatus === PaymentStatus.UNPAID &&
+      !invoice.dueDate,
+  );
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -150,7 +173,61 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
             </article>
           </aside>
 
-          <section className="overflow-hidden rounded-lg border bg-card shadow-sm">
+          <section className="space-y-6">
+            <article className="rounded-lg border bg-card shadow-sm">
+              <div className="border-b px-5 py-4">
+                <h2 className="font-semibold">Recomendaciones de cobro</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Acciones sugeridas para este cliente. El usuario decide siempre que hacer.
+                </p>
+              </div>
+
+              <div className="grid gap-4 p-5 lg:grid-cols-2">
+                <div className="rounded-md border p-4">
+                  <p className="text-sm text-muted-foreground">Toca reclamar</p>
+                  <p className="mt-2 text-2xl font-semibold">{invoicesToClaim.length}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Facturas no cobradas con fecha de control vencida o para hoy.
+                  </p>
+                </div>
+
+                <div className="rounded-md border p-4">
+                  <p className="text-sm text-muted-foreground">Sin fecha de control</p>
+                  <p className="mt-2 text-2xl font-semibold">{invoicesWithoutControlDate.length}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Facturas pendientes que necesitan una fecha para organizar el seguimiento.
+                  </p>
+                </div>
+              </div>
+
+              <div className="border-t px-5 py-4">
+                {invoicesToClaim.length === 0 && invoicesWithoutControlDate.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No hay acciones urgentes recomendadas para este cliente.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {[...invoicesToClaim, ...invoicesWithoutControlDate].map((invoice) => (
+                      <div key={invoice.id} className="flex flex-col gap-3 rounded-md border p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-sm font-medium">{invoice.invoiceNumber}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {invoice.dueDate
+                              ? `Fecha de control: ${formatDate(invoice.dueDate)}`
+                              : "Necesita fecha de control"}
+                          </p>
+                        </div>
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/invoices/${invoice.id}`}>Revisar factura</Link>
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </article>
+
+            <article className="overflow-hidden rounded-lg border bg-card shadow-sm">
             <div className="border-b px-5 py-4">
               <h2 className="font-semibold">Facturas del cliente</h2>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -194,6 +271,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
                 </tbody>
               </table>
             </div>
+            </article>
           </section>
         </section>
       </div>
