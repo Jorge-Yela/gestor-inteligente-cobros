@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
 import { addInvoiceNote } from "@/server/actions/add-invoice-note";
+import { createFollowUpPlan } from "@/server/actions/create-follow-up-plan";
 import { markInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
 import { updateInvoiceControlDate } from "@/server/actions/update-invoice-control-date";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
@@ -104,6 +105,15 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
         },
       },
       file: true,
+      followUpPlan: {
+        include: {
+          steps: {
+            orderBy: {
+              dueDate: "asc",
+            },
+          },
+        },
+      },
     },
   });
 
@@ -223,6 +233,38 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                 <p className="mt-5 text-sm text-muted-foreground">
                   Esta factura no tiene ningun PDF asociado.
                 </p>
+              )}
+            </article>
+
+            <article className="rounded-lg border bg-card p-5 shadow-sm">
+              <h2 className="font-semibold">Plan de seguimiento</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Tareas internas para organizar el seguimiento. No se envia nada automaticamente.
+              </p>
+
+              {invoice.followUpPlan ? (
+                <div className="mt-5 space-y-3">
+                  {invoice.followUpPlan.steps.map((step) => (
+                    <div key={step.id} className="rounded-md border p-4">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="text-sm font-medium">{step.title}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {step.notes || "Sin notas"}
+                          </p>
+                        </div>
+                        <span className="w-fit rounded-md border px-2.5 py-1 text-xs font-medium">
+                          {step.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <form action={createFollowUpPlan} className="mt-5">
+                  <input type="hidden" name="invoiceId" value={invoice.id} />
+                  <Button type="submit">Crear plan de seguimiento</Button>
+                </form>
               )}
             </article>
 
