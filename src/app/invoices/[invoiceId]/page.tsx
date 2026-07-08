@@ -363,6 +363,40 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
             </article>
 
             <article className="rounded-lg border bg-card p-5 shadow-sm">
+              <h2 className="font-semibold">Reclamaciones realizadas</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Historial de reclamaciones preparadas o registradas para esta factura.
+              </p>
+
+              <div className="mt-5 space-y-4">
+                {invoice.claimDrafts.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Todavia no hay reclamaciones preparadas para esta factura.
+                  </p>
+                ) : (
+                  invoice.claimDrafts.map((draft) => (
+                    <div key={draft.id} className="rounded-md border p-4">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="text-sm font-medium">{draft.subject}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Preparada el {formatDate(draft.createdAt)}
+                          </p>
+                        </div>
+                        <span className="w-fit rounded-md border px-2.5 py-1 text-xs font-medium">
+                          {draft.status === "SENT" ? "Enviada" : "Preparada"}
+                        </span>
+                      </div>
+                      <p className="mt-4 line-clamp-4 whitespace-pre-line text-sm leading-6 text-muted-foreground">
+                        {draft.body}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </article>
+
+            <article className="rounded-lg border bg-card p-5 shadow-sm">
               <h2 className="font-semibold">Borradores de reclamacion</h2>
               <div className="mt-5 space-y-4">
                 {invoice.claimDrafts.length === 0 ? (
