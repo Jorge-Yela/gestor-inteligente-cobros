@@ -1,8 +1,4 @@
 import Link from "next/link";
-import { LogOut } from "lucide-react";
-
-import { signOutUser } from "@/server/actions/sign-out";
-
 import {
   BarChart3,
   Bell,
@@ -11,6 +7,7 @@ import {
   Clock3,
   FileText,
   LayoutDashboard,
+  LogOut,
   Mail,
   Settings,
   Upload,
@@ -18,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { signOutUser } from "@/server/actions/sign-out";
 
 type DashboardStat = {
   label: string;
@@ -25,16 +23,36 @@ type DashboardStat = {
   detail: string;
 };
 
+type DashboardQuickLink = {
+  label: string;
+  value: string;
+  detail: string;
+  href: string;
+};
+
 type DashboardInvoice = {
+  id: string;
   customer: string;
   number: string;
   amount: string;
   status: string;
 };
 
+type DashboardEvent = {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  invoiceId: string | null;
+  invoiceNumber: string | null;
+  customerName: string | null;
+};
+
 type AppShellProps = {
   stats: DashboardStat[];
+  quickLinks: DashboardQuickLink[];
   invoices: DashboardInvoice[];
+  events: DashboardEvent[];
 };
 
 const navigationItems = [
@@ -49,7 +67,7 @@ const navigationItems = [
   { label: "Estadisticas", href: "/customer-stats", icon: BarChart3 },
 ];
 
-export function AppShell({ stats, invoices }: AppShellProps) {
+export function AppShell({ stats, quickLinks, invoices, events }: AppShellProps) {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
@@ -129,49 +147,101 @@ export function AppShell({ stats, invoices }: AppShellProps) {
               ))}
             </section>
 
-            <section className="grid gap-6 xl:grid-cols-[1fr_360px]">
+            <section className="grid gap-4 md:grid-cols-4">
+              {quickLinks.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="rounded-lg border bg-card p-5 shadow-sm transition hover:border-foreground/30"
+                >
+                  <p className="text-sm text-muted-foreground">{item.label}</p>
+                  <p className="mt-3 text-2xl font-semibold">{item.value}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{item.detail}</p>
+                </Link>
+              ))}
+            </section>
+
+            <section className="grid gap-6 xl:grid-cols-[1fr_380px]">
               <article className="rounded-lg border bg-card shadow-sm">
-                <div className="border-b p-5">
-                  <h2 className="font-semibold">Facturas en seguimiento</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Datos leidos desde PostgreSQL mediante Prisma.
-                  </p>
+                <div className="flex items-center justify-between gap-3 border-b p-5">
+                  <div>
+                    <h2 className="font-semibold">Facturas en seguimiento</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Ultimas facturas controladas por la plataforma.
+                    </p>
+                  </div>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/invoices">Ver todas</Link>
+                  </Button>
                 </div>
 
-                <div className="divide-y">
-                  {invoices.map((invoice) => (
-                    <div key={invoice.number} className="grid gap-3 p-5 md:grid-cols-[1fr_auto_auto] md:items-center">
-                      <div>
-                        <p className="font-medium">{invoice.customer}</p>
-                        <p className="text-sm text-muted-foreground">{invoice.number}</p>
-                      </div>
-                      <p className="font-medium">{invoice.amount}</p>
-                      <span className="w-fit rounded-md border px-2.5 py-1 text-xs font-medium">
-                        {invoice.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                {invoices.length === 0 ? (
+                  <p className="p-5 text-sm text-muted-foreground">
+                    Todavia no hay facturas en seguimiento.
+                  </p>
+                ) : (
+                  <div className="divide-y">
+                    {invoices.map((invoice) => (
+                      <Link
+                        key={invoice.id}
+                        href={`/invoices/${invoice.id}`}
+                        className="grid gap-3 p-5 transition hover:bg-muted/40 md:grid-cols-[1fr_auto_auto] md:items-center"
+                      >
+                        <div>
+                          <p className="font-medium">{invoice.customer}</p>
+                          <p className="text-sm text-muted-foreground">{invoice.number}</p>
+                        </div>
+                        <p className="font-medium">{invoice.amount}</p>
+                        <span className="w-fit rounded-md border px-2.5 py-1 text-xs font-medium">
+                          {invoice.status}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </article>
 
-              <article className="rounded-lg border bg-card p-5 shadow-sm">
-                <h2 className="font-semibold">Tareas de hoy</h2>
-                <div className="mt-5 space-y-4">
-                  <div className="flex gap-3">
-                    <CheckCircle2 className="mt-0.5 size-5 text-emerald-600" />
-                    <div>
-                      <p className="text-sm font-medium">Revisar OCR pendiente</p>
-                      <p className="text-sm text-muted-foreground">2 facturas necesitan confirmacion.</p>
-                    </div>
+              <article className="rounded-lg border bg-card shadow-sm">
+                <div className="flex items-center justify-between gap-3 border-b p-5">
+                  <div>
+                    <h2 className="font-semibold">Actividad reciente</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Ultimas actuaciones registradas.
+                    </p>
                   </div>
-                  <div className="flex gap-3">
-                    <Clock3 className="mt-0.5 size-5 text-amber-600" />
-                    <div>
-                      <p className="text-sm font-medium">Preparar reclamacion</p>
-                      <p className="text-sm text-muted-foreground">Alba Consulting vence hoy.</p>
-                    </div>
-                  </div>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/timeline">Ver todo</Link>
+                  </Button>
                 </div>
+
+                {events.length === 0 ? (
+                  <p className="p-5 text-sm text-muted-foreground">
+                    Todavia no hay actividad registrada.
+                  </p>
+                ) : (
+                  <div className="divide-y">
+                    {events.map((event) => (
+                      <div key={event.id} className="p-5">
+                        <div className="flex gap-3">
+                          <CheckCircle2 className="mt-0.5 size-5 text-emerald-600" />
+                          <div>
+                            <p className="text-sm font-medium">{event.title}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">{event.date}</p>
+                            <p className="mt-2 text-sm text-muted-foreground">{event.description}</p>
+                            {event.invoiceId ? (
+                              <Link
+                                href={`/invoices/${event.invoiceId}`}
+                                className="mt-3 inline-flex text-sm font-medium hover:underline"
+                              >
+                                {event.invoiceNumber} · {event.customerName}
+                              </Link>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </article>
             </section>
           </div>
