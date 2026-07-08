@@ -75,6 +75,9 @@ export default async function TemplatesPage() {
                     {template.body}
                   </p>
                 </div>
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/templates/${template.id}`}>Editar</Link>
+                </Button>
               </div>
             </article>
           ))}
