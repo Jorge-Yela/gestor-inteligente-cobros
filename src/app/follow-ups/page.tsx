@@ -11,6 +11,7 @@ import { prisma } from "@/lib/db/prisma";
 import { Button } from "@/components/ui/button";
 import { completeFollowUpStep } from "@/server/actions/complete-follow-up-step";
 import { reopenFollowUpStep } from "@/server/actions/reopen-follow-up-step";
+import { updateFollowUpPlanStatus } from "@/server/actions/update-follow-up-plan-status";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -174,9 +175,41 @@ export default async function FollowUpsPage() {
                       </p>
                     </div>
 
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/invoices/${plan.invoice.id}`}>Ver factura</Link>
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/invoices/${plan.invoice.id}`}>Ver factura</Link>
+                      </Button>
+
+                      {plan.status === FollowUpPlanStatus.ACTIVE ? (
+                        <form action={updateFollowUpPlanStatus}>
+                          <input type="hidden" name="planId" value={plan.id} />
+                          <input type="hidden" name="status" value={FollowUpPlanStatus.PAUSED} />
+                          <Button type="submit" variant="outline" size="sm">
+                            Pausar
+                          </Button>
+                        </form>
+                      ) : null}
+
+                      {plan.status === FollowUpPlanStatus.PAUSED ? (
+                        <form action={updateFollowUpPlanStatus}>
+                          <input type="hidden" name="planId" value={plan.id} />
+                          <input type="hidden" name="status" value={FollowUpPlanStatus.ACTIVE} />
+                          <Button type="submit" variant="outline" size="sm">
+                            Reactivar
+                          </Button>
+                        </form>
+                      ) : null}
+
+                      {plan.status !== FollowUpPlanStatus.CANCELLED ? (
+                        <form action={updateFollowUpPlanStatus}>
+                          <input type="hidden" name="planId" value={plan.id} />
+                          <input type="hidden" name="status" value={FollowUpPlanStatus.CANCELLED} />
+                          <Button type="submit" variant="outline" size="sm">
+                            Cancelar
+                          </Button>
+                        </form>
+                      ) : null}
+                    </div>
                   </div>
 
                   <div className="mt-5 grid gap-3 lg:grid-cols-3">
