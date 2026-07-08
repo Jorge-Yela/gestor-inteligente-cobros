@@ -10,6 +10,7 @@ import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
 import { completeFollowUpStep } from "@/server/actions/complete-follow-up-step";
+import { reopenFollowUpStep } from "@/server/actions/reopen-follow-up-step";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -200,7 +201,14 @@ export default async function FollowUpsPage() {
                               Marcar hecho
                             </Button>
                           </form>
-                        ) : null}
+                        ) : (
+                          <form action={reopenFollowUpStep} className="mt-4">
+                            <input type="hidden" name="stepId" value={step.id} />
+                            <Button type="submit" variant="outline" size="sm">
+                              Reabrir
+                            </Button>
+                          </form>
+                        )}
                       </div>
                     ))}
                   </div>
