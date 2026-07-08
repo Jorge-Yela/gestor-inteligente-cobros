@@ -42,6 +42,10 @@ export async function completeFollowUpStep(formData: FormData) {
     throw new Error("Follow up step not found");
   }
 
+  if (step.plan.status === FollowUpPlanStatus.CANCELLED) {
+    throw new Error("No se pueden modificar tareas de un plan cancelado");
+  }
+
   const remainingPendingSteps = await prisma.followUpStep.count({
     where: {
       planId: step.planId,

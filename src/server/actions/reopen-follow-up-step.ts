@@ -42,6 +42,10 @@ export async function reopenFollowUpStep(formData: FormData) {
     throw new Error("Follow up step not found");
   }
 
+  if (step.plan.status === FollowUpPlanStatus.CANCELLED) {
+    throw new Error("No se pueden modificar tareas de un plan cancelado");
+  }
+
   await prisma.$transaction([
     prisma.followUpStep.update({
       where: {

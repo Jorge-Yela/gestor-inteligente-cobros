@@ -329,21 +329,21 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                         </span>
                       </div>
 
-                      {step.status === FollowUpStepStatus.PENDING ? (
+                      {invoice.followUpPlan.status !== FollowUpPlanStatus.CANCELLED && step.status === FollowUpStepStatus.PENDING ? (
                         <form action={completeFollowUpStep} className="mt-4">
                           <input type="hidden" name="stepId" value={step.id} />
                           <Button type="submit" variant="outline" size="sm">
                             Marcar hecho
                           </Button>
                         </form>
-                      ) : (
+                      ) : invoice.followUpPlan.status !== FollowUpPlanStatus.CANCELLED ? (
                         <form action={reopenFollowUpStep} className="mt-4">
                           <input type="hidden" name="stepId" value={step.id} />
                           <Button type="submit" variant="outline" size="sm">
                             Reabrir
                           </Button>
                         </form>
-                      )}
+                      ) : null}
                     </div>
                   ))}
                 </div>

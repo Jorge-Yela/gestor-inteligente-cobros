@@ -227,21 +227,21 @@ export default async function FollowUpsPage() {
                         <p className="mt-3 text-xs text-muted-foreground">
                           Fecha: {formatDate(step.dueDate)}
                         </p>
-                        {step.status === FollowUpStepStatus.PENDING ? (
+                        {plan.status !== FollowUpPlanStatus.CANCELLED && step.status === FollowUpStepStatus.PENDING ? (
                           <form action={completeFollowUpStep} className="mt-4">
                             <input type="hidden" name="stepId" value={step.id} />
                             <Button type="submit" variant="outline" size="sm">
                               Marcar hecho
                             </Button>
                           </form>
-                        ) : (
+                        ) : plan.status !== FollowUpPlanStatus.CANCELLED ? (
                           <form action={reopenFollowUpStep} className="mt-4">
                             <input type="hidden" name="stepId" value={step.id} />
                             <Button type="submit" variant="outline" size="sm">
                               Reabrir
                             </Button>
                           </form>
-                        )}
+                        ) : null}
                       </div>
                     ))}
                   </div>
