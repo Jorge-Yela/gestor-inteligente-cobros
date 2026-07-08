@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import {
+  FollowUpPlanStatus,
   FollowUpStepStatus,
   TimelineEventType,
 } from "@/generated/prisma/enums";
@@ -41,6 +42,20 @@ export async function completeFollowUpStep(formData: FormData) {
     throw new Error("Follow up step not found");
   }
 
+  const remainingPendingSteps = await prisma.followUpStep.count({
+    where: {
+      planId: step.planId,
+      id: {
+        not: step.id,
+      },
+      status: {
+        not: FollowUpStepStatus.DONE,
+      },
+    },
+  });
+
+  const shouldCompletePlan = remainingPendingSteps === 0;
+
   await prisma.$transaction([
     prisma.followUpStep.update({
       where: {
@@ -50,12 +65,26 @@ export async function completeFollowUpStep(formData: FormData) {
         status: FollowUpStepStatus.DONE,
       },
     }),
+    ...(shouldCompletePlan
+      ? [
+          prisma.followUpPlan.update({
+            where: {
+              id: step.planId,
+            },
+            data: {
+              status: FollowUpPlanStatus.COMPLETED,
+            },
+          }),
+        ]
+      : []),
     prisma.timelineEvent.create({
       data: {
         organizationId,
         invoiceId: step.plan.invoiceId,
         type: TimelineEventType.INVOICE_UPDATED,
-        title: "Tarea de seguimiento completada",
+        title: shouldCompletePlan
+          ? "Plan de seguimiento completado"
+          : "Tarea de seguimiento completada",
         description: step.title,
       },
     }),

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import {
+  FollowUpPlanStatus,
   FollowUpStepStatus,
   TimelineEventType,
 } from "@/generated/prisma/enums";
@@ -48,6 +49,14 @@ export async function reopenFollowUpStep(formData: FormData) {
       },
       data: {
         status: FollowUpStepStatus.PENDING,
+      },
+    }),
+    prisma.followUpPlan.update({
+      where: {
+        id: step.planId,
+      },
+      data: {
+        status: FollowUpPlanStatus.ACTIVE,
       },
     }),
     prisma.timelineEvent.create({
