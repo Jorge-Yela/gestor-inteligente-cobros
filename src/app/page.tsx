@@ -26,7 +26,7 @@ function formatDate(date: Date) {
 function formatInvoiceStatus(status: InvoiceStatus) {
   const labels: Record<InvoiceStatus, string> = {
     PENDING_REVIEW: "Revision",
-    ACTIVE: "Seguimiento",
+    ACTIVE: "En control",
     OVERDUE: "Vencida",
     PAID: "Cobrada",
     CANCELLED: "Cancelada",
@@ -118,11 +118,17 @@ export default async function Home() {
     {
       label: "Clientes controlados",
       value: String(new Set(invoices.map((invoice) => invoice.customerId)).size),
-      detail: "Con facturas en seguimiento",
+      detail: "Con facturas controladas",
     },
   ];
 
   const quickLinks = [
+    {
+      label: "Clientes",
+      value: String(new Set(invoices.map((invoice) => invoice.customerId)).size),
+      detail: "Ver recomendaciones por cliente",
+      href: "/customers",
+    },
     {
       label: "PDF pendientes",
       value: String(pendingFileCount),
@@ -130,9 +136,9 @@ export default async function Home() {
       href: "/invoice-files",
     },
     {
-      label: "Borradores",
+      label: "Reclamaciones",
       value: String(draftCount),
-      detail: "Reclamaciones preparadas",
+      detail: "Preparadas o pendientes",
       href: "/claim-drafts",
     },
     {

@@ -4,7 +4,7 @@ import {
   Bell,
   Building2,
   CheckCircle2,
-  Clock3,
+  
   FileText,
   LayoutDashboard,
   LogOut,
@@ -61,7 +61,7 @@ const navigationItems = [
   { label: "Archivos", href: "/invoice-files", icon: Upload },
   { label: "Clientes", href: "/customers", icon: Users },
   { label: "Plantillas", href: "/templates", icon: Mail },
-  { label: "Borradores", href: "/claim-drafts", icon: BarChart3 },
+  { label: "Reclamaciones", href: "/claim-drafts", icon: BarChart3 },
   { label: "Cronologia", href: "/timeline", icon: Bell },
   { label: "Estadisticas", href: "/customer-stats", icon: BarChart3 },
 ];
@@ -164,9 +164,9 @@ export function AppShell({ stats, quickLinks, invoices, events }: AppShellProps)
               <article className="rounded-lg border bg-card shadow-sm">
                 <div className="flex items-center justify-between gap-3 border-b p-5">
                   <div>
-                    <h2 className="font-semibold">Facturas en seguimiento</h2>
+                    <h2 className="font-semibold">Facturas a revisar</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Ultimas facturas controladas por la plataforma.
+                      Facturas cargadas para controlar cobro y reclamaciones.
                     </p>
                   </div>
                   <Button asChild variant="outline" size="sm">
@@ -176,7 +176,7 @@ export function AppShell({ stats, quickLinks, invoices, events }: AppShellProps)
 
                 {invoices.length === 0 ? (
                   <p className="p-5 text-sm text-muted-foreground">
-                    Todavia no hay facturas en seguimiento.
+                    Todavia no hay facturas controladas.
                   </p>
                 ) : (
                   <div className="divide-y">
