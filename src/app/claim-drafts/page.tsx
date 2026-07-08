@@ -8,7 +8,7 @@ import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 function formatStatus(status: ClaimDraftStatus) {
   const labels: Record<ClaimDraftStatus, string> = {
-    DRAFT: "Borrador",
+    DRAFT: "Preparada",
     READY: "Listo",
     SENT: "Enviado",
     CANCELLED: "Cancelado",
@@ -51,23 +51,23 @@ export default async function ClaimDraftsPage() {
           <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
             Volver al dashboard
           </Link>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight">Borradores</h1>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight">Reclamaciones</h1>
           <p className="mt-2 text-muted-foreground">
-            Reclamaciones preparadas por el usuario. Ninguna se envia automaticamente.
+            Reclamaciones preparadas o registradas por el usuario. Ninguna se envia automaticamente.
           </p>
         </div>
 
         <section className="overflow-hidden rounded-lg border bg-card shadow-sm">
           <div className="border-b px-5 py-4">
-            <h2 className="font-semibold">Borradores de reclamacion</h2>
+            <h2 className="font-semibold">Reclamaciones registradas</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Vista global de comunicaciones preparadas.
+              Vista global de reclamaciones preparadas, listas, enviadas o canceladas.
             </p>
           </div>
 
           {drafts.length === 0 ? (
             <p className="px-5 py-5 text-sm text-muted-foreground">
-              Todavia no hay borradores guardados.
+              Todavia no hay reclamaciones registradas.
             </p>
           ) : (
             <div className="overflow-x-auto">
