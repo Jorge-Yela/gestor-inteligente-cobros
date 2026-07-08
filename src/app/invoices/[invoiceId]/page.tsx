@@ -1,13 +1,22 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { InvoiceStatus, PaymentStatus, TimelineEventType } from "@/generated/prisma/enums";
+import {
+  FollowUpPlanStatus,
+  FollowUpStepStatus,
+  InvoiceStatus,
+  PaymentStatus,
+  TimelineEventType,
+} from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
 import { addInvoiceNote } from "@/server/actions/add-invoice-note";
 import { createFollowUpPlan } from "@/server/actions/create-follow-up-plan";
 import { markInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
+import { completeFollowUpStep } from "@/server/actions/complete-follow-up-step";
+import { reopenFollowUpStep } from "@/server/actions/reopen-follow-up-step";
+import { updateFollowUpPlanStatus } from "@/server/actions/update-follow-up-plan-status";
 import { updateInvoiceControlDate } from "@/server/actions/update-invoice-control-date";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
@@ -75,6 +84,27 @@ function formatTimelineEventType(type: TimelineEventType) {
   };
 
   return labels[type];
+}
+
+function formatFollowUpPlanStatus(status: FollowUpPlanStatus) {
+  const labels: Record<FollowUpPlanStatus, string> = {
+    ACTIVE: "Activo",
+    PAUSED: "Pausado",
+    COMPLETED: "Completado",
+    CANCELLED: "Cancelado",
+  };
+
+  return labels[status];
+}
+
+function formatFollowUpStepStatus(status: FollowUpStepStatus) {
+  const labels: Record<FollowUpStepStatus, string> = {
+    PENDING: "Pendiente",
+    DONE: "Hecho",
+    SKIPPED: "Omitido",
+  };
+
+  return labels[status];
 }
 
 type InvoiceDetailPageProps = {
@@ -243,7 +273,48 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
               </p>
 
               {invoice.followUpPlan ? (
-                <div className="mt-5 space-y-3">
+                <div className="mt-5 space-y-4">
+                  <div className="flex flex-col gap-3 rounded-md border p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Estado del plan</p>
+                      <p className="mt-1 font-medium">
+                        {formatFollowUpPlanStatus(invoice.followUpPlan.status)}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {invoice.followUpPlan.status === FollowUpPlanStatus.ACTIVE ? (
+                        <form action={updateFollowUpPlanStatus}>
+                          <input type="hidden" name="planId" value={invoice.followUpPlan.id} />
+                          <input type="hidden" name="status" value={FollowUpPlanStatus.PAUSED} />
+                          <Button type="submit" variant="outline" size="sm">
+                            Pausar
+                          </Button>
+                        </form>
+                      ) : null}
+
+                      {invoice.followUpPlan.status === FollowUpPlanStatus.PAUSED ? (
+                        <form action={updateFollowUpPlanStatus}>
+                          <input type="hidden" name="planId" value={invoice.followUpPlan.id} />
+                          <input type="hidden" name="status" value={FollowUpPlanStatus.ACTIVE} />
+                          <Button type="submit" variant="outline" size="sm">
+                            Reactivar
+                          </Button>
+                        </form>
+                      ) : null}
+
+                      {invoice.followUpPlan.status !== FollowUpPlanStatus.CANCELLED ? (
+                        <form action={updateFollowUpPlanStatus}>
+                          <input type="hidden" name="planId" value={invoice.followUpPlan.id} />
+                          <input type="hidden" name="status" value={FollowUpPlanStatus.CANCELLED} />
+                          <Button type="submit" variant="outline" size="sm">
+                            Cancelar
+                          </Button>
+                        </form>
+                      ) : null}
+                    </div>
+                  </div>
+
                   {invoice.followUpPlan.steps.map((step) => (
                     <div key={step.id} className="rounded-md border p-4">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -254,9 +325,25 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                           </p>
                         </div>
                         <span className="w-fit rounded-md border px-2.5 py-1 text-xs font-medium">
-                          {step.status}
+                          {formatFollowUpStepStatus(step.status)}
                         </span>
                       </div>
+
+                      {step.status === FollowUpStepStatus.PENDING ? (
+                        <form action={completeFollowUpStep} className="mt-4">
+                          <input type="hidden" name="stepId" value={step.id} />
+                          <Button type="submit" variant="outline" size="sm">
+                            Marcar hecho
+                          </Button>
+                        </form>
+                      ) : (
+                        <form action={reopenFollowUpStep} className="mt-4">
+                          <input type="hidden" name="stepId" value={step.id} />
+                          <Button type="submit" variant="outline" size="sm">
+                            Reabrir
+                          </Button>
+                        </form>
+                      )}
                     </div>
                   ))}
                 </div>
