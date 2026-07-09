@@ -6,7 +6,6 @@ import { renderTemplate } from "@/modules/templates/render-template";
 
 import { Button } from "@/components/ui/button";
 import { createClaimDraft } from "@/server/actions/create-claim-draft";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",

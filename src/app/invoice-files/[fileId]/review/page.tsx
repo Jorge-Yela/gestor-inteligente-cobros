@@ -81,6 +81,12 @@ export default async function ReviewInvoiceFilePage({ params, searchParams }: Re
           </p>
         </div>
 
+        {errorMessage ? (
+          <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/10 px-5 py-4 text-sm text-destructive">
+            {errorMessage}
+          </div>
+        ) : null}
+
         <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
           <section className="rounded-lg border bg-card shadow-sm">
             <div className="border-b px-5 py-4">
