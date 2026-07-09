@@ -139,6 +139,7 @@ model Customer {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   invoices     Invoice[]
+  invoiceFiles InvoiceFile[]
   claimDrafts ClaimDraft[]
 
   @@index([organizationId])
@@ -245,6 +246,7 @@ model InvoiceFile {
   id              String            @id @default(cuid())
   organizationId  String
   invoiceId       String?           @unique
+  customerId      String?
   fileName        String
   fileUrl         String
   fileKey         String?
@@ -258,9 +260,11 @@ model InvoiceFile {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   invoice      Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  customer     Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([invoiceId])
+  @@index([customerId])
   @@index([status])
 }
 
