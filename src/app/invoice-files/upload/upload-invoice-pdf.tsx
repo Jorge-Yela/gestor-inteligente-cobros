@@ -4,12 +4,17 @@ import { useRouter } from "next/navigation";
 
 import { UploadDropzone } from "@/lib/uploadthing/client";
 
-export function UploadInvoicePdf() {
+type UploadInvoicePdfProps = {
+  customerId?: string;
+};
+
+export function UploadInvoicePdf({ customerId }: UploadInvoicePdfProps) {
   const router = useRouter();
 
   return (
     <UploadDropzone
       endpoint="invoicePdf"
+      input={customerId ? { customerId } : undefined}
       onClientUploadComplete={() => {
         router.push("/invoice-files");
         router.refresh();

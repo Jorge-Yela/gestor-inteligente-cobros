@@ -125,7 +125,12 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
             </p>
           </div>
 
-          <Button>Editar cliente</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild>
+              <Link href={`/invoice-files/upload?customerId=${customer.id}`}>Subir factura</Link>
+            </Button>
+            <Button variant="outline">Editar cliente</Button>
+          </div>
         </div>
 
         <section className="grid gap-6 lg:grid-cols-[360px_1fr]">

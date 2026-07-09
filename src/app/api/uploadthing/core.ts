@@ -1,4 +1,5 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
+import { z } from "zod";
 
 import { InvoiceFileStatus } from "@/generated/prisma/enums";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
@@ -14,7 +15,12 @@ export const uploadRouter = {
       maxFileCount: 1,
     },
   })
-    .middleware(async () => {
+    .input(
+      z.object({
+        customerId: z.string().optional(),
+      }),
+    )
+    .middleware(async ({ input }) => {
       const role = await getCurrentUserRole();
 
       if (!canManageData(role)) {
@@ -23,14 +29,36 @@ export const uploadRouter = {
 
       const organizationId = await getCurrentOrganizationId();
 
+      let customerId: string | undefined;
+
+      if (input.customerId) {
+        const customer = await prisma.customer.findFirst({
+          where: {
+            id: input.customerId,
+            organizationId,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        if (!customer) {
+          throw new Error("Cliente no encontrado");
+        }
+
+        customerId = customer.id;
+      }
+
       return {
         organizationId,
+        customerId,
       };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       await prisma.invoiceFile.create({
         data: {
           organizationId: metadata.organizationId,
+          customerId: metadata.customerId,
           fileName: file.name,
           fileUrl: file.ufsUrl,
           fileKey: file.key,

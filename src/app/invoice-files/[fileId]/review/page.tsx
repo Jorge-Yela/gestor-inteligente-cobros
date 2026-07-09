@@ -17,7 +17,7 @@ type ReviewInvoiceFilePageProps = {
 
 function getErrorMessage(error?: string) {
   const messages: Record<string, string> = {
-    "duplicate-invoice": "Ya existe una factura con ese numero. Puedes revisar el numero detectado por OCR antes de crear el seguimiento.",
+    "duplicate-invoice": "Ya existe una factura con ese numero. Puedes revisar el numero detectado por OCR antes de registrar la factura.",
   };
 
   return error ? messages[error] : null;
@@ -60,6 +60,9 @@ export default async function ReviewInvoiceFilePage({ params, searchParams }: Re
       id: fileId,
       organizationId,
     },
+    include: {
+      customer: true,
+    },
   });
 
   if (!file) {
@@ -77,7 +80,7 @@ export default async function ReviewInvoiceFilePage({ params, searchParams }: Re
           </Link>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight">Revisar datos OCR</h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            Confirma o corrige los datos extraidos antes de crear el seguimiento. Nada se reclama ni se envia automaticamente.
+            Confirma o corrige los datos extraidos antes de registrar la factura. Nada se reclama ni se envia automaticamente.
           </p>
         </div>
 
@@ -130,7 +133,7 @@ export default async function ReviewInvoiceFilePage({ params, searchParams }: Re
                 <input
                   id="customerName"
                   name="customerName"
-                  defaultValue={extractedData.customerName || ""}
+                  defaultValue={file.customer?.name || extractedData.customerName || ""}
                   className="mt-2 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
                 />
               </div>
@@ -142,7 +145,7 @@ export default async function ReviewInvoiceFilePage({ params, searchParams }: Re
                 <input
                   id="customerTaxId"
                   name="customerTaxId"
-                  defaultValue={extractedData.customerTaxId || ""}
+                  defaultValue={file.customer?.taxId || extractedData.customerTaxId || ""}
                   className="mt-2 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
                 />
               </div>
@@ -155,7 +158,7 @@ export default async function ReviewInvoiceFilePage({ params, searchParams }: Re
                   id="customerEmail"
                   name="customerEmail"
                   type="email"
-                  defaultValue={extractedData.customerEmail || ""}
+                  defaultValue={file.customer?.email || extractedData.customerEmail || ""}
                   className="mt-2 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
                 />
               </div>
@@ -186,7 +189,7 @@ export default async function ReviewInvoiceFilePage({ params, searchParams }: Re
               </div>
 
               <div className="sm:col-span-2">
-                <Button type="submit">Crear seguimiento</Button>
+                <Button type="submit">Registrar factura</Button>
               </div>
             </form>
           </section>

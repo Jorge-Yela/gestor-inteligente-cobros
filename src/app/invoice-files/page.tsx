@@ -61,7 +61,7 @@ export default async function InvoiceFilesPage() {
             </Link>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight">Archivos subidos</h1>
             <p className="mt-2 text-muted-foreground">
-              PDFs de facturas existentes preparados para OCR y seguimiento.
+              PDFs de facturas existentes preparados para OCR y registro.
             </p>
           </div>
 

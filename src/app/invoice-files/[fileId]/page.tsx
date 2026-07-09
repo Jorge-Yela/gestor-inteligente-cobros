@@ -77,7 +77,7 @@ export default async function InvoiceFileDetailPage({ params }: InvoiceFileDetai
           </Link>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight">{file.fileName}</h1>
           <p className="mt-2 text-muted-foreground">
-            Archivo PDF recibido para preparar OCR, revision y seguimiento.
+            Archivo PDF recibido para preparar OCR, revision y registro.
           </p>
         </div>
 

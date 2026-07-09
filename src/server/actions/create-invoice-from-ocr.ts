@@ -27,7 +27,7 @@ export async function createInvoiceFromOcr(formData: FormData) {
   const currentRole = await getCurrentUserRole();
 
   if (!canManageData(currentRole)) {
-    throw new Error("No tienes permisos para crear seguimientos");
+    throw new Error("No tienes permisos para registrar facturas");
   }
 
   const organizationId = await getCurrentOrganizationId();
@@ -45,8 +45,8 @@ export async function createInvoiceFromOcr(formData: FormData) {
     throw new Error("File id is required");
   }
 
-  if (!invoiceNumber || !customerName || !amountValue) {
-    throw new Error("Faltan datos obligatorios para crear el seguimiento");
+  if (!invoiceNumber || !amountValue) {
+    throw new Error("Faltan datos obligatorios para registrar la factura");
   }
 
   const file = await prisma.invoiceFile.findFirst({
@@ -75,22 +75,33 @@ export async function createInvoiceFromOcr(formData: FormData) {
   const issueDate = issueDateValue ? new Date(`${issueDateValue}T00:00:00.000Z`) : null;
 
   const invoice = await prisma.$transaction(async (tx) => {
-    const customer = await tx.customer.upsert({
-      where: {
-        id: await findExistingCustomerId(organizationId, customerTaxId, customerEmail),
-      },
-      update: {
-        name: customerName,
-        taxId: customerTaxId || null,
-        email: customerEmail || null,
-      },
-      create: {
-        organizationId,
-        name: customerName,
-        taxId: customerTaxId || null,
-        email: customerEmail || null,
-      },
-    });
+    const customer = file.customerId
+      ? await tx.customer.findFirst({
+          where: {
+            id: file.customerId,
+            organizationId,
+          },
+        })
+      : await tx.customer.upsert({
+          where: {
+            id: await findExistingCustomerId(organizationId, customerTaxId, customerEmail),
+          },
+          update: {
+            name: customerName,
+            taxId: customerTaxId || null,
+            email: customerEmail || null,
+          },
+          create: {
+            organizationId,
+            name: customerName,
+            taxId: customerTaxId || null,
+            email: customerEmail || null,
+          },
+        });
+
+    if (!customer) {
+      throw new Error("Cliente no encontrado");
+    }
 
     const createdInvoice = await tx.invoice.create({
       data: {
@@ -102,7 +113,7 @@ export async function createInvoiceFromOcr(formData: FormData) {
         currency,
         status: InvoiceStatus.PENDING_REVIEW,
         paymentStatus: PaymentStatus.UNPAID,
-        notes: "Seguimiento creado desde revision OCR.",
+        notes: "Factura registrada desde revision OCR.",
       },
     });
 
@@ -112,6 +123,7 @@ export async function createInvoiceFromOcr(formData: FormData) {
       },
       data: {
         invoiceId: createdInvoice.id,
+        customerId: customer.id,
       },
     });
 
@@ -120,8 +132,8 @@ export async function createInvoiceFromOcr(formData: FormData) {
         organizationId,
         invoiceId: createdInvoice.id,
         type: TimelineEventType.INVOICE_CREATED,
-        title: "Seguimiento creado desde OCR",
-        description: "El usuario reviso los datos OCR y creo el seguimiento de la factura.",
+        title: "Factura registrada desde OCR",
+        description: "El usuario reviso los datos OCR y registro la factura.",
       },
     });
 
@@ -131,6 +143,7 @@ export async function createInvoiceFromOcr(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/invoices");
   revalidatePath("/invoice-files");
+  revalidatePath(`/customers/${invoice.customerId}`);
   revalidatePath(`/invoice-files/${file.id}`);
   revalidatePath(`/invoice-files/${file.id}/review`);
 
@@ -157,3 +170,4 @@ async function findExistingCustomerId(
 
   return customer?.id || "__create_new_customer__";
 }
+
