@@ -3,6 +3,7 @@ import { FileUp, ShieldCheck, WandSparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { createDemoInvoiceFile } from "@/server/actions/create-demo-invoice-file";
+import { UploadInvoicePdf } from "@/app/invoice-files/upload/upload-invoice-pdf";
 
 export default function UploadInvoiceFilePage() {
   return (
@@ -26,23 +27,15 @@ export default function UploadInvoiceFilePage() {
             </p>
           </div>
 
-          <div className="p-5">
-            <div className="flex min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed bg-muted/30 px-6 py-10 text-center">
-              <div className="flex size-14 items-center justify-center rounded-lg border bg-background">
-                <FileUp className="size-6 text-muted-foreground" />
-              </div>
-              <h3 className="mt-5 text-lg font-semibold">Subida preparada</h3>
-              <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-                La configuracion tecnica ya esta creada. Activaremos el selector real de PDF cuando añadamos las claves de UploadThing.
-              </p>
-              <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-                <Button disabled>Seleccionar PDF</Button>
-                <form action={createDemoInvoiceFile}>
-                  <Button type="submit" variant="outline">
-                    Crear PDF de prueba
-                  </Button>
-                </form>
-              </div>
+          <div className="space-y-5 p-5">
+            <UploadInvoicePdf />
+
+            <div className="flex justify-center">
+              <form action={createDemoInvoiceFile}>
+                <Button type="submit" variant="outline">
+                  Crear PDF de prueba
+                </Button>
+              </form>
             </div>
           </div>
         </section>
