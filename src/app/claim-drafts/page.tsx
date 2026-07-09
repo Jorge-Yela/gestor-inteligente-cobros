@@ -4,6 +4,7 @@ import { ClaimDraftStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
+import { markClaimAsSent } from "@/server/actions/mark-claim-as-sent";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 function formatStatus(status: ClaimDraftStatus) {
@@ -99,9 +100,20 @@ export default async function ClaimDraftsPage() {
                       </td>
                       <td className="px-5 py-4 text-muted-foreground">{formatDate(draft.createdAt)}</td>
                       <td className="px-5 py-4">
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/invoices/${draft.invoiceId}`}>Ver factura</Link>
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/invoices/${draft.invoiceId}`}>Ver factura</Link>
+                          </Button>
+
+                          {draft.status !== ClaimDraftStatus.SENT ? (
+                            <form action={markClaimAsSent}>
+                              <input type="hidden" name="claimId" value={draft.id} />
+                              <Button type="submit" variant="outline" size="sm">
+                                Marcar enviada
+                              </Button>
+                            </form>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   ))}
