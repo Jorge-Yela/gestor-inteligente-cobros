@@ -56,6 +56,7 @@ export default async function InvoiceFileDetailPage({ params }: InvoiceFileDetai
       organizationId,
     },
     include: {
+      customer: true,
       invoice: {
         include: {
           customer: true,
@@ -114,6 +115,12 @@ export default async function InvoiceFileDetailPage({ params }: InvoiceFileDetai
               <div>
                 <dt className="text-sm text-muted-foreground">Tipo</dt>
                 <dd className="mt-1 font-medium">{file.mimeType}</dd>
+              </div>
+              <div>
+                <dt className="text-sm text-muted-foreground">Cliente asociado</dt>
+                <dd className="mt-1 font-medium">
+                  {file.customer ? file.customer.name : "Sin cliente asociado"}
+                </dd>
               </div>
               <div>
                 <dt className="text-sm text-muted-foreground">Factura asociada</dt>
