@@ -151,6 +151,8 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
     notFound();
   }
 
+  const followUpPlan = invoice.followUpPlan;
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-6xl px-6 py-8">
@@ -272,20 +274,20 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                 Tareas internas para organizar el seguimiento. No se envia nada automaticamente.
               </p>
 
-              {invoice.followUpPlan ? (
+              {followUpPlan ? (
                 <div className="mt-5 space-y-4">
                   <div className="flex flex-col gap-3 rounded-md border p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Estado del plan</p>
                       <p className="mt-1 font-medium">
-                        {formatFollowUpPlanStatus(invoice.followUpPlan.status)}
+                        {formatFollowUpPlanStatus(followUpPlan.status)}
                       </p>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      {invoice.followUpPlan.status === FollowUpPlanStatus.ACTIVE ? (
+                      {followUpPlan.status === FollowUpPlanStatus.ACTIVE ? (
                         <form action={updateFollowUpPlanStatus}>
-                          <input type="hidden" name="planId" value={invoice.followUpPlan.id} />
+                          <input type="hidden" name="planId" value={followUpPlan.id} />
                           <input type="hidden" name="status" value={FollowUpPlanStatus.PAUSED} />
                           <Button type="submit" variant="outline" size="sm">
                             Pausar
@@ -293,9 +295,9 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                         </form>
                       ) : null}
 
-                      {invoice.followUpPlan.status === FollowUpPlanStatus.PAUSED ? (
+                      {followUpPlan.status === FollowUpPlanStatus.PAUSED ? (
                         <form action={updateFollowUpPlanStatus}>
-                          <input type="hidden" name="planId" value={invoice.followUpPlan.id} />
+                          <input type="hidden" name="planId" value={followUpPlan.id} />
                           <input type="hidden" name="status" value={FollowUpPlanStatus.ACTIVE} />
                           <Button type="submit" variant="outline" size="sm">
                             Reactivar
@@ -303,9 +305,9 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                         </form>
                       ) : null}
 
-                      {invoice.followUpPlan.status !== FollowUpPlanStatus.CANCELLED ? (
+                      {followUpPlan.status !== FollowUpPlanStatus.CANCELLED ? (
                         <form action={updateFollowUpPlanStatus}>
-                          <input type="hidden" name="planId" value={invoice.followUpPlan.id} />
+                          <input type="hidden" name="planId" value={followUpPlan.id} />
                           <input type="hidden" name="status" value={FollowUpPlanStatus.CANCELLED} />
                           <Button type="submit" variant="outline" size="sm">
                             Cancelar
@@ -315,7 +317,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                     </div>
                   </div>
 
-                  {invoice.followUpPlan.steps.map((step) => (
+                  {followUpPlan.steps.map((step) => (
                     <div key={step.id} className="rounded-md border p-4">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <div>
@@ -329,14 +331,14 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                         </span>
                       </div>
 
-                      {invoice.followUpPlan.status !== FollowUpPlanStatus.CANCELLED && step.status === FollowUpStepStatus.PENDING ? (
+                      {followUpPlan.status !== FollowUpPlanStatus.CANCELLED && step.status === FollowUpStepStatus.PENDING ? (
                         <form action={completeFollowUpStep} className="mt-4">
                           <input type="hidden" name="stepId" value={step.id} />
                           <Button type="submit" variant="outline" size="sm">
                             Marcar hecho
                           </Button>
                         </form>
-                      ) : invoice.followUpPlan.status !== FollowUpPlanStatus.CANCELLED ? (
+                      ) : followUpPlan.status !== FollowUpPlanStatus.CANCELLED ? (
                         <form action={reopenFollowUpStep} className="mt-4">
                           <input type="hidden" name="stepId" value={step.id} />
                           <Button type="submit" variant="outline" size="sm">

@@ -7,6 +7,10 @@ import { prisma } from "@/lib/db/prisma";
 export async function getCurrentUserRole() {
   const user = await getCurrentUser();
 
+  if (!user.email) {
+    redirect("/login");
+  }
+
   const membership = await prisma.organizationMember.findFirst({
     where: {
       user: {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/db/prisma";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { renderTemplate } from "@/modules/templates/render-template";
 
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ type ClaimPreviewPageProps = {
 };
 
 export default async function ClaimPreviewPage({ params }: ClaimPreviewPageProps) {
+  const organizationId = await getCurrentOrganizationId();
   const { invoiceId } = await params;
 
   const invoice = await prisma.invoice.findFirst({
