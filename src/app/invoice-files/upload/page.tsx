@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { FileUp, ShieldCheck, WandSparkles } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { createDemoInvoiceFile } from "@/server/actions/create-demo-invoice-file";
 import { UploadInvoicePdf } from "@/app/invoice-files/upload/upload-invoice-pdf";
 
 export default function UploadInvoiceFilePage() {
@@ -27,16 +25,8 @@ export default function UploadInvoiceFilePage() {
             </p>
           </div>
 
-          <div className="space-y-5 p-5">
+          <div className="p-5">
             <UploadInvoicePdf />
-
-            <div className="flex justify-center">
-              <form action={createDemoInvoiceFile}>
-                <Button type="submit" variant="outline">
-                  Crear PDF de prueba
-                </Button>
-              </form>
-            </div>
           </div>
         </section>
 
