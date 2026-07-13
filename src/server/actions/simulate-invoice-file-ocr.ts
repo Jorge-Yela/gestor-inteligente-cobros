@@ -7,6 +7,7 @@ import { InvoiceFileStatus } from "@/generated/prisma/enums";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { canManageData, getCurrentUserRole } from "@/lib/permissions/current-role";
+import { readInvoiceFileData } from "@/server/services/read-invoice-file-data";
 
 export async function simulateInvoiceFileOcr(formData: FormData) {
   const currentRole = await getCurrentUserRole();
@@ -33,14 +34,10 @@ export async function simulateInvoiceFileOcr(formData: FormData) {
     throw new Error("Invoice file not found");
   }
 
-  const extractedText = `FACTURA FAC-OCR-2026-001
-Cliente: Cliente OCR Demo SL
-NIF: B98765432
-Email: administracion@clienteocr.local
-Fecha factura: 2026-07-01
-Importe total: 1.250,00 EUR
-
-Lectura preparada para revisar los datos antes de registrar la factura.`;
+  const reading = await readInvoiceFileData({
+    fileName: file.fileName,
+    fileUrl: file.fileUrl,
+  });
 
   await prisma.invoiceFile.update({
     where: {
@@ -48,16 +45,8 @@ Lectura preparada para revisar los datos antes de registrar la factura.`;
     },
     data: {
       status: InvoiceFileStatus.OCR_COMPLETED,
-      extractedText,
-      extractedData: {
-        invoiceNumber: "FAC-OCR-2026-001",
-        customerName: "Cliente OCR Demo SL",
-        customerTaxId: "B98765432",
-        customerEmail: "administracion@clienteocr.local",
-        issueDate: "2026-07-01",
-        amountCents: 125000,
-        currency: "EUR",
-      },
+      extractedText: reading.extractedText,
+      extractedData: reading.extractedData,
     },
   });
 
