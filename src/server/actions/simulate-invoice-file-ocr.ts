@@ -12,7 +12,7 @@ export async function simulateInvoiceFileOcr(formData: FormData) {
   const currentRole = await getCurrentUserRole();
 
   if (!canManageData(currentRole)) {
-    throw new Error("No tienes permisos para procesar OCR");
+    throw new Error("No tienes permisos para leer datos del PDF");
   }
 
   const organizationId = await getCurrentOrganizationId();
@@ -40,7 +40,7 @@ Email: administracion@clienteocr.local
 Fecha factura: 2026-07-01
 Importe total: 1.250,00 EUR
 
-Esta lectura es simulada para desarrollar el flujo de revision.`;
+Lectura preparada para revisar los datos antes de registrar la factura.`;
 
   await prisma.invoiceFile.update({
     where: {

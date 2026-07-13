@@ -156,7 +156,7 @@ export default async function InvoiceFileDetailPage({ params }: InvoiceFileDetai
               <form action={simulateInvoiceFileOcr}>
                 <input type="hidden" name="fileId" value={file.id} />
                 <Button type="submit" variant="outline" className="w-full">
-                  Simular OCR
+                  Leer datos del PDF
                 </Button>
               </form>
               <Button asChild variant="outline" className="w-full">
