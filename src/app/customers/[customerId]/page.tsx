@@ -81,6 +81,14 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
           dueDate: "asc",
         },
       },
+      invoiceFiles: {
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          invoice: true,
+        },
+      },
     },
   });
 
@@ -173,6 +181,10 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
                 <div>
                   <dt className="text-sm text-muted-foreground">Vencidas</dt>
                   <dd className="mt-1 text-2xl font-semibold">{overdueCount}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm text-muted-foreground">PDFs subidos</dt>
+                  <dd className="mt-1 text-2xl font-semibold">{customer.invoiceFiles.length}</dd>
                 </div>
               </dl>
             </article>
@@ -276,6 +288,42 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
                 </tbody>
               </table>
             </div>
+            </article>
+
+            <article className="overflow-hidden rounded-lg border bg-card shadow-sm">
+              <div className="flex items-center justify-between gap-3 border-b px-5 py-4">
+                <div>
+                  <h2 className="font-semibold">PDFs del cliente</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Archivos subidos desde la ficha de este cliente o asociados despues.
+                  </p>
+                </div>
+                <Button asChild variant="outline" size="sm">
+                  <Link href={"/invoice-files/upload?customerId=" + customer.id}>Subir PDF</Link>
+                </Button>
+              </div>
+
+              {customer.invoiceFiles.length === 0 ? (
+                <p className="px-5 py-5 text-sm text-muted-foreground">
+                  Todavia no hay PDFs asociados a este cliente.
+                </p>
+              ) : (
+                <div className="divide-y">
+                  {customer.invoiceFiles.map((file) => (
+                    <div key={file.id} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{file.fileName}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {file.invoice ? "Factura " + file.invoice.invoiceNumber : "Pendiente de registrar como factura"}
+                        </p>
+                      </div>
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/invoice-files/`}>Ver archivo</Link>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </article>
           </section>
         </section>
