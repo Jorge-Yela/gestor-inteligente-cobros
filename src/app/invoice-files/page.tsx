@@ -10,7 +10,7 @@ function formatStatus(status: InvoiceFileStatus) {
     UPLOADED: "Subido",
     OCR_PENDING: "Pendiente de lectura",
     OCR_PROCESSING: "OCR en proceso",
-    OCR_COMPLETED: "OCR completado",
+    OCR_COMPLETED: "Lectura completada",
     OCR_FAILED: "OCR fallido",
   };
 

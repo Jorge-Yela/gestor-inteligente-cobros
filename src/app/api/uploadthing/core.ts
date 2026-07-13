@@ -5,6 +5,7 @@ import { InvoiceFileStatus } from "@/generated/prisma/enums";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { canManageData, getCurrentUserRole } from "@/lib/permissions/current-role";
+import { readInvoiceFileData } from "@/server/services/read-invoice-file-data";
 
 const f = createUploadthing();
 
@@ -55,6 +56,11 @@ export const uploadRouter = {
       };
     })
     .onUploadComplete(async ({ metadata, file }) => {
+      const reading = await readInvoiceFileData({
+        fileName: file.name,
+        fileUrl: file.ufsUrl,
+      });
+
       await prisma.invoiceFile.create({
         data: {
           organizationId: metadata.organizationId,
@@ -64,7 +70,9 @@ export const uploadRouter = {
           fileKey: file.key,
           mimeType: file.type || "application/pdf",
           sizeBytes: file.size,
-          status: InvoiceFileStatus.OCR_PENDING,
+          status: InvoiceFileStatus.OCR_COMPLETED,
+          extractedText: reading.extractedText,
+          extractedData: reading.extractedData,
         },
       });
     }),

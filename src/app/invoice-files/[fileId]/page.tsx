@@ -18,7 +18,7 @@ function formatStatus(status: InvoiceFileStatus) {
     UPLOADED: "Subido",
     OCR_PENDING: "Pendiente de lectura",
     OCR_PROCESSING: "OCR en proceso",
-    OCR_COMPLETED: "OCR completado",
+    OCR_COMPLETED: "Lectura completada",
     OCR_FAILED: "OCR fallido",
   };
 
@@ -153,12 +153,14 @@ export default async function InvoiceFileDetailPage({ params }: InvoiceFileDetai
                   Ver PDF
                 </a>
               </Button>
-              <form action={simulateInvoiceFileOcr}>
-                <input type="hidden" name="fileId" value={file.id} />
-                <Button type="submit" variant="outline" className="w-full">
-                  Leer datos del PDF
-                </Button>
-              </form>
+              {file.status !== InvoiceFileStatus.OCR_COMPLETED ? (
+                <form action={simulateInvoiceFileOcr}>
+                  <input type="hidden" name="fileId" value={file.id} />
+                  <Button type="submit" variant="outline" className="w-full">
+                    Leer datos del PDF
+                  </Button>
+                </form>
+              ) : null}
               <Button asChild variant="outline" className="w-full">
                 <Link href={`/invoice-files/${file.id}/review`}>Revisar datos</Link>
               </Button>
