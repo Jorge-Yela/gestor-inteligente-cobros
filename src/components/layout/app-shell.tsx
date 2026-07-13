@@ -1,14 +1,19 @@
 import Link from "next/link";
 import {
+  AlertTriangle,
   BarChart3,
   Bell,
-  Building2,
+  Bot,
   CheckCircle2,
-  
+  ChevronRight,
+  CircleDollarSign,
   FileText,
-  LayoutDashboard,
+  Home,
   LogOut,
   Mail,
+  Phone,
+  Search,
+  Send,
   Settings,
   Upload,
   Users,
@@ -56,58 +61,70 @@ type AppShellProps = {
 };
 
 const navigationItems = [
-  { label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { label: "Dashboard", href: "/", icon: Home },
   { label: "Facturas", href: "/invoices", icon: FileText },
   { label: "Clientes", href: "/customers", icon: Users },
-  { label: "Plantillas", href: "/templates", icon: Mail },
-  { label: "Reclamaciones", href: "/claim-drafts", icon: BarChart3 },
-  { label: "Cronologia", href: "/timeline", icon: Bell },
-  { label: "Estadisticas", href: "/customer-stats", icon: BarChart3 },
+  { label: "Reclamaciones", href: "/claim-drafts", icon: Mail },
+  { label: "Informes", href: "/customer-stats", icon: BarChart3 },
+];
+
+const taskItems = [
+  { label: "Revisar facturas vencidas", priority: "Alta", time: "09:00", tone: "text-red-600 bg-red-50" },
+  { label: "Preparar reclamaciones", priority: "Alta", time: "10:30", tone: "text-red-600 bg-red-50" },
+  { label: "Asignar fechas de control", priority: "Media", time: "12:00", tone: "text-amber-600 bg-amber-50" },
+  { label: "Confirmar cobros recientes", priority: "Baja", time: "15:00", tone: "text-sky-600 bg-sky-50" },
 ];
 
 export function AppShell({ stats, quickLinks, invoices, events }: AppShellProps) {
+  const primaryInvoices = invoices.slice(0, 5);
+  const recentEvents = events.slice(0, 4);
+  const firstStat = stats[0];
+  const secondStat = stats[1];
+  const thirdStat = stats[2];
+  const fourthStat = quickLinks[0];
+
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
-        <aside className="hidden border-r bg-muted/30 lg:flex lg:flex-col">
-          <div className="flex h-16 items-center gap-3 border-b px-6">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Building2 className="size-5" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold">Gestor Inteligente</p>
-              <p className="text-xs text-muted-foreground">Cobros para pymes</p>
-            </div>
+    <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
+      <div className="grid min-h-screen lg:grid-cols-[260px_1fr]">
+        <aside className="hidden bg-[#0d1624] text-white lg:flex lg:flex-col">
+          <div className="flex h-20 items-center px-7">
+            <Link href="/" className="text-3xl font-bold tracking-wide">
+              NE<span className="text-blue-400">X</span>UM
+            </Link>
           </div>
 
-          <nav className="flex-1 space-y-1 px-3 py-4">
-            {navigationItems.map((item) => (
+          <nav className="flex-1 space-y-2 px-4 py-4">
+            {navigationItems.map((item, index) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-background hover:text-foreground"
+                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
+                  index === 0
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-950/30"
+                    : "text-slate-300 hover:bg-white/10 hover:text-white"
+                }`}
               >
-                <item.icon className="size-4" />
+                <item.icon className="size-5" />
                 {item.label}
               </Link>
             ))}
           </nav>
 
-          <div className="space-y-1 border-t p-4">
+          <div className="space-y-2 border-t border-white/10 p-4">
             <Link
               href="/settings"
-              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-background hover:text-foreground"
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/10 hover:text-white"
             >
-              <Settings className="size-4" />
-              Ajustes
+              <Settings className="size-5" />
+              Configuracion
             </Link>
 
             <form action={signOutUser}>
               <button
                 type="submit"
-                className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-background hover:text-foreground"
+                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/10 hover:text-white"
               >
-                <LogOut className="size-4" />
+                <LogOut className="size-5" />
                 Cerrar sesion
               </button>
             </form>
@@ -115,136 +132,241 @@ export function AppShell({ stats, quickLinks, invoices, events }: AppShellProps)
         </aside>
 
         <section className="flex min-w-0 flex-col">
-          <header className="flex min-h-16 items-center justify-between border-b px-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Dashboard</p>
-              <h1 className="text-xl font-semibold">Control de cobros</h1>
+          <header className="flex min-h-20 items-center justify-between border-b border-slate-200 bg-white px-6">
+            <div className="relative hidden w-full max-w-md md:block">
+              <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <input
+                placeholder="Buscar clientes, facturas, reclamaciones..."
+                className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+              />
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" aria-label="Notificaciones">
-                <Bell className="size-4" />
-              </Button>
-              <Button asChild>
+            <div className="ml-auto flex items-center gap-3">
+              <Button asChild className="bg-blue-600 shadow-sm hover:bg-blue-700">
                 <Link href="/invoice-files/upload">
                   <Upload className="size-4" />
-                  Subir PDF
+                  Subir factura
                 </Link>
               </Button>
+              <Button variant="outline" size="icon" aria-label="Notificaciones" className="rounded-xl">
+                <Bell className="size-4" />
+              </Button>
+              <div className="hidden items-center gap-3 pl-2 md:flex">
+                <div className="flex size-11 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
+                  CM
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Carlos Martinez</p>
+                  <p className="text-xs text-slate-500">Administrador</p>
+                </div>
+              </div>
             </div>
           </header>
 
-          <div className="flex-1 space-y-6 p-6">
-            <section className="grid gap-4 md:grid-cols-3">
-              {stats.map((stat) => (
-                <article key={stat.label} className="rounded-lg border bg-card p-5 shadow-sm">
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  <p className="mt-3 text-2xl font-semibold">{stat.value}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{stat.detail}</p>
+          <div className="flex-1 space-y-5 p-5">
+            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <MetricCard icon={CircleDollarSign} label={firstStat?.label || "Pendiente de cobro"} value={firstStat?.value || "0 €"} detail={firstStat?.detail || "Sin facturas activas"} tone="amber" />
+              <MetricCard icon={CheckCircle2} label="Cobrado este mes" value={secondStat?.value || "0 €"} detail={secondStat?.detail || "Actividad registrada"} tone="emerald" />
+              <MetricCard icon={FileText} label="Facturas vencidas" value={thirdStat?.value || "0"} detail={thirdStat?.detail || "Requieren revision"} tone="blue" />
+              <MetricCard icon={Users} label={fourthStat?.label || "Clientes en riesgo"} value={fourthStat?.value || "0"} detail={fourthStat?.detail || "Seguimiento prioritario"} tone="violet" />
+            </section>
+
+            <section className="grid gap-5 xl:grid-cols-[1fr_1.05fr_300px]">
+              <article className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <PanelHeader title="Que debes hacer hoy" />
+                <div className="space-y-1 p-5">
+                  {taskItems.map((task) => (
+                    <div key={task.label} className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 rounded-lg px-1 py-3 text-sm">
+                      <span className="size-4 rounded border border-slate-300" />
+                      <span className="font-medium text-slate-700">{task.label}</span>
+                      <span className={`rounded-md px-2 py-1 text-xs font-medium ${task.tone}`}>{task.priority}</span>
+                      <span className="text-xs text-slate-500">{task.time}</span>
+                    </div>
+                  ))}
+                  <Link href="/customers" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline">
+                    Ver clientes prioritarios
+                    <ChevronRight className="size-4" />
+                  </Link>
+                </div>
+              </article>
+
+              <article className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <PanelHeader title="Facturas prioritarias" actionHref="/invoices" />
+                {primaryInvoices.length === 0 ? (
+                  <p className="p-5 text-sm text-slate-500">Todavia no hay facturas cargadas.</p>
+                ) : (
+                  <div className="overflow-x-auto px-5 pb-5">
+                    <table className="w-full min-w-[620px] text-left text-sm">
+                      <thead className="text-xs text-slate-500">
+                        <tr>
+                          <th className="py-3 font-medium">Cliente</th>
+                          <th className="py-3 font-medium">Importe</th>
+                          <th className="py-3 font-medium">Estado</th>
+                          <th className="py-3 font-medium">Accion</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {primaryInvoices.map((invoice, index) => (
+                          <tr key={invoice.id}>
+                            <td className="py-3 font-medium">{invoice.customer}</td>
+                            <td className="py-3">{invoice.amount}</td>
+                            <td className="py-3">
+                              <span className="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-600">{invoice.status}</span>
+                            </td>
+                            <td className="py-3">
+                              <Button asChild variant="outline" size="sm" className="h-8 rounded-lg">
+                                <Link href={`/invoices/${invoice.id}`}>
+                                  {index % 2 === 0 ? <Phone className="size-3.5" /> : <Send className="size-3.5" />}
+                                  Revisar
+                                </Link>
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </article>
+
+              <aside className="space-y-5">
+                <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-semibold">Salud de tus cobros</h2>
+                    <AlertTriangle className="size-4 text-slate-400" />
+                  </div>
+                  <div className="mx-auto mt-7 flex size-36 items-center justify-center rounded-full border-[12px] border-emerald-500 bg-emerald-50 text-3xl font-bold text-emerald-700">
+                    82%
+                  </div>
+                  <p className="mt-5 text-center font-semibold text-emerald-700">Situacion buena</p>
+                  <p className="mt-1 text-center text-sm text-slate-500">Vas por buen camino</p>
                 </article>
-              ))}
-            </section>
 
-            <section className="grid gap-4 md:grid-cols-4">
-              {quickLinks.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="rounded-lg border bg-card p-5 shadow-sm transition hover:border-foreground/30"
-                >
-                  <p className="text-sm text-muted-foreground">{item.label}</p>
-                  <p className="mt-3 text-2xl font-semibold">{item.value}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{item.detail}</p>
-                </Link>
-              ))}
-            </section>
-
-            <section className="grid gap-6 xl:grid-cols-[1fr_380px]">
-              <article className="rounded-lg border bg-card shadow-sm">
-                <div className="flex items-center justify-between gap-3 border-b p-5">
-                  <div>
-                    <h2 className="font-semibold">Facturas a revisar</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Facturas cargadas para controlar cobro y reclamaciones.
-                    </p>
-                  </div>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/invoices">Ver todas</Link>
-                  </Button>
-                </div>
-
-                {invoices.length === 0 ? (
-                  <p className="p-5 text-sm text-muted-foreground">
-                    Todavia no hay facturas controladas.
-                  </p>
-                ) : (
-                  <div className="divide-y">
-                    {invoices.map((invoice) => (
-                      <Link
-                        key={invoice.id}
-                        href={`/invoices/${invoice.id}`}
-                        className="grid gap-3 p-5 transition hover:bg-muted/40 md:grid-cols-[1fr_auto_auto] md:items-center"
-                      >
-                        <div>
-                          <p className="font-medium">{invoice.customer}</p>
-                          <p className="text-sm text-muted-foreground">{invoice.number}</p>
-                        </div>
-                        <p className="font-medium">{invoice.amount}</p>
-                        <span className="w-fit rounded-md border px-2.5 py-1 text-xs font-medium">
-                          {invoice.status}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </article>
-
-              <article className="rounded-lg border bg-card shadow-sm">
-                <div className="flex items-center justify-between gap-3 border-b p-5">
-                  <div>
-                    <h2 className="font-semibold">Actividad reciente</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Ultimas actuaciones registradas.
-                    </p>
-                  </div>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/timeline">Ver todo</Link>
-                  </Button>
-                </div>
-
-                {events.length === 0 ? (
-                  <p className="p-5 text-sm text-muted-foreground">
-                    Todavia no hay actividad registrada.
-                  </p>
-                ) : (
-                  <div className="divide-y">
-                    {events.map((event) => (
-                      <div key={event.id} className="p-5">
-                        <div className="flex gap-3">
+                <article className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                  <PanelHeader title="Actividad reciente" actionHref="/timeline" />
+                  <div className="space-y-4 p-5 pt-0">
+                    {recentEvents.length === 0 ? (
+                      <p className="text-sm text-slate-500">Todavia no hay actividad registrada.</p>
+                    ) : (
+                      recentEvents.map((event) => (
+                        <div key={event.id} className="flex gap-3">
                           <CheckCircle2 className="mt-0.5 size-5 text-emerald-600" />
-                          <div>
-                            <p className="text-sm font-medium">{event.title}</p>
-                            <p className="mt-1 text-xs text-muted-foreground">{event.date}</p>
-                            <p className="mt-2 text-sm text-muted-foreground">{event.description}</p>
-                            {event.invoiceId ? (
-                              <Link
-                                href={`/invoices/${event.invoiceId}`}
-                                className="mt-3 inline-flex text-sm font-medium hover:underline"
-                              >
-                                {event.invoiceNumber} · {event.customerName}
-                              </Link>
-                            ) : null}
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium">{event.title}</p>
+                            <p className="text-xs text-slate-500">{event.customerName || event.description}</p>
                           </div>
+                          <span className="ml-auto text-xs text-slate-400">{event.date}</span>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
-                )}
-              </article>
+                </article>
+              </aside>
+            </section>
+
+            <section className="grid gap-5 xl:grid-cols-3">
+              <ChartCard title="Evolucion de cobros" variant="line" />
+              <ChartCard title="Importe pendiente por antiguedad" variant="bars" />
+              <ChartCard title="Cobros mensuales" variant="area" />
+            </section>
+
+            <section className="rounded-xl border border-blue-100 bg-white p-5 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="flex size-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                  <Bot className="size-5" />
+                </div>
+                <div>
+                  <h2 className="font-semibold">Copiloto de Cobros</h2>
+                  <p className="mt-2 max-w-2xl rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                    Buenos dias. Hoy te recomendamos centrarte en las facturas prioritarias y revisar los clientes con importes vencidos.
+                  </p>
+                </div>
+              </div>
             </section>
           </div>
         </section>
       </div>
     </main>
+  );
+}
+
+function PanelHeader({ title, actionHref }: { title: string; actionHref?: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+      <h2 className="font-semibold">{title}</h2>
+      {actionHref ? (
+        <Link href={actionHref} className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline">
+          Ver todo
+          <ChevronRight className="size-4" />
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
+function MetricCard({
+  icon: Icon,
+  label,
+  value,
+  detail,
+  tone,
+}: {
+  icon: typeof CircleDollarSign;
+  label: string;
+  value: string;
+  detail: string;
+  tone: "amber" | "emerald" | "blue" | "violet";
+}) {
+  const tones = {
+    amber: "bg-amber-50 text-amber-600",
+    emerald: "bg-emerald-50 text-emerald-600",
+    blue: "bg-blue-50 text-blue-600",
+    violet: "bg-violet-50 text-violet-600",
+  };
+
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-center gap-4">
+        <div className={`flex size-12 items-center justify-center rounded-full ${tones[tone]}`}>
+          <Icon className="size-5" />
+        </div>
+        <div>
+          <p className="text-sm text-slate-500">{label}</p>
+          <p className="mt-1 text-2xl font-bold text-slate-950">{value}</p>
+          <p className="mt-1 text-xs text-slate-500">{detail}</p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ChartCard({ title, variant }: { title: string; variant: "line" | "bars" | "area" }) {
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 className="font-semibold">{title}</h2>
+      <div className="mt-5 flex h-40 items-end gap-3 border-t border-slate-100 pt-5">
+        {variant === "bars" ? (
+          [72, 56, 43, 48].map((height, index) => (
+            <div key={index} className="flex flex-1 flex-col justify-end gap-2">
+              <div
+                className={`rounded-t-lg ${index === 0 ? "bg-red-400" : index === 1 ? "bg-orange-400" : index === 2 ? "bg-yellow-400" : "bg-emerald-400"}`}
+                style={{ height: `${height}%` }}
+              />
+              <span className="text-center text-[11px] text-slate-500">{index === 0 ? "0-30" : index === 1 ? "31-60" : index === 2 ? "61-90" : "+90"}</span>
+            </div>
+          ))
+        ) : (
+          [18, 26, 38, 52, 68, 58].map((height, index) => (
+            <div key={index} className="flex flex-1 flex-col justify-end gap-2">
+              <div
+                className={`${variant === "area" ? "bg-blue-200" : "bg-blue-500"} rounded-t-full`}
+                style={{ height: `${height}%` }}
+              />
+              <span className="text-center text-[11px] text-slate-500">{["Ene", "Feb", "Mar", "Abr", "May", "Jun"][index]}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </article>
   );
 }
