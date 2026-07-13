@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AlertTriangle, Building2, CircleDollarSign, Plus, Users } from "lucide-react";
 
 import { PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
@@ -47,71 +48,138 @@ export default async function CustomersPage() {
       email: customer.email || "Sin email",
       phone: customer.phone || "Sin telefono",
       invoiceCount: customer.invoices.length,
+      unpaidCount: unpaidInvoices.length,
+      pendingAmountCents,
       pendingAmount: formatAmount(pendingAmountCents),
     };
   });
 
+  const totalPendingCents = rows.reduce((total, customer) => total + customer.pendingAmountCents, 0);
+  const riskCustomers = rows.filter((customer) => customer.pendingAmountCents > 0).length;
+  const totalInvoices = rows.reduce((total, customer) => total + customer.invoiceCount, 0);
+
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-6xl px-6 py-8">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
-              Volver al dashboard
+            <Link href="/" className="text-sm font-medium text-slate-500 hover:text-blue-600">
+              Dashboard
             </Link>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight">Clientes</h1>
-            <p className="mt-2 text-muted-foreground">
-              Empresas y contactos asociados a facturas en seguimiento.
+            <h1 className="mt-3 text-3xl font-bold tracking-tight">Clientes</h1>
+            <p className="mt-2 text-slate-500">
+              Empresas, contactos y deuda pendiente agrupada por cliente.
             </p>
           </div>
 
-          <Button asChild>
-            <Link href="/customers/new">Nuevo cliente</Link>
+          <Button asChild className="bg-blue-600 shadow-sm hover:bg-blue-700">
+            <Link href="/customers/new">
+              <Plus className="size-4" />
+              Nuevo cliente
+            </Link>
           </Button>
         </div>
 
-        <section className="overflow-hidden rounded-lg border bg-card shadow-sm">
-          <div className="border-b px-5 py-4">
-            <h2 className="font-semibold">Clientes controlados</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Datos iniciales cargados desde PostgreSQL mediante Prisma.
-            </p>
+        <section className="grid gap-4 md:grid-cols-4">
+          <SummaryCard label="Clientes" value={String(rows.length)} detail="Registrados" tone="blue" icon={Users} />
+          <SummaryCard label="Clientes en riesgo" value={String(riskCustomers)} detail="Con importe pendiente" tone="red" icon={AlertTriangle} />
+          <SummaryCard label="Pendiente total" value={formatAmount(totalPendingCents)} detail="Por cobrar" tone="amber" icon={CircleDollarSign} />
+          <SummaryCard label="Facturas" value={String(totalInvoices)} detail="Asociadas a clientes" tone="emerald" icon={Building2} />
+        </section>
+
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col gap-2 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-semibold">Cartera de clientes</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Entra en cada cliente para ver recomendaciones y subir nuevas facturas.
+              </p>
+            </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] text-left text-sm">
-              <thead className="border-b bg-muted/50 text-muted-foreground">
-                <tr>
-                  <th className="px-5 py-3 font-medium">Cliente</th>
-                  <th className="px-5 py-3 font-medium">Contacto</th>
-                  <th className="px-5 py-3 font-medium">Email</th>
-                  <th className="px-5 py-3 font-medium">Telefono</th>
-                  <th className="px-5 py-3 font-medium">Facturas</th>
-                  <th className="px-5 py-3 font-medium">Pendiente</th>
-                  <th className="px-5 py-3 font-medium">Accion</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {rows.map((customer) => (
-                  <tr key={customer.id}>
-                    <td className="px-5 py-4 font-medium">{customer.name}</td>
-                    <td className="px-5 py-4 text-muted-foreground">{customer.contactName}</td>
-                    <td className="px-5 py-4 text-muted-foreground">{customer.email}</td>
-                    <td className="px-5 py-4 text-muted-foreground">{customer.phone}</td>
-                    <td className="px-5 py-4">{customer.invoiceCount}</td>
-                    <td className="px-5 py-4 font-medium">{customer.pendingAmount}</td>
-                    <td className="px-5 py-4">
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/customers/${customer.id}`}>Ver detalle</Link>
-                      </Button>
-                    </td>
+          {rows.length === 0 ? (
+            <p className="px-5 py-8 text-sm text-slate-500">
+              Todavia no hay clientes registrados.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[980px] text-left text-sm">
+                <thead className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500">
+                  <tr>
+                    <th className="px-5 py-3 font-medium">Cliente</th>
+                    <th className="px-5 py-3 font-medium">Contacto</th>
+                    <th className="px-5 py-3 font-medium">Email</th>
+                    <th className="px-5 py-3 font-medium">Telefono</th>
+                    <th className="px-5 py-3 font-medium">Facturas</th>
+                    <th className="px-5 py-3 font-medium">Pendiente</th>
+                    <th className="px-5 py-3 font-medium">Accion</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {rows.map((customer) => (
+                    <tr key={customer.id} className="transition hover:bg-slate-50/80">
+                      <td className="px-5 py-4">
+                        <p className="font-semibold">{customer.name}</p>
+                        <p className="mt-1 text-xs text-slate-500">{customer.unpaidCount} facturas pendientes</p>
+                      </td>
+                      <td className="px-5 py-4 text-slate-500">{customer.contactName}</td>
+                      <td className="px-5 py-4 text-slate-500">{customer.email}</td>
+                      <td className="px-5 py-4 text-slate-500">{customer.phone}</td>
+                      <td className="px-5 py-4 font-medium">{customer.invoiceCount}</td>
+                      <td className="px-5 py-4">
+                        <span className="rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                          {customer.pendingAmount}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
+                          <Link href={`/customers/${customer.id}`}>Ver detalle</Link>
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       </div>
     </main>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  detail,
+  tone,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  tone: "blue" | "red" | "amber" | "emerald";
+  icon: typeof Users;
+}) {
+  const tones = {
+    blue: "bg-blue-50 text-blue-600",
+    red: "bg-red-50 text-red-600",
+    amber: "bg-amber-50 text-amber-600",
+    emerald: "bg-emerald-50 text-emerald-600",
+  };
+
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-center gap-4">
+        <div className={`flex size-11 items-center justify-center rounded-full ${tones[tone]}`}>
+          <Icon className="size-5" />
+        </div>
+        <div>
+          <p className="text-sm text-slate-500">{label}</p>
+          <p className="mt-1 text-2xl font-bold">{value}</p>
+          <p className="mt-1 text-xs text-slate-500">{detail}</p>
+        </div>
+      </div>
+    </article>
   );
 }
