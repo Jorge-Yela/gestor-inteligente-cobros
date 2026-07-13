@@ -12,7 +12,7 @@ export const uploadRouter = {
   invoicePdf: f({
     pdf: {
       maxFileSize: "16MB",
-      maxFileCount: 1,
+      maxFileCount: 10,
     },
   })
     .input(

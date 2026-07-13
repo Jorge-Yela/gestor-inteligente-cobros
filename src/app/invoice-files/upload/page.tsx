@@ -18,7 +18,7 @@ export default async function UploadInvoiceFilePage({ searchParams }: UploadInvo
           <Link href="/invoices" className="text-sm text-muted-foreground hover:text-foreground">
             Volver a facturas
           </Link>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight">Subir factura PDF</h1>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight">Subir facturas PDF</h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
             Sube una factura existente para registrarla y asociarla a un cliente. La plataforma no emite facturas ni cambia tu ERP.
           </p>
@@ -26,9 +26,9 @@ export default async function UploadInvoiceFilePage({ searchParams }: UploadInvo
 
         <section className="rounded-lg border bg-card shadow-sm">
           <div className="border-b px-5 py-4">
-            <h2 className="font-semibold">Archivo de factura</h2>
+            <h2 className="font-semibold">Archivos de factura</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Aceptaremos un PDF por subida, con un maximo de 16 MB.
+              Aceptaremos hasta 10 PDFs por subida, con un maximo de 16 MB por archivo.
             </p>
           </div>
 
