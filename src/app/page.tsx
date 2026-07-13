@@ -130,10 +130,10 @@ export default async function Home() {
       href: "/customers",
     },
     {
-      label: "PDF pendientes",
+      label: "Facturas por registrar",
       value: String(pendingFileCount),
-      detail: "Archivos sin factura asociada",
-      href: "/invoice-files",
+      detail: "PDFs pendientes de revisar",
+      href: "/invoices",
     },
     {
       label: "Reclamaciones",
