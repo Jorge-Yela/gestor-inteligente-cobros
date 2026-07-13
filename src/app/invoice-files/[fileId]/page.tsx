@@ -16,7 +16,7 @@ type InvoiceFileDetailPageProps = {
 function formatStatus(status: InvoiceFileStatus) {
   const labels: Record<InvoiceFileStatus, string> = {
     UPLOADED: "Subido",
-    OCR_PENDING: "OCR pendiente",
+    OCR_PENDING: "Pendiente de lectura",
     OCR_PROCESSING: "OCR en proceso",
     OCR_COMPLETED: "OCR completado",
     OCR_FAILED: "OCR fallido",

@@ -64,7 +64,7 @@ export const uploadRouter = {
           fileKey: file.key,
           mimeType: file.type || "application/pdf",
           sizeBytes: file.size,
-          status: InvoiceFileStatus.UPLOADED,
+          status: InvoiceFileStatus.OCR_PENDING,
         },
       });
     }),
