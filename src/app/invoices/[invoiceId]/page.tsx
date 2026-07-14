@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CalendarClock, CheckCircle2, CircleDollarSign, FileText } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import {
@@ -154,17 +155,17 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
   const followUpPlan = invoice.followUpPlan;
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-6xl px-6 py-8">
+    <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
+      <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <Link href="/invoices" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link href="/invoices" className="text-sm text-slate-500 hover:text-foreground">
               Volver a facturas
             </Link>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight">
               {invoice.invoiceNumber}
             </h1>
-            <p className="mt-2 text-muted-foreground">
+            <p className="mt-2 text-slate-500">
               Ficha de seguimiento de la factura.
             </p>
           </div>
@@ -173,7 +174,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
             <Button asChild variant="outline">
               <Link href={`/invoices/${invoice.id}/claim-preview`}>Previsualizar reclamacion</Link>
             </Button>
-            <a href="#add-note" className="inline-flex h-10 items-center justify-center rounded-md border bg-background px-4 py-2 text-sm font-medium shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground">
+            <a href="#add-note" className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground">
               Anadir nota
             </a>
             <form action={markInvoiceAsPaid}>
@@ -185,46 +186,96 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
           </div>
         </div>
 
+        <section className="mb-6 grid gap-4 md:grid-cols-4">
+          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex size-11 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+                <CircleDollarSign className="size-5" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-500">Importe</p>
+                <p className="mt-1 text-2xl font-bold">{formatAmount(invoice.amountCents)}</p>
+              </div>
+            </div>
+          </article>
+
+          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex size-11 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                <CalendarClock className="size-5" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-500">Fecha control</p>
+                <p className="mt-1 text-lg font-bold">{formatDate(invoice.dueDate)}</p>
+              </div>
+            </div>
+          </article>
+
+          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex size-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                <CheckCircle2 className="size-5" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-500">Cobro</p>
+                <p className="mt-1 text-lg font-bold">{formatPaymentStatus(invoice.paymentStatus)}</p>
+              </div>
+            </div>
+          </article>
+
+          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex size-11 items-center justify-center rounded-full bg-violet-50 text-violet-600">
+                <FileText className="size-5" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-500">Reclamaciones</p>
+                <p className="mt-1 text-2xl font-bold">{invoice.claimDrafts.length}</p>
+              </div>
+            </div>
+          </article>
+        </section>
+
         <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <div className="space-y-6">
-            <article className="rounded-lg border bg-card p-5 shadow-sm">
+            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="font-semibold">Datos principales</h2>
 
               <dl className="mt-5 grid gap-4 sm:grid-cols-2">
                 <div>
-                  <dt className="text-sm text-muted-foreground">Cliente</dt>
+                  <dt className="text-sm text-slate-500">Cliente</dt>
                   <dd className="mt-1 font-medium">{invoice.customer.name}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-muted-foreground">Importe</dt>
+                  <dt className="text-sm text-slate-500">Importe</dt>
                   <dd className="mt-1 font-medium">{formatAmount(invoice.amountCents)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-muted-foreground">Fecha de emision</dt>
+                  <dt className="text-sm text-slate-500">Fecha de emision</dt>
                   <dd className="mt-1 font-medium">{formatDate(invoice.issueDate)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-muted-foreground">Fecha de control</dt>
+                  <dt className="text-sm text-slate-500">Fecha de control</dt>
                   <dd className="mt-1 font-medium">{formatDate(invoice.dueDate)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-muted-foreground">Estado</dt>
+                  <dt className="text-sm text-slate-500">Estado</dt>
                   <dd className="mt-1">
-                    <span className="rounded-md border px-2.5 py-1 text-xs font-medium">
+                    <span className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium">
                       {formatInvoiceStatus(invoice.status)}
                     </span>
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-muted-foreground">Cobro</dt>
+                  <dt className="text-sm text-slate-500">Cobro</dt>
                   <dd className="mt-1 font-medium">{formatPaymentStatus(invoice.paymentStatus)}</dd>
                 </div>
               </dl>
             </article>
 
-            <article className="rounded-lg border bg-card p-5 shadow-sm">
+            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="font-semibold">Fecha de control</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-sm text-slate-500">
                 Esta fecha no tiene que venir en la factura. Sirve para organizar el seguimiento.
               </p>
               <form action={updateInvoiceControlDate} className="mt-5 flex flex-col gap-3 sm:flex-row">
@@ -234,19 +285,19 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                   name="controlDate"
                   required
                   defaultValue={formatDateInputValue(invoice.dueDate)}
-                  className="h-10 rounded-md border bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+                  className="h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
                 />
                 <Button type="submit">Guardar fecha</Button>
               </form>
             </article>
 
-            <article className="rounded-lg border bg-card p-5 shadow-sm">
+            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="font-semibold">PDF asociado</h2>
               {invoice.file ? (
                 <div className="mt-5 space-y-4">
                   <div>
                     <p className="text-sm font-medium">{invoice.file.fileName}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-1 text-sm text-slate-500">
                       Archivo usado para crear o revisar esta factura.
                     </p>
                   </div>
@@ -262,23 +313,23 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                   </div>
                 </div>
               ) : (
-                <p className="mt-5 text-sm text-muted-foreground">
+                <p className="mt-5 text-sm text-slate-500">
                   Esta factura no tiene ningun PDF asociado.
                 </p>
               )}
             </article>
 
-            <article className="rounded-lg border bg-card p-5 shadow-sm">
+            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="font-semibold">Plan de seguimiento</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-sm text-slate-500">
                 Tareas internas para organizar el seguimiento. No se envia nada automaticamente.
               </p>
 
               {followUpPlan ? (
                 <div className="mt-5 space-y-4">
-                  <div className="flex flex-col gap-3 rounded-md border p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-col gap-3 rounded-lg border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">Estado del plan</p>
+                      <p className="text-sm text-slate-500">Estado del plan</p>
                       <p className="mt-1 font-medium">
                         {formatFollowUpPlanStatus(followUpPlan.status)}
                       </p>
@@ -318,15 +369,15 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                   </div>
 
                   {followUpPlan.steps.map((step) => (
-                    <div key={step.id} className="rounded-md border p-4">
+                    <div key={step.id} className="rounded-lg border border-slate-200 p-4">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                           <p className="text-sm font-medium">{step.title}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">
+                          <p className="mt-1 text-xs text-slate-500">
                             {step.notes || "Sin notas"}
                           </p>
                         </div>
-                        <span className="w-fit rounded-md border px-2.5 py-1 text-xs font-medium">
+                        <span className="w-fit rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium">
                           {formatFollowUpStepStatus(step.status)}
                         </span>
                       </div>
@@ -357,39 +408,39 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
               )}
             </article>
 
-            <article className="rounded-lg border bg-card p-5 shadow-sm">
+            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="font-semibold">Notas internas</h2>
-              <p className="mt-4 whitespace-pre-line text-sm leading-6 text-muted-foreground">
+              <p className="mt-4 whitespace-pre-line text-sm leading-6 text-slate-500">
                 {invoice.notes || "Todavia no hay notas internas para esta factura."}
               </p>
             </article>
 
-            <article className="rounded-lg border bg-card p-5 shadow-sm">
+            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="font-semibold">Reclamaciones realizadas</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-sm text-slate-500">
                 Historial de reclamaciones preparadas o registradas para esta factura.
               </p>
 
               <div className="mt-5 space-y-4">
                 {invoice.claimDrafts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-slate-500">
                     Todavia no hay reclamaciones preparadas para esta factura.
                   </p>
                 ) : (
                   invoice.claimDrafts.map((draft) => (
-                    <div key={draft.id} className="rounded-md border p-4">
+                    <div key={draft.id} className="rounded-lg border border-slate-200 p-4">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                           <p className="text-sm font-medium">{draft.subject}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">
+                          <p className="mt-1 text-xs text-slate-500">
                             Preparada el {formatDate(draft.createdAt)}
                           </p>
                         </div>
-                        <span className="w-fit rounded-md border px-2.5 py-1 text-xs font-medium">
+                        <span className="w-fit rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium">
                           {draft.status === "SENT" ? "Enviada" : "Preparada"}
                         </span>
                       </div>
-                      <p className="mt-4 line-clamp-4 whitespace-pre-line text-sm leading-6 text-muted-foreground">
+                      <p className="mt-4 line-clamp-4 whitespace-pre-line text-sm leading-6 text-slate-500">
                         {draft.body}
                       </p>
                     </div>
@@ -398,28 +449,28 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
               </div>
             </article>
 
-            <article className="rounded-lg border bg-card p-5 shadow-sm">
+            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="font-semibold">Borradores de reclamacion</h2>
               <div className="mt-5 space-y-4">
                 {invoice.claimDrafts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-slate-500">
                     Todavia no hay borradores guardados para esta factura.
                   </p>
                 ) : (
                   invoice.claimDrafts.map((draft) => (
-                    <div key={draft.id} className="rounded-md border p-4">
+                    <div key={draft.id} className="rounded-lg border border-slate-200 p-4">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                           <p className="text-sm font-medium">{draft.subject}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">
+                          <p className="mt-1 text-xs text-slate-500">
                             Estado: {draft.status}
                           </p>
                         </div>
-                        <span className="w-fit rounded-md border px-2.5 py-1 text-xs font-medium">
+                        <span className="w-fit rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium">
                           Borrador
                         </span>
                       </div>
-                      <p className="mt-4 line-clamp-4 whitespace-pre-line text-sm leading-6 text-muted-foreground">
+                      <p className="mt-4 line-clamp-4 whitespace-pre-line text-sm leading-6 text-slate-500">
                         {draft.body}
                       </p>
                     </div>
@@ -428,7 +479,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
               </div>
             </article>
 
-            <article id="add-note" className="rounded-lg border bg-card p-5 shadow-sm">
+            <article id="add-note" className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="font-semibold">Anadir nota interna</h2>
               <form action={addInvoiceNote} className="mt-5 space-y-4">
                 <input type="hidden" name="invoiceId" value={invoice.id} />
@@ -437,27 +488,27 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                   required
                   rows={4}
                   placeholder="Ejemplo: Cliente contactado por telefono. Confirma que pagara el viernes."
-                  className="min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+                  className="min-h-28 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
                 />
                 <Button type="submit">Guardar nota</Button>
               </form>
             </article>
           </div>
 
-          <aside className="rounded-lg border bg-card p-5 shadow-sm">
+          <aside className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="font-semibold">Cronologia</h2>
 
             <div className="mt-5 space-y-4">
               {invoice.timelineEvents.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-500">
                   Todavia no hay eventos registrados.
                 </p>
               ) : (
                 invoice.timelineEvents.map((event) => (
                   <div key={event.id} className="border-l pl-4">
                     <p className="text-sm font-medium">{formatTimelineEventType(event.type)}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{event.description}</p>
-                    <p className="mt-2 text-xs text-muted-foreground">
+                    <p className="mt-1 text-sm text-slate-500">{event.description}</p>
+                    <p className="mt-2 text-xs text-slate-500">
                       {formatDate(event.createdAt)}
                     </p>
                   </div>
