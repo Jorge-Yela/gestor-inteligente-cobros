@@ -1,5 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import {
+  AlertTriangle,
+  Building2,
+  CalendarClock,
+  CircleDollarSign,
+  FileText,
+  Mail,
+  Phone,
+  Upload,
+} from "lucide-react";
 
 import { InvoiceStatus, PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
@@ -23,17 +33,13 @@ function formatAmount(amountCents: number) {
 }
 
 function formatDate(date: Date | null) {
-  if (!date) {
-    return "Sin fecha asignada";
-  }
-
-  return dateFormatter.format(date);
+  return date ? dateFormatter.format(date) : "Sin fecha";
 }
 
 function formatInvoiceStatus(status: InvoiceStatus) {
   const labels: Record<InvoiceStatus, string> = {
-    PENDING_REVIEW: "Pendiente de revision",
-    ACTIVE: "En seguimiento",
+    PENDING_REVIEW: "Revision",
+    ACTIVE: "Activa",
     OVERDUE: "Vencida",
     PAID: "Cobrada",
     CANCELLED: "Cancelada",
@@ -45,7 +51,7 @@ function formatInvoiceStatus(status: InvoiceStatus) {
 
 function formatPaymentStatus(status: PaymentStatus) {
   const labels: Record<PaymentStatus, string> = {
-    UNPAID: "No cobrada",
+    UNPAID: "Pendiente",
     PAID: "Cobrada",
     DISPUTED: "En disputa",
   };
@@ -119,122 +125,120 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
       !invoice.dueDate,
   );
 
+  const suggestedInvoices = [...invoicesToClaim, ...invoicesWithoutControlDate];
+
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-6xl px-6 py-8">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <Link href="/customers" className="text-sm text-muted-foreground hover:text-foreground">
-              Volver a clientes
+            <Link href="/customers" className="text-sm font-medium text-slate-500 hover:text-blue-600">
+              Clientes
             </Link>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight">{customer.name}</h1>
-            <p className="mt-2 text-muted-foreground">
-              Ficha del cliente y facturas asociadas.
+            <h1 className="mt-3 text-3xl font-bold tracking-tight">{customer.name}</h1>
+            <p className="mt-2 text-slate-500">
+              Ficha del cliente, facturas asociadas y recomendaciones de cobro.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button asChild>
-              <Link href={`/invoice-files/upload?customerId=${customer.id}`}>Subir factura</Link>
+            <Button asChild className="bg-blue-600 shadow-sm hover:bg-blue-700">
+              <Link href={`/invoice-files/upload?customerId=${customer.id}`}>
+                <Upload className="size-4" />
+                Subir factura
+              </Link>
             </Button>
-            <Button variant="outline">Editar cliente</Button>
+            <Button variant="outline" className="rounded-lg border-slate-200 bg-white">
+              Editar cliente
+            </Button>
           </div>
         </div>
 
-        <section className="grid gap-6 lg:grid-cols-[360px_1fr]">
-          <aside className="space-y-6">
-            <article className="rounded-lg border bg-card p-5 shadow-sm">
-              <h2 className="font-semibold">Datos del cliente</h2>
+        <section className="grid gap-4 md:grid-cols-4">
+          <SummaryCard label="Pendiente" value={formatAmount(pendingAmountCents)} detail="Importe por cobrar" tone="amber" icon={CircleDollarSign} />
+          <SummaryCard label="Facturas" value={String(customer.invoices.length)} detail="Asociadas al cliente" tone="blue" icon={FileText} />
+          <SummaryCard label="Vencidas" value={String(overdueCount)} detail="Requieren revision" tone="red" icon={AlertTriangle} />
+          <SummaryCard label="PDFs subidos" value={String(customer.invoiceFiles.length)} detail="Documentos vinculados" tone="emerald" icon={Upload} />
+        </section>
 
-              <dl className="mt-5 space-y-4">
-                <div>
-                  <dt className="text-sm text-muted-foreground">CIF/NIF</dt>
-                  <dd className="mt-1 font-medium">{customer.taxId || "Sin dato"}</dd>
+        <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
+          <aside className="space-y-6">
+            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="flex size-11 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                  <Building2 className="size-5" />
                 </div>
                 <div>
-                  <dt className="text-sm text-muted-foreground">Contacto</dt>
-                  <dd className="mt-1 font-medium">{customer.contactName || "Sin contacto"}</dd>
+                  <h2 className="font-semibold">Datos del cliente</h2>
+                  <p className="text-sm text-slate-500">{customer.taxId || "Sin CIF/NIF"}</p>
                 </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Email</dt>
-                  <dd className="mt-1 font-medium">{customer.email || "Sin email"}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Telefono</dt>
-                  <dd className="mt-1 font-medium">{customer.phone || "Sin telefono"}</dd>
-                </div>
+              </div>
+
+              <dl className="mt-6 space-y-4">
+                <InfoRow label="Contacto" value={customer.contactName || "Sin contacto"} />
+                <InfoRow label="Email" value={customer.email || "Sin email"} icon={Mail} />
+                <InfoRow label="Telefono" value={customer.phone || "Sin telefono"} icon={Phone} />
+                <InfoRow label="Direccion" value={customer.address || "Sin direccion"} />
               </dl>
             </article>
 
-            <article className="rounded-lg border bg-card p-5 shadow-sm">
-              <h2 className="font-semibold">Resumen</h2>
-
-              <dl className="mt-5 space-y-4">
-                <div>
-                  <dt className="text-sm text-muted-foreground">Facturas</dt>
-                  <dd className="mt-1 text-2xl font-semibold">{customer.invoices.length}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Pendiente</dt>
-                  <dd className="mt-1 text-2xl font-semibold">{formatAmount(pendingAmountCents)}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">Vencidas</dt>
-                  <dd className="mt-1 text-2xl font-semibold">{overdueCount}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm text-muted-foreground">PDFs subidos</dt>
-                  <dd className="mt-1 text-2xl font-semibold">{customer.invoiceFiles.length}</dd>
-                </div>
-              </dl>
+            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <h2 className="font-semibold">Prioridad</h2>
+              <div className="mt-5 rounded-xl bg-slate-50 p-4">
+                <p className="text-sm text-slate-500">Acciones recomendadas</p>
+                <p className="mt-2 text-3xl font-bold">{suggestedInvoices.length}</p>
+                <p className="mt-1 text-sm text-slate-500">
+                  Facturas vencidas o pendientes de fecha de control.
+                </p>
+              </div>
             </article>
           </aside>
 
           <section className="space-y-6">
-            <article className="rounded-lg border bg-card shadow-sm">
-              <div className="border-b px-5 py-4">
+            <article className="rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-100 px-5 py-4">
                 <h2 className="font-semibold">Recomendaciones de cobro</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1 text-sm text-slate-500">
                   Acciones sugeridas para este cliente. El usuario decide siempre que hacer.
                 </p>
               </div>
 
               <div className="grid gap-4 p-5 lg:grid-cols-2">
-                <div className="rounded-md border p-4">
-                  <p className="text-sm text-muted-foreground">Toca reclamar</p>
-                  <p className="mt-2 text-2xl font-semibold">{invoicesToClaim.length}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Facturas no cobradas con fecha de control vencida o para hoy.
+                <div className="rounded-xl border border-red-100 bg-red-50 p-4">
+                  <p className="text-sm font-medium text-red-700">Toca reclamar</p>
+                  <p className="mt-2 text-2xl font-bold text-red-700">{invoicesToClaim.length}</p>
+                  <p className="mt-1 text-sm text-red-700/70">
+                    Facturas no cobradas con fecha vencida o para hoy.
                   </p>
                 </div>
 
-                <div className="rounded-md border p-4">
-                  <p className="text-sm text-muted-foreground">Sin fecha de control</p>
-                  <p className="mt-2 text-2xl font-semibold">{invoicesWithoutControlDate.length}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Facturas pendientes que necesitan una fecha para organizar el seguimiento.
+                <div className="rounded-xl border border-amber-100 bg-amber-50 p-4">
+                  <p className="text-sm font-medium text-amber-700">Sin fecha de control</p>
+                  <p className="mt-2 text-2xl font-bold text-amber-700">{invoicesWithoutControlDate.length}</p>
+                  <p className="mt-1 text-sm text-amber-700/70">
+                    Facturas pendientes que necesitan una fecha.
                   </p>
                 </div>
               </div>
 
-              <div className="border-t px-5 py-4">
-                {invoicesToClaim.length === 0 && invoicesWithoutControlDate.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
+              <div className="border-t border-slate-100 px-5 py-4">
+                {suggestedInvoices.length === 0 ? (
+                  <p className="text-sm text-slate-500">
                     No hay acciones urgentes recomendadas para este cliente.
                   </p>
                 ) : (
                   <div className="space-y-3">
-                    {[...invoicesToClaim, ...invoicesWithoutControlDate].map((invoice) => (
-                      <div key={invoice.id} className="flex flex-col gap-3 rounded-md border p-4 sm:flex-row sm:items-center sm:justify-between">
+                    {suggestedInvoices.map((invoice) => (
+                      <div key={invoice.id} className="flex flex-col gap-3 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                          <p className="text-sm font-medium">{invoice.invoiceNumber}</p>
-                          <p className="mt-1 text-sm text-muted-foreground">
+                          <p className="text-sm font-semibold">{invoice.invoiceNumber}</p>
+                          <p className="mt-1 text-sm text-slate-500">
                             {invoice.dueDate
                               ? `Fecha de control: ${formatDate(invoice.dueDate)}`
                               : "Necesita fecha de control"}
                           </p>
                         </div>
-                        <Button asChild variant="outline" size="sm">
+                        <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
                           <Link href={`/invoices/${invoice.id}`}>Revisar factura</Link>
                         </Button>
                       </div>
@@ -244,81 +248,89 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
               </div>
             </article>
 
-            <article className="overflow-hidden rounded-lg border bg-card shadow-sm">
-            <div className="border-b px-5 py-4">
-              <h2 className="font-semibold">Facturas del cliente</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                La fecha mostrada es la fecha de control asignada para seguimiento.
-              </p>
-            </div>
+            <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-100 px-5 py-4">
+                <h2 className="font-semibold">Facturas del cliente</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Fecha de control, importe y estado de cobro.
+                </p>
+              </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left text-sm">
-                <thead className="border-b bg-muted/50 text-muted-foreground">
-                  <tr>
-                    <th className="px-5 py-3 font-medium">Factura</th>
-                    <th className="px-5 py-3 font-medium">Fecha control</th>
-                    <th className="px-5 py-3 font-medium">Importe</th>
-                    <th className="px-5 py-3 font-medium">Estado</th>
-                    <th className="px-5 py-3 font-medium">Cobro</th>
-                    <th className="px-5 py-3 font-medium">Accion</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {customer.invoices.map((invoice) => (
-                    <tr key={invoice.id}>
-                      <td className="px-5 py-4 font-medium">{invoice.invoiceNumber}</td>
-                      <td className="px-5 py-4 text-muted-foreground">{formatDate(invoice.dueDate)}</td>
-                      <td className="px-5 py-4 font-medium">{formatAmount(invoice.amountCents)}</td>
-                      <td className="px-5 py-4">
-                        <span className="rounded-md border px-2.5 py-1 text-xs font-medium">
-                          {formatInvoiceStatus(invoice.status)}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-muted-foreground">
-                        {formatPaymentStatus(invoice.paymentStatus)}
-                      </td>
-                      <td className="px-5 py-4">
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/invoices/${invoice.id}`}>Ver factura</Link>
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+              {customer.invoices.length === 0 ? (
+                <p className="px-5 py-6 text-sm text-slate-500">
+                  Este cliente todavia no tiene facturas registradas.
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[760px] text-left text-sm">
+                    <thead className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500">
+                      <tr>
+                        <th className="px-5 py-3 font-medium">Factura</th>
+                        <th className="px-5 py-3 font-medium">Fecha control</th>
+                        <th className="px-5 py-3 font-medium">Importe</th>
+                        <th className="px-5 py-3 font-medium">Estado</th>
+                        <th className="px-5 py-3 font-medium">Cobro</th>
+                        <th className="px-5 py-3 font-medium">Accion</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {customer.invoices.map((invoice) => (
+                        <tr key={invoice.id} className="transition hover:bg-slate-50/80">
+                          <td className="px-5 py-4 font-semibold">{invoice.invoiceNumber}</td>
+                          <td className="px-5 py-4 text-slate-500">{formatDate(invoice.dueDate)}</td>
+                          <td className="px-5 py-4 font-semibold">{formatAmount(invoice.amountCents)}</td>
+                          <td className="px-5 py-4">
+                            <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+                              {formatInvoiceStatus(invoice.status)}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                              {formatPaymentStatus(invoice.paymentStatus)}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4">
+                            <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
+                              <Link href={`/invoices/${invoice.id}`}>Ver factura</Link>
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </article>
 
-            <article className="overflow-hidden rounded-lg border bg-card shadow-sm">
-              <div className="flex items-center justify-between gap-3 border-b px-5 py-4">
+            <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
                 <div>
                   <h2 className="font-semibold">PDFs del cliente</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-1 text-sm text-slate-500">
                     Archivos subidos desde la ficha de este cliente o asociados despues.
                   </p>
                 </div>
-                <Button asChild variant="outline" size="sm">
+                <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
                   <Link href={"/invoice-files/upload?customerId=" + customer.id}>Subir PDF</Link>
                 </Button>
               </div>
 
               {customer.invoiceFiles.length === 0 ? (
-                <p className="px-5 py-5 text-sm text-muted-foreground">
+                <p className="px-5 py-6 text-sm text-slate-500">
                   Todavia no hay PDFs asociados a este cliente.
                 </p>
               ) : (
-                <div className="divide-y">
+                <div className="divide-y divide-slate-100">
                   {customer.invoiceFiles.map((file) => (
                     <div key={file.id} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-sm font-medium">{file.fileName}</p>
-                        <p className="mt-1 text-sm text-muted-foreground">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold">{file.fileName}</p>
+                        <p className="mt-1 text-sm text-slate-500">
                           {file.invoice ? "Factura " + file.invoice.invoiceNumber : "Pendiente de registrar como factura"}
                         </p>
                       </div>
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/invoice-files/`}>Ver archivo</Link>
+                      <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
+                        <Link href={`/invoice-files/${file.id}`}>Ver archivo</Link>
                       </Button>
                     </div>
                   ))}
@@ -329,5 +341,61 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
         </section>
       </div>
     </main>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  detail,
+  tone,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  tone: "amber" | "blue" | "red" | "emerald";
+  icon: typeof FileText;
+}) {
+  const tones = {
+    amber: "bg-amber-50 text-amber-600",
+    blue: "bg-blue-50 text-blue-600",
+    red: "bg-red-50 text-red-600",
+    emerald: "bg-emerald-50 text-emerald-600",
+  };
+
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-center gap-4">
+        <div className={`flex size-11 items-center justify-center rounded-full ${tones[tone]}`}>
+          <Icon className="size-5" />
+        </div>
+        <div>
+          <p className="text-sm text-slate-500">{label}</p>
+          <p className="mt-1 text-2xl font-bold">{value}</p>
+          <p className="mt-1 text-xs text-slate-500">{detail}</p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function InfoRow({
+  label,
+  value,
+  icon: Icon = CalendarClock,
+}: {
+  label: string;
+  value: string;
+  icon?: typeof CalendarClock;
+}) {
+  return (
+    <div className="flex gap-3">
+      <Icon className="mt-0.5 size-4 text-slate-400" />
+      <div>
+        <dt className="text-sm text-slate-500">{label}</dt>
+        <dd className="mt-1 font-medium">{value}</dd>
+      </div>
+    </div>
   );
 }
