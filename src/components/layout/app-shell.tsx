@@ -2,7 +2,6 @@ import Link from "next/link";
 import {
   AlertTriangle,
   BarChart3,
-  Bell,
   Bot,
   CheckCircle2,
   ChevronRight,
@@ -61,7 +60,7 @@ type AppShellProps = {
 };
 
 const navigationItems = [
-  { label: "Dashboard", href: "/", icon: Home },
+  { label: "Panel de control", href: "/", icon: Home },
   { label: "Facturas", href: "/invoices", icon: FileText },
   { label: "Clientes", href: "/customers", icon: Users },
   { label: "Reclamaciones", href: "/claim-drafts", icon: Mail },
@@ -69,7 +68,7 @@ const navigationItems = [
 ];
 
 const taskItems = [
-  { label: "Revisar facturas vencidas", priority: "Alta", time: "09:00", tone: "text-red-600 bg-red-50" },
+  { label: "Revisar facturas prioritarias", priority: "Alta", time: "09:00", tone: "text-red-600 bg-red-50" },
   { label: "Preparar reclamaciones", priority: "Alta", time: "10:30", tone: "text-red-600 bg-red-50" },
   { label: "Asignar fechas de control", priority: "Media", time: "12:00", tone: "text-amber-600 bg-amber-50" },
   { label: "Confirmar cobros recientes", priority: "Baja", time: "15:00", tone: "text-sky-600 bg-sky-50" },
@@ -80,7 +79,6 @@ export function AppShell({ stats, quickLinks, invoices, events }: AppShellProps)
   const recentEvents = events.slice(0, 4);
   const firstStat = stats[0];
   const secondStat = stats[1];
-  const thirdStat = stats[2];
   const fourthStat = quickLinks[0];
 
   return (
@@ -148,9 +146,6 @@ export function AppShell({ stats, quickLinks, invoices, events }: AppShellProps)
                   Subir factura
                 </Link>
               </Button>
-              <Button variant="outline" size="icon" aria-label="Notificaciones" className="rounded-xl">
-                <Bell className="size-4" />
-              </Button>
               <div className="hidden items-center gap-3 pl-2 md:flex">
                 <div className="flex size-11 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
                   CM
@@ -164,10 +159,9 @@ export function AppShell({ stats, quickLinks, invoices, events }: AppShellProps)
           </header>
 
           <div className="flex-1 space-y-5 p-5">
-            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <section className="grid gap-4 md:grid-cols-3">
               <MetricCard icon={CircleDollarSign} label={firstStat?.label || "Pendiente de cobro"} value={firstStat?.value || "0 €"} detail={firstStat?.detail || "Sin facturas activas"} tone="amber" />
               <MetricCard icon={CheckCircle2} label="Cobrado este mes" value={secondStat?.value || "0 €"} detail={secondStat?.detail || "Actividad registrada"} tone="emerald" />
-              <MetricCard icon={FileText} label="Facturas vencidas" value={thirdStat?.value || "0"} detail={thirdStat?.detail || "Requieren revision"} tone="blue" />
               <MetricCard icon={Users} label={fourthStat?.label || "Clientes en riesgo"} value={fourthStat?.value || "0"} detail={fourthStat?.detail || "Seguimiento prioritario"} tone="violet" />
             </section>
 
