@@ -157,7 +157,7 @@ export default async function ClaimDraftsPage() {
                             <Link href={`/invoices/${draft.invoiceId}`}>Ver factura</Link>
                           </Button>
                           <Button asChild size="sm" className="rounded-lg">
-                            <Link href={`/invoices/${draft.invoiceId}/claim-preview`}>Preparar envio</Link>
+                            <Link href={`/claim-drafts/${draft.id}`}>Preparar envio</Link>
                           </Button>
                         </div>
                       </td>
