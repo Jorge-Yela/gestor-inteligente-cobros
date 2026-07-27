@@ -54,6 +54,9 @@ export default async function ClaimDraftDetailPage({ params }: ClaimDraftDetailP
     notFound();
   }
 
+  const emailTo = draft.customer.email || "";
+  const gmailHref = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emailTo)}&su=${encodeURIComponent(draft.subject)}&body=${encodeURIComponent(draft.body)}`;
+
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
       <div className="mx-auto max-w-6xl px-6 py-8">
@@ -127,11 +130,13 @@ export default async function ClaimDraftDetailPage({ params }: ClaimDraftDetailP
               </div>
               <h2 className="mt-4 font-semibold">Envio controlado</h2>
               <p className="mt-2 text-sm leading-6 text-slate-500">
-                Este boton prepara el siguiente paso. El envio real se conectara despues con Gmail u Outlook.
+                El boton abre Gmail con el destinatario, asunto y mensaje ya preparados. Tu decides y confirmas el envio final.
               </p>
-              <Button disabled className="mt-5 w-full">
-                <Send className="mr-2 size-4" />
-                Enviar desde mi correo
+              <Button asChild disabled={!draft.customer.email} className="mt-5 w-full">
+                <a href={gmailHref} target="_blank" rel="noreferrer">
+                  <Send className="mr-2 size-4" />
+                  Enviar desde mi correo
+                </a>
               </Button>
             </article>
 
