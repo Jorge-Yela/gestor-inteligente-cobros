@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, FileText, Mail, PencilLine, XCircle } from "lucide-react";
+import { CheckCircle2, FileText, Mail, PencilLine } from "lucide-react";
 
 import { ClaimDraftStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
@@ -46,9 +46,12 @@ export default async function ClaimDraftsPage() {
   });
 
   const preparedCount = drafts.filter((draft) => draft.status === ClaimDraftStatus.DRAFT).length;
-  const readyCount = drafts.filter((draft) => draft.status === ClaimDraftStatus.READY).length;
-  const sentCount = drafts.filter((draft) => draft.status === ClaimDraftStatus.SENT).length;
-  const cancelledCount = drafts.filter((draft) => draft.status === ClaimDraftStatus.CANCELLED).length;
+  const sentDrafts = drafts.filter((draft) => draft.status === ClaimDraftStatus.SENT);
+  const jointClaimCount = new Set(
+    drafts
+      .filter((draft) => drafts.filter((item) => item.customerId === draft.customerId).length > 1)
+      .map((draft) => draft.customerId),
+  ).size;
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
@@ -63,11 +66,48 @@ export default async function ClaimDraftsPage() {
           </p>
         </div>
 
-        <section className="grid gap-4 md:grid-cols-4">
-          <SummaryCard label="Preparadas" value={String(preparedCount)} detail="Pendientes de revisar" tone="blue" icon={PencilLine} />
-          <SummaryCard label="Listas" value={String(readyCount)} detail="Con contenido validado" tone="emerald" icon={CheckCircle2} />
-          <SummaryCard label="Registradas" value={String(sentCount)} detail="Marcadas como realizadas" tone="violet" icon={Mail} />
-          <SummaryCard label="Canceladas" value={String(cancelledCount)} detail="Sin accion prevista" tone="red" icon={XCircle} />
+        <section className="grid gap-4 md:grid-cols-3">
+          <SummaryCard label="Preparadas" value={String(preparedCount)} detail="Reclamaciones individuales" tone="blue" icon={PencilLine} />
+          <SummaryCard label="Reclamaciones conjuntas" value={String(jointClaimCount)} detail="Clientes con varias facturas" tone="emerald" icon={CheckCircle2} />
+          <SummaryCard label="Registradas" value={String(sentDrafts.length)} detail="Reclamaciones enviadas o anotadas" tone="violet" icon={Mail} />
+        </section>
+
+        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-semibold">Reclamaciones registradas</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Ultimas reclamaciones enviadas o registradas por el usuario.
+              </p>
+            </div>
+          </div>
+
+          {sentDrafts.length === 0 ? (
+            <p className="mt-5 text-sm text-slate-500">
+              Todavia no hay reclamaciones registradas como enviadas.
+            </p>
+          ) : (
+            <div className="mt-5 divide-y divide-slate-100">
+              {sentDrafts.slice(0, 5).map((draft) => (
+                <div key={draft.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold">{draft.customer.name}</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Factura {draft.invoice.invoiceNumber} · {draft.subject}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="rounded-md bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700">
+                      Registrada
+                    </span>
+                    <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
+                      <Link href={`/invoices/${draft.invoiceId}`}>Ver factura</Link>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -93,7 +133,7 @@ export default async function ClaimDraftsPage() {
                     <th className="px-5 py-3 font-medium">Plantilla</th>
                     <th className="px-5 py-3 font-medium">Estado</th>
                     <th className="px-5 py-3 font-medium">Creado</th>
-                    <th className="px-5 py-3 font-medium">Accion</th>
+                    <th className="px-5 py-3 font-medium">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -112,9 +152,14 @@ export default async function ClaimDraftsPage() {
                       </td>
                       <td className="px-5 py-4 text-slate-500">{formatDate(draft.createdAt)}</td>
                       <td className="px-5 py-4">
-                        <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
-                          <Link href={`/invoices/${draft.invoiceId}`}>Ver factura</Link>
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
+                            <Link href={`/invoices/${draft.invoiceId}`}>Ver factura</Link>
+                          </Button>
+                          <Button asChild size="sm" className="rounded-lg">
+                            <Link href={`/invoices/${draft.invoiceId}/claim-preview`}>Preparar envio</Link>
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
