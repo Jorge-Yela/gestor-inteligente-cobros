@@ -239,7 +239,17 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
         <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <div className="space-y-6">
             <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="font-semibold">Datos principales</h2>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="font-semibold">Detalles de la factura</h2>
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
+                    <Link href={`/invoices/${invoice.id}/edit`}>Editar detalles</Link>
+                  </Button>
+                  <Button asChild size="sm" className="rounded-lg bg-blue-600 hover:bg-blue-700">
+                    <Link href={`/invoices/${invoice.id}/claim-preview`}>Preparar reclamacion</Link>
+                  </Button>
+                </div>
+              </div>
 
               <dl className="mt-5 grid gap-4 sm:grid-cols-2">
                 <div>
