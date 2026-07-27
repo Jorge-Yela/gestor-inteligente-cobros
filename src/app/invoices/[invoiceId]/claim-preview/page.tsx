@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Mail, Send, ShieldCheck } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/db/prisma";
@@ -77,64 +78,119 @@ export default async function ClaimPreviewPage({ params }: ClaimPreviewPageProps
   const body = renderTemplate(template.body, variables);
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-4xl px-6 py-8">
-        <div className="mb-8">
-          <Link
-            href={`/invoices/${invoice.id}`}
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Volver a la factura
-          </Link>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-            Previsualizacion de reclamacion
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            Este borrador no se envia automaticamente. El usuario siempre decide si usarlo.
-          </p>
-        </div>
-
-        <section className="rounded-lg border bg-card shadow-sm">
-          <div className="border-b px-5 py-4">
-            <h2 className="font-semibold">{template.name}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Plantilla aplicada a {invoice.customer.name}.
+    <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
+      <div className="mx-auto max-w-6xl px-6 py-8">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <Link
+              href={`/invoices/${invoice.id}`}
+              className="text-sm font-medium text-slate-500 transition hover:text-slate-950"
+            >
+              Volver a la factura
+            </Link>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+              Preparar reclamacion
+            </h1>
+            <p className="mt-2 max-w-2xl text-slate-500">
+              Revisa el mensaje antes de guardarlo. Nada se envia automaticamente desde la plataforma.
             </p>
           </div>
 
-          <div className="space-y-6 p-5">
-            <div>
-              <p className="text-sm font-medium">Para</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {invoice.customer.email || "Cliente sin email registrado"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm font-medium">Asunto</p>
-              <div className="mt-2 rounded-md border bg-background p-3 text-sm">
-                {subject}
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sm font-medium">Mensaje</p>
-              <div className="mt-2 whitespace-pre-line rounded-md border bg-background p-4 text-sm leading-6">
-                {body}
-              </div>
-            </div>
-
-            <form action={createClaimDraft} className="flex justify-end gap-2 border-t pt-5">
-              <input type="hidden" name="invoiceId" value={invoice.id} />
-              <input type="hidden" name="templateId" value={template.id} />
-              <input type="hidden" name="subject" value={subject} />
-              <input type="hidden" name="body" value={body} />
-              <Button asChild variant="outline">
-                <Link href={`/invoices/${invoice.id}`}>Cancelar</Link>
-              </Button>
-              <Button type="submit">Guardar borrador</Button>
-            </form>
+          <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+            Cliente: <span className="font-semibold">{invoice.customer.name}</span>
           </div>
+        </div>
+
+        <section className="grid gap-6 xl:grid-cols-[1fr_340px]">
+          <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center gap-3 border-b border-slate-200 px-6 py-5">
+              <div className="flex size-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                <Mail className="size-5" />
+              </div>
+              <div>
+                <h2 className="font-semibold">Mensaje preparado</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Plantilla aplicada: {template.name}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-6 p-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-medium uppercase text-slate-400">Para</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">
+                    {invoice.customer.email || "Cliente sin email registrado"}
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-medium uppercase text-slate-400">Factura</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">
+                    {invoice.invoiceNumber} · {formatAmount(invoice.amountCents)}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-slate-700">Asunto</p>
+                <div className="mt-2 rounded-xl border border-slate-200 bg-white p-4 text-sm font-medium text-slate-900">
+                  {subject}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-slate-700">Mensaje</p>
+                <div className="mt-2 min-h-[320px] whitespace-pre-line rounded-xl border border-slate-200 bg-white p-5 text-sm leading-7 text-slate-700">
+                  {body}
+                </div>
+              </div>
+
+              <form action={createClaimDraft} className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
+                <input type="hidden" name="invoiceId" value={invoice.id} />
+                <input type="hidden" name="templateId" value={template.id} />
+                <input type="hidden" name="subject" value={subject} />
+                <input type="hidden" name="body" value={body} />
+                <Button asChild variant="outline">
+                  <Link href={`/invoices/${invoice.id}`}>Cancelar</Link>
+                </Button>
+                <Button type="submit">
+                  <Send className="mr-2 size-4" />
+                  Guardar reclamacion
+                </Button>
+              </form>
+            </div>
+          </article>
+
+          <aside className="space-y-5">
+            <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex size-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                <ShieldCheck className="size-5" />
+              </div>
+              <h2 className="mt-4 font-semibold">Control del usuario</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Este paso solo guarda la reclamacion preparada. El envio real por email se conectara en la siguiente fase.
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <h2 className="font-semibold">Resumen</h2>
+              <dl className="mt-5 space-y-4">
+                <div>
+                  <dt className="text-sm text-slate-500">Cliente</dt>
+                  <dd className="mt-1 font-medium">{invoice.customer.name}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm text-slate-500">Fecha de control</dt>
+                  <dd className="mt-1 font-medium">{formatDate(invoice.dueDate)}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm text-slate-500">Importe</dt>
+                  <dd className="mt-1 font-medium">{formatAmount(invoice.amountCents)}</dd>
+                </div>
+              </dl>
+            </article>
+          </aside>
         </section>
       </div>
     </main>
