@@ -17,9 +17,9 @@ function formatStatus(status: InvoiceFileStatus) {
   const labels: Record<InvoiceFileStatus, string> = {
     UPLOADED: "Subido",
     OCR_PENDING: "Pendiente de lectura",
-    OCR_PROCESSING: "OCR en proceso",
+    OCR_PROCESSING: "Lectura en proceso",
     OCR_COMPLETED: "Lectura completada",
-    OCR_FAILED: "OCR fallido",
+    OCR_FAILED: "Lectura fallida",
   };
 
   return labels[status];
@@ -78,7 +78,7 @@ export default async function InvoiceFileDetailPage({ params }: InvoiceFileDetai
           </Link>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight">{file.fileName}</h1>
           <p className="mt-2 text-muted-foreground">
-            Archivo PDF recibido para preparar OCR, revision y registro.
+            Archivo PDF recibido para preparar lectura, revision y registro.
           </p>
         </div>
 
@@ -170,9 +170,9 @@ export default async function InvoiceFileDetailPage({ params }: InvoiceFileDetai
 
         <section className="mt-6 rounded-lg border bg-card shadow-sm">
           <div className="border-b px-5 py-4">
-            <h2 className="font-semibold">Datos OCR</h2>
+            <h2 className="font-semibold">Datos extraidos</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Aqui apareceran los datos extraidos cuando conectemos OCR.
+              Aqui apareceran los datos extraidos cuando conectemos la lectura automatica.
             </p>
           </div>
 

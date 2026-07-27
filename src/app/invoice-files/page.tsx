@@ -9,9 +9,9 @@ function formatStatus(status: InvoiceFileStatus) {
   const labels: Record<InvoiceFileStatus, string> = {
     UPLOADED: "Subido",
     OCR_PENDING: "Pendiente de lectura",
-    OCR_PROCESSING: "OCR en proceso",
+    OCR_PROCESSING: "Lectura en proceso",
     OCR_COMPLETED: "Lectura completada",
-    OCR_FAILED: "OCR fallido",
+    OCR_FAILED: "Lectura fallida",
   };
 
   return labels[status];
@@ -61,7 +61,7 @@ export default async function InvoiceFilesPage() {
             </Link>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight">Archivos subidos</h1>
             <p className="mt-2 text-muted-foreground">
-              PDFs de facturas existentes preparados para OCR y registro.
+              PDFs de facturas existentes preparados para lectura y registro.
             </p>
           </div>
 

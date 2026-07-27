@@ -17,7 +17,7 @@ type ReviewInvoiceFilePageProps = {
 
 function getErrorMessage(error?: string) {
   const messages: Record<string, string> = {
-    "duplicate-invoice": "Ya existe una factura con ese numero. Puedes revisar el numero detectado por OCR antes de registrar la factura.",
+    "duplicate-invoice": "Ya existe una factura con ese numero. Puedes revisar el numero detectado automaticamente antes de registrar la factura.",
   };
 
   return error ? messages[error] : null;
@@ -78,7 +78,7 @@ export default async function ReviewInvoiceFilePage({ params, searchParams }: Re
           <Link href={`/invoice-files/${file.id}`} className="text-sm text-muted-foreground hover:text-foreground">
             Volver al archivo
           </Link>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight">Revisar datos OCR</h1>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight">Revisar datos extraidos</h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
             Confirma o corrige los datos extraidos antes de registrar la factura. Nada se reclama ni se envia automaticamente.
           </p>
@@ -95,7 +95,7 @@ export default async function ReviewInvoiceFilePage({ params, searchParams }: Re
             <div className="border-b px-5 py-4">
               <h2 className="font-semibold">Datos detectados</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Estos datos vienen del OCR y deben ser revisados por el usuario.
+                Estos datos vienen de la lectura automatica y deben ser revisados por el usuario.
               </p>
             </div>
 
@@ -196,7 +196,7 @@ export default async function ReviewInvoiceFilePage({ params, searchParams }: Re
 
           <aside className="rounded-lg border bg-card shadow-sm">
             <div className="border-b px-5 py-4">
-              <h2 className="font-semibold">Texto OCR</h2>
+              <h2 className="font-semibold">Texto extraido</h2>
               <p className="mt-1 text-sm text-muted-foreground">Lectura completa del archivo.</p>
             </div>
 
@@ -207,7 +207,7 @@ export default async function ReviewInvoiceFilePage({ params, searchParams }: Re
                 </pre>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Este archivo todavia no tiene datos OCR.
+                  Este archivo todavia no tiene datos extraidos.
                 </p>
               )}
             </div>
