@@ -3,21 +3,13 @@ import { CalendarClock, CheckCircle2, CircleDollarSign, FileText } from "lucide-
 import { notFound } from "next/navigation";
 
 import {
-  FollowUpPlanStatus,
-  FollowUpStepStatus,
   InvoiceStatus,
   PaymentStatus,
-  TimelineEventType,
 } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
-import { addInvoiceNote } from "@/server/actions/add-invoice-note";
-import { createFollowUpPlan } from "@/server/actions/create-follow-up-plan";
 import { markInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
-import { completeFollowUpStep } from "@/server/actions/complete-follow-up-step";
-import { reopenFollowUpStep } from "@/server/actions/reopen-follow-up-step";
-import { updateFollowUpPlanStatus } from "@/server/actions/update-follow-up-plan-status";
 import { updateInvoiceControlDate } from "@/server/actions/update-invoice-control-date";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
@@ -75,39 +67,6 @@ function formatPaymentStatus(status: PaymentStatus) {
   return labels[status];
 }
 
-function formatTimelineEventType(type: TimelineEventType) {
-  const labels: Record<TimelineEventType, string> = {
-    INVOICE_CREATED: "Factura creada",
-    INVOICE_UPDATED: "Factura actualizada",
-    INVOICE_MARKED_PAID: "Marcada como cobrada",
-    CUSTOMER_CREATED: "Cliente creado",
-    NOTE_ADDED: "Nota anadida",
-  };
-
-  return labels[type];
-}
-
-function formatFollowUpPlanStatus(status: FollowUpPlanStatus) {
-  const labels: Record<FollowUpPlanStatus, string> = {
-    ACTIVE: "Activo",
-    PAUSED: "Pausado",
-    COMPLETED: "Completado",
-    CANCELLED: "Cancelado",
-  };
-
-  return labels[status];
-}
-
-function formatFollowUpStepStatus(status: FollowUpStepStatus) {
-  const labels: Record<FollowUpStepStatus, string> = {
-    PENDING: "Pendiente",
-    DONE: "Hecho",
-    SKIPPED: "Omitido",
-  };
-
-  return labels[status];
-}
-
 type InvoiceDetailPageProps = {
   params: Promise<{
     invoiceId: string;
@@ -152,8 +111,6 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
     notFound();
   }
 
-  const followUpPlan = invoice.followUpPlan;
-
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
       <div className="mx-auto max-w-7xl px-6 py-8">
@@ -174,9 +131,6 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
             <Button asChild variant="outline">
               <Link href={`/invoices/${invoice.id}/claim-preview`}>Previsualizar reclamacion</Link>
             </Button>
-            <a href="#add-note" className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground">
-              Anadir nota
-            </a>
             <form action={markInvoiceAsPaid}>
               <input type="hidden" name="invoiceId" value={invoice.id} />
               <Button type="submit" disabled={invoice.paymentStatus === PaymentStatus.PAID}>
@@ -329,101 +283,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
               )}
             </article>
 
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="font-semibold">Plan de seguimiento</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Tareas internas para organizar el seguimiento. No se envia nada automaticamente.
-              </p>
 
-              {followUpPlan ? (
-                <div className="mt-5 space-y-4">
-                  <div className="flex flex-col gap-3 rounded-lg border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-sm text-slate-500">Estado del plan</p>
-                      <p className="mt-1 font-medium">
-                        {formatFollowUpPlanStatus(followUpPlan.status)}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {followUpPlan.status === FollowUpPlanStatus.ACTIVE ? (
-                        <form action={updateFollowUpPlanStatus}>
-                          <input type="hidden" name="planId" value={followUpPlan.id} />
-                          <input type="hidden" name="status" value={FollowUpPlanStatus.PAUSED} />
-                          <Button type="submit" variant="outline" size="sm">
-                            Pausar
-                          </Button>
-                        </form>
-                      ) : null}
-
-                      {followUpPlan.status === FollowUpPlanStatus.PAUSED ? (
-                        <form action={updateFollowUpPlanStatus}>
-                          <input type="hidden" name="planId" value={followUpPlan.id} />
-                          <input type="hidden" name="status" value={FollowUpPlanStatus.ACTIVE} />
-                          <Button type="submit" variant="outline" size="sm">
-                            Reactivar
-                          </Button>
-                        </form>
-                      ) : null}
-
-                      {followUpPlan.status !== FollowUpPlanStatus.CANCELLED ? (
-                        <form action={updateFollowUpPlanStatus}>
-                          <input type="hidden" name="planId" value={followUpPlan.id} />
-                          <input type="hidden" name="status" value={FollowUpPlanStatus.CANCELLED} />
-                          <Button type="submit" variant="outline" size="sm">
-                            Cancelar
-                          </Button>
-                        </form>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  {followUpPlan.steps.map((step) => (
-                    <div key={step.id} className="rounded-lg border border-slate-200 p-4">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                          <p className="text-sm font-medium">{step.title}</p>
-                          <p className="mt-1 text-xs text-slate-500">
-                            {step.notes || "Sin notas"}
-                          </p>
-                        </div>
-                        <span className="w-fit rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium">
-                          {formatFollowUpStepStatus(step.status)}
-                        </span>
-                      </div>
-
-                      {followUpPlan.status !== FollowUpPlanStatus.CANCELLED && step.status === FollowUpStepStatus.PENDING ? (
-                        <form action={completeFollowUpStep} className="mt-4">
-                          <input type="hidden" name="stepId" value={step.id} />
-                          <Button type="submit" variant="outline" size="sm">
-                            Marcar hecho
-                          </Button>
-                        </form>
-                      ) : followUpPlan.status !== FollowUpPlanStatus.CANCELLED ? (
-                        <form action={reopenFollowUpStep} className="mt-4">
-                          <input type="hidden" name="stepId" value={step.id} />
-                          <Button type="submit" variant="outline" size="sm">
-                            Reabrir
-                          </Button>
-                        </form>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <form action={createFollowUpPlan} className="mt-5">
-                  <input type="hidden" name="invoiceId" value={invoice.id} />
-                  <Button type="submit">Crear plan de seguimiento</Button>
-                </form>
-              )}
-            </article>
-
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="font-semibold">Notas internas</h2>
-              <p className="mt-4 whitespace-pre-line text-sm leading-6 text-slate-500">
-                {invoice.notes || "Todavia no hay notas internas para esta factura."}
-              </p>
-            </article>
 
             <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="font-semibold">Reclamaciones realizadas</h2>
@@ -459,67 +319,28 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
               </div>
             </article>
 
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="font-semibold">Borradores de reclamacion</h2>
-              <div className="mt-5 space-y-4">
-                {invoice.claimDrafts.length === 0 ? (
-                  <p className="text-sm text-slate-500">
-                    Todavia no hay borradores guardados para esta factura.
-                  </p>
-                ) : (
-                  invoice.claimDrafts.map((draft) => (
-                    <div key={draft.id} className="rounded-lg border border-slate-200 p-4">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                          <p className="text-sm font-medium">{draft.subject}</p>
-                          <p className="mt-1 text-xs text-slate-500">
-                            Estado: {draft.status}
-                          </p>
-                        </div>
-                        <span className="w-fit rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium">
-                          Borrador
-                        </span>
-                      </div>
-                      <p className="mt-4 line-clamp-4 whitespace-pre-line text-sm leading-6 text-slate-500">
-                        {draft.body}
-                      </p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </article>
-
-            <article id="add-note" className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="font-semibold">Anadir nota interna</h2>
-              <form action={addInvoiceNote} className="mt-5 space-y-4">
-                <input type="hidden" name="invoiceId" value={invoice.id} />
-                <textarea
-                  name="note"
-                  required
-                  rows={4}
-                  placeholder="Ejemplo: Cliente contactado por telefono. Confirma que pagara el viernes."
-                  className="min-h-28 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
-                />
-                <Button type="submit">Guardar nota</Button>
-              </form>
-            </article>
           </div>
 
           <aside className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="font-semibold">Cronologia</h2>
+            <h2 className="font-semibold">Cronologia de reclamaciones</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Seguimiento de las reclamaciones preparadas para esta factura.
+            </p>
 
             <div className="mt-5 space-y-4">
-              {invoice.timelineEvents.length === 0 ? (
+              {invoice.claimDrafts.length === 0 ? (
                 <p className="text-sm text-slate-500">
-                  Todavia no hay eventos registrados.
+                  Todavia no hay reclamaciones preparadas.
                 </p>
               ) : (
-                invoice.timelineEvents.map((event) => (
-                  <div key={event.id} className="border-l pl-4">
-                    <p className="text-sm font-medium">{formatTimelineEventType(event.type)}</p>
-                    <p className="mt-1 text-sm text-slate-500">{event.description}</p>
+                invoice.claimDrafts.map((draft) => (
+                  <div key={draft.id} className="border-l border-blue-200 pl-4">
+                    <p className="text-sm font-medium">{draft.subject}</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {draft.status === "SENT" ? "Enviada" : "Preparada"}
+                    </p>
                     <p className="mt-2 text-xs text-slate-500">
-                      {formatDate(event.createdAt)}
+                      {formatDate(draft.createdAt)}
                     </p>
                   </div>
                 ))
