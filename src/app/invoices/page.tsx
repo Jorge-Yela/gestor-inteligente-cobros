@@ -5,6 +5,7 @@ import { InvoiceStatus, PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
+import { markInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
@@ -26,28 +27,7 @@ function formatDate(date: Date | null) {
   return date ? dateFormatter.format(date) : "Sin fecha";
 }
 
-function formatInvoiceStatus(status: InvoiceStatus) {
-  const labels: Record<InvoiceStatus, string> = {
-    PENDING_REVIEW: "Revision",
-    ACTIVE: "Activa",
-    OVERDUE: "Vencida",
-    PAID: "Cobrada",
-    CANCELLED: "Cancelada",
-    ARCHIVED: "Archivada",
-  };
 
-  return labels[status];
-}
-
-function formatPaymentStatus(status: PaymentStatus) {
-  const labels: Record<PaymentStatus, string> = {
-    UNPAID: "Pendiente",
-    PAID: "Cobrada",
-    DISPUTED: "En disputa",
-  };
-
-  return labels[status];
-}
 
 export default async function InvoicesPage() {
   const organizationId = await getCurrentOrganizationId();
@@ -126,8 +106,7 @@ export default async function InvoicesPage() {
                     <th className="px-5 py-3 font-medium">Cliente</th>
                     <th className="px-5 py-3 font-medium">Fecha control</th>
                     <th className="px-5 py-3 font-medium">Importe</th>
-                    <th className="px-5 py-3 font-medium">Estado</th>
-                    <th className="px-5 py-3 font-medium">Cobro</th>
+                    <th className="px-5 py-3 font-medium">Marcar como cobrada</th>
                     <th className="px-5 py-3 font-medium">Accion</th>
                   </tr>
                 </thead>
@@ -139,14 +118,19 @@ export default async function InvoicesPage() {
                       <td className="px-5 py-4 text-slate-500">{formatDate(invoice.dueDate)}</td>
                       <td className="px-5 py-4 font-semibold">{formatAmount(invoice.amountCents)}</td>
                       <td className="px-5 py-4">
-                        <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
-                          {formatInvoiceStatus(invoice.status)}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
-                          {formatPaymentStatus(invoice.paymentStatus)}
-                        </span>
+                        <form action={markInvoiceAsPaid}>
+                          <input type="hidden" name="invoiceId" value={invoice.id} />
+                          <input type="hidden" name="redirectTo" value="/invoices" />
+                          <Button
+                            type="submit"
+                            variant="outline"
+                            size="sm"
+                            disabled={invoice.paymentStatus === PaymentStatus.PAID}
+                            className="rounded-lg border-slate-200"
+                          >
+                            {invoice.paymentStatus === PaymentStatus.PAID ? "Ya cobrada" : "Marcar como cobrada"}
+                          </Button>
+                        </form>
                       </td>
                       <td className="px-5 py-4">
                         <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">

@@ -17,6 +17,7 @@ export async function markInvoiceAsPaid(formData: FormData) {
 
   const organizationId = await getCurrentOrganizationId();
   const invoiceId = String(formData.get("invoiceId") || "");
+  const redirectTo = String(formData.get("redirectTo") || `/invoices/${invoiceId}`);
 
   if (!invoiceId) {
     throw new Error("Invoice id is required");
@@ -60,5 +61,5 @@ export async function markInvoiceAsPaid(formData: FormData) {
   revalidatePath(`/invoices/${invoice.id}`);
   revalidatePath("/customers");
 
-  redirect(`/invoices/${invoice.id}`);
+  redirect(redirectTo);
 }
