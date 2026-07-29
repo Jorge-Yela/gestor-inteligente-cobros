@@ -168,6 +168,19 @@ export default async function Home() {
     status: formatInvoiceStatus(invoice.status),
   }));
 
+  const calendarItems = unpaidInvoices
+    .filter((invoice) => invoice.dueDate)
+    .sort((a, b) => (a.dueDate?.getTime() || 0) - (b.dueDate?.getTime() || 0))
+    .slice(0, 6)
+    .map((invoice) => ({
+      id: invoice.id,
+      customer: invoice.customer.name,
+      invoiceNumber: invoice.invoiceNumber,
+      amount: formatAmount(invoice.amountCents),
+      date: formatDate(invoice.dueDate as Date),
+      href: `/invoices/${invoice.id}`,
+    }));
+
   const dashboardEvents = recentEvents.map((event) => ({
     id: event.id,
     title: event.title,
@@ -238,6 +251,7 @@ export default async function Home() {
       invoices={dashboardInvoices}
       events={dashboardEvents}
       paymentStats={paymentStats}
+      calendarItems={calendarItems}
     />
   );
 }

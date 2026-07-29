@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ChevronRight,
   CircleDollarSign,
+  CalendarDays,
   FileText,
   Home,
   LogOut,
@@ -52,6 +53,15 @@ type DashboardEvent = {
   customerName: string | null;
 };
 
+type DashboardCalendarItem = {
+  id: string;
+  customer: string;
+  invoiceNumber: string;
+  amount: string;
+  date: string;
+  href: string;
+};
+
 type DashboardPaymentMonth = {
   label: string;
   paidCount: number;
@@ -73,6 +83,7 @@ type AppShellProps = {
   invoices: DashboardInvoice[];
   events: DashboardEvent[];
   paymentStats: DashboardPaymentStats;
+  calendarItems: DashboardCalendarItem[];
 };
 
 const navigationItems = [
@@ -91,7 +102,7 @@ const taskItems = [
   { label: "Confirmar cobros recientes", priority: "Baja", time: "15:00", tone: "text-sky-600 bg-sky-50" },
 ];
 
-export function AppShell({ stats, quickLinks, invoices, events, paymentStats }: AppShellProps) {
+export function AppShell({ stats, quickLinks, invoices, events, paymentStats, calendarItems }: AppShellProps) {
   const primaryInvoices = invoices.slice(0, 5);
   const recentEvents = events.slice(0, 4);
   const firstStat = stats[0];
@@ -277,7 +288,7 @@ export function AppShell({ stats, quickLinks, invoices, events, paymentStats }: 
               </aside>
             </section>
 
-            <section className="grid gap-5 xl:grid-cols-[1.15fr_1fr_1fr]">
+            <section className="grid gap-5 xl:grid-cols-[1.15fr_1fr]">
               <PaymentStatsCard
                 paidThisMonthAmount={paymentStats.paidThisMonthAmount}
                 pendingAmount={paymentStats.pendingAmount}
@@ -286,6 +297,10 @@ export function AppShell({ stats, quickLinks, invoices, events, paymentStats }: 
                 paidPercentage={paidPercentage}
                 monthly={paymentStats.monthly}
               />
+              <SmartCalendarCard items={calendarItems} />
+            </section>
+
+            <section className="grid gap-5 xl:grid-cols-2">
               <ChartCard title="Importe pendiente por antiguedad" variant="bars" />
               <ChartCard title="Cobros mensuales" variant="area" />
             </section>
@@ -355,6 +370,58 @@ function MetricCard({
           <p className="mt-1 text-2xl font-bold text-slate-950">{value}</p>
           <p className="mt-1 text-xs text-slate-500">{detail}</p>
         </div>
+      </div>
+    </article>
+  );
+}
+
+function SmartCalendarCard({ items }: { items: DashboardCalendarItem[] }) {
+  const weekDays = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
+
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="font-semibold">Calendario inteligente</h2>
+          <p className="mt-1 text-sm text-slate-500">Proximas fechas de control y acciones sugeridas.</p>
+        </div>
+        <div className="flex size-10 items-center justify-center rounded-full bg-sky-50 text-sky-700">
+          <CalendarDays className="size-5" />
+        </div>
+      </div>
+
+      <div className="mt-5 grid grid-cols-7 gap-2">
+        {weekDays.map((day, index) => (
+          <div key={day} className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-center">
+            <p className="text-[11px] font-medium text-slate-500">{day}</p>
+            <p className="mt-1 text-lg font-bold text-slate-900">{index + 1}</p>
+            <span className={`mx-auto mt-2 block size-2 rounded-full ${index < Math.min(items.length, 7) ? "bg-blue-500" : "bg-slate-200"}`} />
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 space-y-3">
+        {items.length === 0 ? (
+          <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
+            No hay fechas de control pendientes en las proximas facturas.
+          </p>
+        ) : (
+          items.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 transition hover:bg-slate-50"
+            >
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">{item.customer}</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {item.invoiceNumber} · {item.date}
+                </p>
+              </div>
+              <span className="shrink-0 text-sm font-semibold text-slate-900">{item.amount}</span>
+            </Link>
+          ))
+        )}
       </div>
     </article>
   );
