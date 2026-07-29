@@ -126,6 +126,9 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
   );
 
   const suggestedInvoices = [...invoicesToClaim, ...invoicesWithoutControlDate];
+  const unpaidInvoices = customer.invoices.filter(
+    (invoice) => invoice.paymentStatus === PaymentStatus.UNPAID,
+  );
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
@@ -195,76 +198,31 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
           </aside>
 
           <section className="space-y-6">
-            <article className="rounded-xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-100 px-5 py-4">
-                <h2 className="font-semibold">Recomendaciones de cobro</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Acciones sugeridas para este cliente. El usuario decide siempre que hacer.
-                </p>
-              </div>
-
-              <div className="grid gap-4 p-5 lg:grid-cols-2">
-                <div className="rounded-xl border border-red-100 bg-red-50 p-4">
-                  <p className="text-sm font-medium text-red-700">Toca reclamar</p>
-                  <p className="mt-2 text-2xl font-bold text-red-700">{invoicesToClaim.length}</p>
-                  <p className="mt-1 text-sm text-red-700/70">
-                    Facturas no cobradas con fecha vencida o para hoy.
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-amber-100 bg-amber-50 p-4">
-                  <p className="text-sm font-medium text-amber-700">Sin fecha de control</p>
-                  <p className="mt-2 text-2xl font-bold text-amber-700">{invoicesWithoutControlDate.length}</p>
-                  <p className="mt-1 text-sm text-amber-700/70">
-                    Facturas pendientes que necesitan una fecha.
-                  </p>
-                </div>
-              </div>
-
-              <div className="border-t border-slate-100 px-5 py-4">
-                {suggestedInvoices.length === 0 ? (
-                  <p className="text-sm text-slate-500">
-                    No hay acciones urgentes recomendadas para este cliente.
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    {suggestedInvoices.map((invoice) => (
-                      <div key={invoice.id} className="flex flex-col gap-3 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <p className="text-sm font-semibold">{invoice.invoiceNumber}</p>
-                          <p className="mt-1 text-sm text-slate-500">
-                            {invoice.dueDate
-                              ? `Fecha de control: ${formatDate(invoice.dueDate)}`
-                              : "Necesita fecha de control"}
-                          </p>
-                        </div>
-                        <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
-                          <Link href={`/invoices/${invoice.id}`}>Revisar factura</Link>
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </article>
-
             <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-5 py-4">
-                <h2 className="font-semibold">Facturas del cliente</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Fecha de control, importe y estado de cobro.
-                </p>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h2 className="font-semibold">Facturas pendientes</h2>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Selecciona varias facturas para preparar una reclamacion conjunta.
+                    </p>
+                  </div>
+                  <Button form="bulk-claim-form" type="submit" className="bg-blue-600 shadow-sm hover:bg-blue-700" disabled={unpaidInvoices.length === 0}>
+                    Preparar reclamacion conjunta
+                  </Button>
+                </div>
               </div>
 
-              {customer.invoices.length === 0 ? (
+              {unpaidInvoices.length === 0 ? (
                 <p className="px-5 py-6 text-sm text-slate-500">
-                  Este cliente todavia no tiene facturas registradas.
+                  Este cliente no tiene facturas pendientes.
                 </p>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[760px] text-left text-sm">
+                <form id="bulk-claim-form" action={`/customers/${customer.id}/claim-preview`} className="overflow-x-auto">
+                  <table className="w-full min-w-[820px] text-left text-sm">
                     <thead className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500">
                       <tr>
+                        <th className="px-5 py-3 font-medium">Seleccionar</th>
                         <th className="px-5 py-3 font-medium">Factura</th>
                         <th className="px-5 py-3 font-medium">Fecha control</th>
                         <th className="px-5 py-3 font-medium">Importe</th>
@@ -274,8 +232,16 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {customer.invoices.map((invoice) => (
+                      {unpaidInvoices.map((invoice) => (
                         <tr key={invoice.id} className="transition hover:bg-slate-50/80">
+                          <td className="px-5 py-4">
+                            <input
+                              type="checkbox"
+                              name="invoiceIds"
+                              value={invoice.id}
+                              className="size-4 rounded border-slate-300 text-blue-600"
+                            />
+                          </td>
                           <td className="px-5 py-4 font-semibold">{invoice.invoiceNumber}</td>
                           <td className="px-5 py-4 text-slate-500">{formatDate(invoice.dueDate)}</td>
                           <td className="px-5 py-4 font-semibold">{formatAmount(invoice.amountCents)}</td>
@@ -298,7 +264,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </form>
               )}
             </article>
 

@@ -103,10 +103,6 @@ export default async function Home() {
     0,
   );
 
-  const paidAmountCents = paidInvoices.reduce(
-    (total, invoice) => total + invoice.amountCents,
-    0,
-  );
 
   const overdueAmountCents = overdueInvoices.reduce(
     (total, invoice) => total + invoice.amountCents,
