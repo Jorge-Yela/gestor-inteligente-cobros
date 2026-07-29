@@ -44,10 +44,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
       <div className="grid min-h-screen lg:grid-cols-[260px_1fr]">
-        <aside className="hidden bg-[#0d1624] text-white lg:flex lg:flex-col">
+        <aside className="hidden bg-sky-700 text-white lg:flex lg:flex-col">
           <div className="flex h-20 items-center px-7">
             <Link href="/" className="text-3xl font-bold tracking-wide">
-              NE<span className="text-blue-400">X</span>UM
+              NE<span className="text-sky-100">X</span>UM
             </Link>
           </div>
 
@@ -62,7 +62,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                   className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
                     isActive
                       ? "bg-blue-600 text-white shadow-lg shadow-blue-950/30"
-                      : "text-slate-300 hover:bg-white/10 hover:text-white"
+                      : "text-sky-50/90 hover:bg-white/15 hover:text-white"
                   }`}
                 >
                   <item.icon className="size-5" />
@@ -72,13 +72,13 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             })}
           </nav>
 
-          <div className="space-y-2 border-t border-white/10 p-4">
+          <div className="space-y-2 border-t border-white/20 p-4">
             <Link
               href="/settings"
               className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
                 isActivePath(pathname, "/settings")
                   ? "bg-blue-600 text-white shadow-lg shadow-blue-950/30"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  : "text-sky-50/90 hover:bg-white/15 hover:text-white"
               }`}
             >
               <Settings className="size-5" />
@@ -88,7 +88,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
             <form action={signOutUser}>
               <button
                 type="submit"
-                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/10 hover:text-white"
+                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-sky-50/90 transition hover:bg-white/15 hover:text-white"
               >
                 <LogOut className="size-5" />
                 Cerrar sesion

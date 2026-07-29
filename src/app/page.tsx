@@ -90,11 +90,20 @@ export default async function Home() {
     (invoice) => invoice.paymentStatus === PaymentStatus.UNPAID,
   );
 
+  const paidInvoices = invoices.filter(
+    (invoice) => invoice.paymentStatus === PaymentStatus.PAID,
+  );
+
   const overdueInvoices = invoices.filter(
     (invoice) => invoice.status === InvoiceStatus.OVERDUE,
   );
 
   const pendingAmountCents = unpaidInvoices.reduce(
+    (total, invoice) => total + invoice.amountCents,
+    0,
+  );
+
+  const paidAmountCents = paidInvoices.reduce(
     (total, invoice) => total + invoice.amountCents,
     0,
   );
@@ -173,12 +182,66 @@ export default async function Home() {
     customerName: event.invoice?.customer.name || null,
   }));
 
+  const now = new Date();
+  const paidThisMonthInvoices = paidInvoices.filter(
+    (invoice) =>
+      invoice.paidAt &&
+      invoice.paidAt.getMonth() === now.getMonth() &&
+      invoice.paidAt.getFullYear() === now.getFullYear(),
+  );
+
+  const paidThisMonthAmountCents = paidThisMonthInvoices.reduce(
+    (total, invoice) => total + invoice.amountCents,
+    0,
+  );
+
+  const monthlyPaymentStats = Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1);
+    const paidMonthInvoices = paidInvoices.filter(
+      (invoice) =>
+        invoice.paidAt &&
+        invoice.paidAt.getMonth() === date.getMonth() &&
+        invoice.paidAt.getFullYear() === date.getFullYear(),
+    );
+
+    const amountCents = paidMonthInvoices.reduce(
+      (total, invoice) => total + invoice.amountCents,
+      0,
+    );
+
+    return {
+      label: date.toLocaleDateString("es-ES", { month: "short" }),
+      paidCount: paidMonthInvoices.length,
+      paidAmount: formatAmount(amountCents),
+      amountCents,
+    };
+  });
+
+  const maxMonthlyPaidCents = Math.max(
+    1,
+    ...monthlyPaymentStats.map((month) => month.amountCents),
+  );
+
+  const paymentStats = {
+    paidThisMonthCount: paidThisMonthInvoices.length,
+    unpaidCount: unpaidInvoices.length,
+    paidThisMonthAmount: formatAmount(paidThisMonthAmountCents),
+    pendingAmount: formatAmount(pendingAmountCents),
+    monthly: monthlyPaymentStats.map((month) => ({
+      label: month.label,
+      paidCount: month.paidCount,
+      paidAmount: month.paidAmount,
+      barHeight: Math.max(8, Math.round((month.amountCents / maxMonthlyPaidCents) * 100)),
+    })),
+  };
+
   return (
     <AppShell
       stats={stats}
       quickLinks={quickLinks}
       invoices={dashboardInvoices}
       events={dashboardEvents}
+      paymentStats={paymentStats}
     />
   );
 }

@@ -52,11 +52,27 @@ type DashboardEvent = {
   customerName: string | null;
 };
 
+type DashboardPaymentMonth = {
+  label: string;
+  paidCount: number;
+  paidAmount: string;
+  barHeight: number;
+};
+
+type DashboardPaymentStats = {
+  paidThisMonthCount: number;
+  unpaidCount: number;
+  paidThisMonthAmount: string;
+  pendingAmount: string;
+  monthly: DashboardPaymentMonth[];
+};
+
 type AppShellProps = {
   stats: DashboardStat[];
   quickLinks: DashboardQuickLink[];
   invoices: DashboardInvoice[];
   events: DashboardEvent[];
+  paymentStats: DashboardPaymentStats;
 };
 
 const navigationItems = [
@@ -75,20 +91,22 @@ const taskItems = [
   { label: "Confirmar cobros recientes", priority: "Baja", time: "15:00", tone: "text-sky-600 bg-sky-50" },
 ];
 
-export function AppShell({ stats, quickLinks, invoices, events }: AppShellProps) {
+export function AppShell({ stats, quickLinks, invoices, events, paymentStats }: AppShellProps) {
   const primaryInvoices = invoices.slice(0, 5);
   const recentEvents = events.slice(0, 4);
   const firstStat = stats[0];
   const secondStat = stats[1];
   const fourthStat = quickLinks[0];
+  const totalPaymentCount = paymentStats.paidThisMonthCount + paymentStats.unpaidCount;
+  const paidPercentage = totalPaymentCount > 0 ? Math.round((paymentStats.paidThisMonthCount / totalPaymentCount) * 100) : 0;
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
       <div className="grid min-h-screen lg:grid-cols-[260px_1fr]">
-        <aside className="hidden bg-[#0d1624] text-white lg:flex lg:flex-col">
+        <aside className="hidden bg-sky-700 text-white lg:flex lg:flex-col">
           <div className="flex h-20 items-center px-7">
             <Link href="/" className="text-3xl font-bold tracking-wide">
-              NE<span className="text-blue-400">X</span>UM
+              NE<span className="text-sky-100">X</span>UM
             </Link>
           </div>
 
@@ -100,7 +118,7 @@ export function AppShell({ stats, quickLinks, invoices, events }: AppShellProps)
                 className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
                   index === 0
                     ? "bg-blue-600 text-white shadow-lg shadow-blue-950/30"
-                    : "text-slate-300 hover:bg-white/10 hover:text-white"
+                    : "text-sky-50/90 hover:bg-white/15 hover:text-white"
                 }`}
               >
                 <item.icon className="size-5" />
@@ -109,10 +127,10 @@ export function AppShell({ stats, quickLinks, invoices, events }: AppShellProps)
             ))}
           </nav>
 
-          <div className="space-y-2 border-t border-white/10 p-4">
+          <div className="space-y-2 border-t border-white/20 p-4">
             <Link
               href="/settings"
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/10 hover:text-white"
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-sky-50/90 transition hover:bg-white/15 hover:text-white"
             >
               <Settings className="size-5" />
               Configuracion
@@ -121,7 +139,7 @@ export function AppShell({ stats, quickLinks, invoices, events }: AppShellProps)
             <form action={signOutUser}>
               <button
                 type="submit"
-                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/10 hover:text-white"
+                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-sky-50/90 transition hover:bg-white/15 hover:text-white"
               >
                 <LogOut className="size-5" />
                 Cerrar sesion
@@ -259,8 +277,15 @@ export function AppShell({ stats, quickLinks, invoices, events }: AppShellProps)
               </aside>
             </section>
 
-            <section className="grid gap-5 xl:grid-cols-3">
-              <ChartCard title="Evolucion de cobros" variant="line" />
+            <section className="grid gap-5 xl:grid-cols-[1.15fr_1fr_1fr]">
+              <PaymentStatsCard
+                paidThisMonthAmount={paymentStats.paidThisMonthAmount}
+                pendingAmount={paymentStats.pendingAmount}
+                paidThisMonthCount={paymentStats.paidThisMonthCount}
+                unpaidCount={paymentStats.unpaidCount}
+                paidPercentage={paidPercentage}
+                monthly={paymentStats.monthly}
+              />
               <ChartCard title="Importe pendiente por antiguedad" variant="bars" />
               <ChartCard title="Cobros mensuales" variant="area" />
             </section>
@@ -330,6 +355,68 @@ function MetricCard({
           <p className="mt-1 text-2xl font-bold text-slate-950">{value}</p>
           <p className="mt-1 text-xs text-slate-500">{detail}</p>
         </div>
+      </div>
+    </article>
+  );
+}
+
+function PaymentStatsCard({
+  paidThisMonthAmount,
+  pendingAmount,
+  paidThisMonthCount,
+  unpaidCount,
+  paidPercentage,
+  monthly,
+}: {
+  paidThisMonthAmount: string;
+  pendingAmount: string;
+  paidThisMonthCount: number;
+  unpaidCount: number;
+  paidPercentage: number;
+  monthly: DashboardPaymentMonth[];
+}) {
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="font-semibold">Estadisticas de pago</h2>
+          <p className="mt-1 text-sm text-slate-500">Cobros registrados este mes y evolucion mensual.</p>
+        </div>
+        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+          {paidThisMonthCount} cobradas este mes
+        </span>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl bg-emerald-50 p-4">
+          <p className="text-sm font-medium text-emerald-700">Cobrado este mes</p>
+          <p className="mt-2 text-2xl font-bold text-slate-950">{paidThisMonthAmount}</p>
+          <p className="mt-1 text-xs text-emerald-700">{paidThisMonthCount} facturas cobradas</p>
+        </div>
+        <div className="rounded-xl bg-amber-50 p-4">
+          <p className="text-sm font-medium text-amber-700">Pendiente actual</p>
+          <p className="mt-2 text-2xl font-bold text-slate-950">{pendingAmount}</p>
+          <p className="mt-1 text-xs text-amber-700">{unpaidCount} facturas pendientes</p>
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-medium text-slate-700">Ratio de cobro del mes</span>
+          <span className="font-semibold text-emerald-700">{paidPercentage}%</span>
+        </div>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+          <div className="h-full rounded-full bg-emerald-500" style={{ width: `${paidPercentage}%` }} />
+        </div>
+      </div>
+
+      <div className="mt-6 flex h-32 items-end gap-3 border-t border-slate-100 pt-5">
+        {monthly.map((month) => (
+          <div key={month.label} className="flex flex-1 flex-col justify-end gap-2">
+            <div className="rounded-t-lg bg-blue-500" style={{ height: `${month.barHeight}%` }} title={month.paidAmount} />
+            <span className="text-center text-[11px] text-slate-500">{month.label}</span>
+          </div>
+        ))}
       </div>
     </article>
   );
