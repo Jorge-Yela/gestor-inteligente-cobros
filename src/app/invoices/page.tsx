@@ -2,11 +2,10 @@ import Link from "next/link";
 import { AlertTriangle, CheckCircle2, FileText, Upload } from "lucide-react";
 
 import { PaymentStatus } from "@/generated/prisma/enums";
-import { prisma } from "@/lib/db/prisma";
-
 import { Button } from "@/components/ui/button";
-import { markInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { prisma } from "@/lib/db/prisma";
+import { markInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -27,10 +26,15 @@ function formatDate(date: Date | null) {
   return date ? dateFormatter.format(date) : "Sin fecha";
 }
 
+type InvoicesPageProps = {
+  searchParams: Promise<{
+    filter?: string;
+  }>;
+};
 
-
-export default async function InvoicesPage() {
+export default async function InvoicesPage({ searchParams }: InvoicesPageProps) {
   const organizationId = await getCurrentOrganizationId();
+  const { filter = "all" } = await searchParams;
 
   const invoices = await prisma.invoice.findMany({
     where: {
@@ -44,9 +48,23 @@ export default async function InvoicesPage() {
     },
   });
 
-  const unpaidInvoices = invoices.filter((invoice) => invoice.paymentStatus === PaymentStatus.UNPAID);
-  const paidInvoices = invoices.filter((invoice) => invoice.paymentStatus === PaymentStatus.PAID);
-  const pendingAmountCents = unpaidInvoices.reduce((total, invoice) => total + invoice.amountCents, 0);
+  const unpaidInvoices = invoices.filter(
+    (invoice) => invoice.paymentStatus === PaymentStatus.UNPAID,
+  );
+  const paidInvoices = invoices.filter(
+    (invoice) => invoice.paymentStatus === PaymentStatus.PAID,
+  );
+  const pendingAmountCents = unpaidInvoices.reduce(
+    (total, invoice) => total + invoice.amountCents,
+    0,
+  );
+
+  const filteredInvoices =
+    filter === "pending"
+      ? unpaidInvoices
+      : filter === "paid"
+        ? paidInvoices
+        : invoices;
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
@@ -54,7 +72,7 @@ export default async function InvoicesPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <Link href="/" className="text-sm font-medium text-slate-500 hover:text-blue-600">
-              Dashboard
+              Panel de control
             </Link>
             <h1 className="mt-3 text-3xl font-bold tracking-tight">Facturas</h1>
             <p className="mt-2 text-slate-500">
@@ -76,9 +94,33 @@ export default async function InvoicesPage() {
         </div>
 
         <section className="grid gap-4 md:grid-cols-3">
-          <SummaryCard label="Pendiente de cobro" value={formatAmount(pendingAmountCents)} detail={`${unpaidInvoices.length} facturas`} tone="amber" icon={AlertTriangle} />
-          <SummaryCard label="Cobradas" value={String(paidInvoices.length)} detail="Registradas como pagadas" tone="emerald" icon={CheckCircle2} />
-          <SummaryCard label="Total facturas" value={String(invoices.length)} detail="En la plataforma" tone="blue" icon={FileText} />
+          <SummaryCard
+            href="/invoices"
+            active={filter === "all"}
+            label="Total facturas"
+            value={String(invoices.length)}
+            detail="En la plataforma"
+            tone="blue"
+            icon={FileText}
+          />
+          <SummaryCard
+            href="/invoices?filter=pending"
+            active={filter === "pending"}
+            label="Pendiente de cobro"
+            value={formatAmount(pendingAmountCents)}
+            detail={`${unpaidInvoices.length} facturas`}
+            tone="amber"
+            icon={AlertTriangle}
+          />
+          <SummaryCard
+            href="/invoices?filter=paid"
+            active={filter === "paid"}
+            label="Cobradas"
+            value={String(paidInvoices.length)}
+            detail="Registradas como pagadas"
+            tone="emerald"
+            icon={CheckCircle2}
+          />
         </section>
 
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -86,14 +128,14 @@ export default async function InvoicesPage() {
             <div>
               <h2 className="font-semibold">Listado de facturas</h2>
               <p className="mt-1 text-sm text-slate-500">
-                Prioriza las vencidas y revisa cada factura antes de reclamar.
+                Filtra por total, pendientes de cobro o cobradas.
               </p>
             </div>
           </div>
 
-          {invoices.length === 0 ? (
+          {filteredInvoices.length === 0 ? (
             <p className="px-5 py-8 text-sm text-slate-500">
-              Todavia no hay facturas registradas.
+              No hay facturas para este filtro.
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -109,7 +151,7 @@ export default async function InvoicesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {invoices.map((invoice) => (
+                  {filteredInvoices.map((invoice) => (
                     <tr key={invoice.id} className="transition hover:bg-slate-50/80">
                       <td className="px-5 py-4 font-semibold">{invoice.invoiceNumber}</td>
                       <td className="px-5 py-4">{invoice.customer.name}</td>
@@ -118,7 +160,11 @@ export default async function InvoicesPage() {
                       <td className="px-5 py-4">
                         <form action={markInvoiceAsPaid}>
                           <input type="hidden" name="invoiceId" value={invoice.id} />
-                          <input type="hidden" name="redirectTo" value="/invoices" />
+                          <input
+                            type="hidden"
+                            name="redirectTo"
+                            value={filter === "all" ? "/invoices" : `/invoices?filter=${filter}`}
+                          />
                           <Button
                             type="submit"
                             variant="outline"
@@ -148,12 +194,16 @@ export default async function InvoicesPage() {
 }
 
 function SummaryCard({
+  href,
+  active,
   label,
   value,
   detail,
   tone,
   icon: Icon,
 }: {
+  href: string;
+  active: boolean;
   label: string;
   value: string;
   detail: string;
@@ -168,7 +218,12 @@ function SummaryCard({
   };
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <Link
+      href={href}
+      className={`rounded-xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+        active ? "border-blue-300 ring-4 ring-blue-100" : "border-slate-200"
+      }`}
+    >
       <div className="flex items-center gap-4">
         <div className={`flex size-11 items-center justify-center rounded-full ${tones[tone]}`}>
           <Icon className="size-5" />
@@ -179,6 +234,6 @@ function SummaryCard({
           <p className="mt-1 text-xs text-slate-500">{detail}</p>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
