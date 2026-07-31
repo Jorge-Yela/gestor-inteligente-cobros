@@ -71,9 +71,6 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <Link href="/" className="text-sm font-medium text-slate-500 hover:text-blue-600">
-              Panel de control
-            </Link>
             <h1 className="mt-3 text-3xl font-bold tracking-tight">Facturas</h1>
             <p className="mt-2 text-slate-500">
               Controla facturas cargadas, importes pendientes y acciones de cobro.
@@ -86,9 +83,6 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
                 <Upload className="size-4" />
                 Subir factura
               </Link>
-            </Button>
-            <Button asChild variant="outline" className="rounded-lg border-slate-200 bg-white">
-              <Link href="/invoices/new">Registrar manualmente</Link>
             </Button>
           </div>
         </div>
