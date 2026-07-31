@@ -130,9 +130,6 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
           </div>
 
           <div className="flex gap-2">
-            <Button asChild variant="outline">
-              <Link href={`/invoices/${invoice.id}/claim-preview`}>Previsualizar reclamacion</Link>
-            </Button>
             <form action={markInvoiceAsPaid}>
               <input type="hidden" name="invoiceId" value={invoice.id} />
               <Button type="submit" disabled={invoice.paymentStatus === PaymentStatus.PAID}>
