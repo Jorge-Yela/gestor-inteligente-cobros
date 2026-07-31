@@ -115,9 +115,6 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
                 </Link>
               </Button>
               <div className="hidden items-center gap-3 pl-2 md:flex">
-                <div className="flex size-11 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
-                  CM
-                </div>
                 <div>
                   <p className="text-sm font-semibold">Carlos Martinez</p>
                   <p className="text-xs text-slate-500">Administrador</p>
