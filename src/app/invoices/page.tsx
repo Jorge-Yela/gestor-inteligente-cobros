@@ -138,7 +138,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
                   <tr>
                     <th className="px-5 py-3 font-medium">Factura</th>
                     <th className="px-5 py-3 font-medium">Cliente</th>
-                    <th className="px-5 py-3 font-medium">Fecha control</th>
+                    <th className="px-5 py-3 font-medium">Fecha de emision</th>
                     <th className="px-5 py-3 font-medium">Importe</th>
                     <th className="px-5 py-3 font-medium">Marcar como cobrada</th>
                     <th className="px-5 py-3 font-medium">Accion</th>
@@ -149,7 +149,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
                     <tr key={invoice.id} className="transition hover:bg-slate-50/80">
                       <td className="px-5 py-4 font-semibold">{invoice.invoiceNumber}</td>
                       <td className="px-5 py-4">{invoice.customer.name}</td>
-                      <td className="px-5 py-4 text-slate-500">{formatDate(invoice.dueDate)}</td>
+                      <td className="px-5 py-4 text-slate-500">{formatDate(invoice.issueDate)}</td>
                       <td className="px-5 py-4 font-semibold">{formatAmount(invoice.amountCents)}</td>
                       <td className="px-5 py-4">
                         <form action={markInvoiceAsPaid}>

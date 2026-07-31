@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarClock, CheckCircle2, CircleDollarSign, FileText } from "lucide-react";
+import { CalendarClock, CircleDollarSign, FileText } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import {
@@ -131,7 +131,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
           </div>
         </div>
 
-        <section className="mb-6 grid gap-4 md:grid-cols-4">
+        <section className="mb-6 grid gap-4 md:grid-cols-3">
           <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-4">
               <div className="flex size-11 items-center justify-center rounded-full bg-amber-50 text-amber-600">
@@ -156,19 +156,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
             </div>
           </article>
 
-          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="flex size-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                <CheckCircle2 className="size-5" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-500">Cobro</p>
-                <p className="mt-1 text-lg font-bold">{formatPaymentStatus(invoice.paymentStatus)}</p>
-              </div>
-            </div>
-          </article>
-
-          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <Link href={`/invoices/${invoice.id}/claims`} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-200 hover:shadow-md">
             <div className="flex items-center gap-4">
               <div className="flex size-11 items-center justify-center rounded-full bg-violet-50 text-violet-600">
                 <FileText className="size-5" />
@@ -178,7 +166,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                 <p className="mt-1 text-2xl font-bold">{invoice.claimDrafts.length}</p>
               </div>
             </div>
-          </article>
+          </Link>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
