@@ -10,7 +10,6 @@ import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
 import { markInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
-import { updateInvoiceControlDate } from "@/server/actions/update-invoice-control-date";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
@@ -36,13 +35,6 @@ function formatDate(date: Date | null) {
   return dateFormatter.format(date);
 }
 
-function formatDateInputValue(date: Date | null) {
-  if (!date) {
-    return "";
-  }
-
-  return date.toISOString().slice(0, 10);
-}
 
 function formatInvoiceStatus(status: InvoiceStatus) {
   const labels: Record<InvoiceStatus, string> = {
@@ -234,24 +226,6 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                   <dd className="mt-1 font-medium">{formatPaymentStatus(invoice.paymentStatus)}</dd>
                 </div>
               </dl>
-            </article>
-
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="font-semibold">Fecha de control</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Esta fecha no tiene que venir en la factura. Sirve para organizar el seguimiento.
-              </p>
-              <form action={updateInvoiceControlDate} className="mt-5 flex flex-col gap-3 sm:flex-row">
-                <input type="hidden" name="invoiceId" value={invoice.id} />
-                <input
-                  type="date"
-                  name="controlDate"
-                  required
-                  defaultValue={formatDateInputValue(invoice.dueDate)}
-                  className="h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
-                />
-                <Button type="submit">Guardar fecha</Button>
-              </form>
             </article>
 
             <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
