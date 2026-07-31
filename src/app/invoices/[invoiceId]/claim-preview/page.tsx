@@ -2,12 +2,12 @@ import Link from "next/link";
 import { Mail, Send, ShieldCheck } from "lucide-react";
 import { notFound } from "next/navigation";
 
-import { prisma } from "@/lib/db/prisma";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
-import { renderTemplate } from "@/modules/templates/render-template";
-
+import { PaymentStatus, TemplateTone } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
-import { createClaimDraft } from "@/server/actions/create-claim-draft";
+import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { prisma } from "@/lib/db/prisma";
+import { renderTemplate } from "@/modules/templates/render-template";
+import { createBulkClaimDrafts } from "@/server/actions/create-bulk-claim-drafts";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -32,6 +32,16 @@ function formatDate(date: Date | null) {
   return dateFormatter.format(date);
 }
 
+function formatTone(tone: TemplateTone) {
+  const labels: Record<TemplateTone, string> = {
+    FRIENDLY: "Recordatorio amable",
+    FIRM: "Recordatorio firme",
+    FINAL_NOTICE: "Ultimo aviso",
+  };
+
+  return labels[tone];
+}
+
 type ClaimPreviewPageProps = {
   params: Promise<{
     invoiceId: string;
@@ -46,6 +56,7 @@ export default async function ClaimPreviewPage({ params }: ClaimPreviewPageProps
     where: {
       id: invoiceId,
       organizationId,
+      paymentStatus: PaymentStatus.UNPAID,
     },
     include: {
       customer: true,
@@ -56,16 +67,20 @@ export default async function ClaimPreviewPage({ params }: ClaimPreviewPageProps
     notFound();
   }
 
-  const template = await prisma.template.findFirst({
+  const templates = await prisma.template.findMany({
     where: {
       organizationId,
-      isDefault: true,
+      archivedAt: null,
     },
+    orderBy: [
+      {
+        tone: "asc",
+      },
+      {
+        createdAt: "asc",
+      },
+    ],
   });
-
-  if (!template) {
-    notFound();
-  }
 
   const variables = {
     customerName: invoice.customer.name,
@@ -74,25 +89,22 @@ export default async function ClaimPreviewPage({ params }: ClaimPreviewPageProps
     controlDate: formatDate(invoice.dueDate),
   };
 
-  const subject = renderTemplate(template.subject, variables);
-  const body = renderTemplate(template.body, variables);
-
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
-      <div className="mx-auto max-w-6xl px-6 py-8">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <Link
               href={`/invoices/${invoice.id}`}
-              className="text-sm font-medium text-slate-500 transition hover:text-slate-950"
+              className="text-sm font-medium text-slate-500 transition hover:text-blue-600"
             >
               Volver a la factura
             </Link>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+            <h1 className="mt-3 text-3xl font-bold tracking-tight">
               Preparar reclamacion
             </h1>
             <p className="mt-2 max-w-2xl text-slate-500">
-              Revisa el mensaje antes de guardarlo. Nada se envia automaticamente desde la plataforma.
+              Elige una plantilla para abrir el correo con destinatario, asunto y mensaje preparados.
             </p>
           </div>
 
@@ -101,96 +113,80 @@ export default async function ClaimPreviewPage({ params }: ClaimPreviewPageProps
           </div>
         </div>
 
-        <section className="grid gap-6 xl:grid-cols-[1fr_340px]">
-          <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex items-center gap-3 border-b border-slate-200 px-6 py-5">
-              <div className="flex size-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                <Mail className="size-5" />
-              </div>
-              <div>
-                <h2 className="font-semibold">Mensaje preparado</h2>
+        <section className="grid gap-6 lg:grid-cols-[360px_1fr]">
+          <aside className="space-y-5">
+            <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <h2 className="font-semibold">Factura seleccionada</h2>
+              <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm font-semibold">{invoice.invoiceNumber}</p>
                 <p className="mt-1 text-sm text-slate-500">
-                  Plantilla aplicada: {template.name}
+                  {formatAmount(invoice.amountCents)} · {formatDate(invoice.dueDate)}
                 </p>
               </div>
-            </div>
+            </article>
 
-            <div className="space-y-6 p-6">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-medium uppercase text-slate-400">Para</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">
-                    {invoice.customer.email || "Cliente sin email registrado"}
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-medium uppercase text-slate-400">Factura</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">
-                    {invoice.invoiceNumber} · {formatAmount(invoice.amountCents)}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-slate-700">Asunto</p>
-                <div className="mt-2 rounded-xl border border-slate-200 bg-white p-4 text-sm font-medium text-slate-900">
-                  {subject}
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-slate-700">Mensaje</p>
-                <div className="mt-2 min-h-[320px] whitespace-pre-line rounded-xl border border-slate-200 bg-white p-5 text-sm leading-7 text-slate-700">
-                  {body}
-                </div>
-              </div>
-
-              <form action={createClaimDraft} className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
-                <input type="hidden" name="invoiceId" value={invoice.id} />
-                <input type="hidden" name="templateId" value={template.id} />
-                <input type="hidden" name="subject" value={subject} />
-                <input type="hidden" name="body" value={body} />
-                <Button asChild variant="outline">
-                  <Link href={`/invoices/${invoice.id}`}>Cancelar</Link>
-                </Button>
-                <Button type="submit">
-                  <Send className="mr-2 size-4" />
-                  Guardar reclamacion
-                </Button>
-              </form>
-            </div>
-          </article>
-
-          <aside className="space-y-5">
             <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex size-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
                 <ShieldCheck className="size-5" />
               </div>
-              <h2 className="mt-4 font-semibold">Control del usuario</h2>
+              <h2 className="mt-4 font-semibold">Envio controlado</h2>
               <p className="mt-2 text-sm leading-6 text-slate-500">
-                Este paso solo guarda la reclamacion preparada. El envio real por email se conectara en la siguiente fase.
+                Al pulsar enviar, se registra la reclamacion y se abre Gmail. El envio final lo confirmas tu desde tu correo.
               </p>
             </article>
-
-            <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="font-semibold">Resumen</h2>
-              <dl className="mt-5 space-y-4">
-                <div>
-                  <dt className="text-sm text-slate-500">Cliente</dt>
-                  <dd className="mt-1 font-medium">{invoice.customer.name}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm text-slate-500">Fecha de control</dt>
-                  <dd className="mt-1 font-medium">{formatDate(invoice.dueDate)}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm text-slate-500">Importe</dt>
-                  <dd className="mt-1 font-medium">{formatAmount(invoice.amountCents)}</dd>
-                </div>
-              </dl>
-            </article>
           </aside>
+
+          <section className="space-y-5">
+            {templates.map((template) => {
+              const subject = renderTemplate(template.subject, variables);
+              const body = renderTemplate(template.body, variables);
+              const gmailHref = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(invoice.customer.email || "")}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+              return (
+                <article key={template.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                        {formatTone(template.tone)}
+                      </span>
+                      <h2 className="mt-3 font-semibold">{template.name}</h2>
+                      <p className="mt-1 text-sm text-slate-500">{subject}</p>
+                    </div>
+
+                    <form action={createBulkClaimDrafts}>
+                      <input type="hidden" name="customerId" value={invoice.customerId} />
+                      <input type="hidden" name="templateId" value={template.id} />
+                      <input type="hidden" name="subject" value={subject} />
+                      <input type="hidden" name="body" value={body} />
+                      <input type="hidden" name="gmailHref" value={gmailHref} />
+                      <input type="hidden" name="invoiceIds" value={invoice.id} />
+                      <Button type="submit" disabled={!invoice.customer.email} className="bg-blue-600 shadow-sm hover:bg-blue-700">
+                        <Send className="mr-2 size-4" />
+                        Enviar correo
+                      </Button>
+                    </form>
+                  </div>
+
+                  <div className="mt-5 whitespace-pre-line rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                    {body}
+                  </div>
+                </article>
+              );
+            })}
+
+            {templates.length === 0 ? (
+              <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <Mail className="size-6 text-slate-400" />
+                <h2 className="mt-4 font-semibold">No hay plantillas disponibles</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  Crea una plantilla antes de preparar una reclamacion.
+                </p>
+                <Button asChild className="mt-5">
+                  <Link href="/templates/new">Crear plantilla</Link>
+                </Button>
+              </article>
+            ) : null}
+          </section>
         </section>
       </div>
     </main>
