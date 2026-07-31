@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { renderTemplate } from "@/modules/templates/render-template";
+import { createBulkClaimDrafts } from "@/server/actions/create-bulk-claim-drafts";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -199,12 +200,20 @@ Importe total pendiente: ${formatAmount(totalAmountCents)}`;
                       <h2 className="mt-3 font-semibold">{template.name}</h2>
                       <p className="mt-1 text-sm text-slate-500">{subject}</p>
                     </div>
-                    <Button asChild disabled={!customer.email} className="bg-blue-600 shadow-sm hover:bg-blue-700">
-                      <a href={gmailHref} target="_blank" rel="noreferrer">
+                    <form action={createBulkClaimDrafts}>
+                      <input type="hidden" name="customerId" value={customer.id} />
+                      <input type="hidden" name="templateId" value={template.id} />
+                      <input type="hidden" name="subject" value={subject} />
+                      <input type="hidden" name="body" value={body} />
+                      <input type="hidden" name="gmailHref" value={gmailHref} />
+                      {customer.invoices.map((invoice) => (
+                        <input key={invoice.id} type="hidden" name="invoiceIds" value={invoice.id} />
+                      ))}
+                      <Button type="submit" disabled={!customer.email} className="bg-blue-600 shadow-sm hover:bg-blue-700">
                         <Send className="mr-2 size-4" />
                         Enviar correo
-                      </a>
-                    </Button>
+                      </Button>
+                    </form>
                   </div>
 
                   <div className="mt-5 whitespace-pre-line rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">

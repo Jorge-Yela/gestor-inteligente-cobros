@@ -111,6 +111,8 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
     notFound();
   }
 
+  const lastClaimDate = invoice.claimDrafts[0]?.createdAt || null;
+
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
       <div className="mx-auto max-w-7xl px-6 py-8">
@@ -159,8 +161,8 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                 <CalendarClock className="size-5" />
               </div>
               <div>
-                <p className="text-sm text-slate-500">Fecha control</p>
-                <p className="mt-1 text-lg font-bold">{formatDate(invoice.dueDate)}</p>
+                <p className="text-sm text-slate-500">Ultima reclamacion</p>
+                <p className="mt-1 text-lg font-bold">{formatDate(lastClaimDate)}</p>
               </div>
             </div>
           </article>
@@ -219,8 +221,8 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                   <dd className="mt-1 font-medium">{formatDate(invoice.issueDate)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-slate-500">Fecha de control</dt>
-                  <dd className="mt-1 font-medium">{formatDate(invoice.dueDate)}</dd>
+                  <dt className="text-sm text-slate-500">Ultima reclamacion</dt>
+                  <dd className="mt-1 font-medium">{formatDate(lastClaimDate)}</dd>
                 </div>
                 <div>
                   <dt className="text-sm text-slate-500">Estado</dt>
