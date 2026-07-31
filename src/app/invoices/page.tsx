@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, CheckCircle2, FileText, Upload } from "lucide-react";
 
-import { InvoiceStatus, PaymentStatus } from "@/generated/prisma/enums";
+import { PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
@@ -45,8 +45,7 @@ export default async function InvoicesPage() {
   });
 
   const unpaidInvoices = invoices.filter((invoice) => invoice.paymentStatus === PaymentStatus.UNPAID);
-  const paidInvoices = invoices.filter((invoice) => invoice.paymentStatus === PaymentStatus.PAID);
-  const overdueInvoices = invoices.filter((invoice) => invoice.status === InvoiceStatus.OVERDUE);
+  const paidInvoices = invoices.filter((invoice) => invoice.paymentStatus === PaymentStatus.PAID);
   const pendingAmountCents = unpaidInvoices.reduce((total, invoice) => total + invoice.amountCents, 0);
 
   return (
@@ -76,9 +75,8 @@ export default async function InvoicesPage() {
           </div>
         </div>
 
-        <section className="grid gap-4 md:grid-cols-4">
-          <SummaryCard label="Pendiente de cobro" value={formatAmount(pendingAmountCents)} detail={`${unpaidInvoices.length} facturas`} tone="amber" icon={AlertTriangle} />
-          <SummaryCard label="Facturas vencidas" value={String(overdueInvoices.length)} detail="Requieren revision" tone="red" icon={FileText} />
+        <section className="grid gap-4 md:grid-cols-3">
+          <SummaryCard label="Pendiente de cobro" value={formatAmount(pendingAmountCents)} detail={`${unpaidInvoices.length} facturas`} tone="amber" icon={AlertTriangle} />
           <SummaryCard label="Cobradas" value={String(paidInvoices.length)} detail="Registradas como pagadas" tone="emerald" icon={CheckCircle2} />
           <SummaryCard label="Total facturas" value={String(invoices.length)} detail="En la plataforma" tone="blue" icon={FileText} />
         </section>
