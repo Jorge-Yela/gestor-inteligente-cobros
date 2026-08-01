@@ -123,6 +123,10 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
     (total, invoice) => total + invoice.amountCents,
     0,
   );
+  const paidAmountCents = paidInvoices.reduce(
+    (total, invoice) => total + invoice.amountCents,
+    0,
+  );
 
   const statusFilteredInvoices =
     filter === "pending"
@@ -220,8 +224,8 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
             href={baseFilterHref("paid")}
             active={filter === "paid"}
             label="Cobradas"
-            value={String(paidInvoices.length)}
-            detail="Registradas como pagadas"
+            value={formatAmount(paidAmountCents)}
+            detail={`${paidInvoices.length} facturas cobradas`}
             tone="emerald"
             icon={CheckCircle2}
           />
