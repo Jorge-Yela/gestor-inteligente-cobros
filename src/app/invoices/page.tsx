@@ -216,7 +216,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
             active={filter === "pending"}
             label="Pendiente de cobro"
             value={formatAmount(pendingAmountCents)}
-            detail={`${unpaidInvoices.length} facturas`}
+            detail={`${unpaidInvoices.length} facturas pendientes`}
             tone="amber"
             icon={AlertTriangle}
           />
