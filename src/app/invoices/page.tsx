@@ -26,22 +26,87 @@ function formatDate(date: Date | null) {
   return date ? dateFormatter.format(date) : "Sin fecha";
 }
 
+function formatDateInputValue(date: Date | null) {
+  return date ? date.toISOString().slice(0, 10) : "";
+}
+
+function buildInvoicesHref({
+  filter,
+  column,
+  customer,
+  issueDate,
+  amount,
+  amountOrder,
+}: {
+  filter: string;
+  column?: string;
+  customer: string;
+  issueDate: string;
+  amount: string;
+  amountOrder: string;
+}) {
+  const params = new URLSearchParams();
+
+  if (filter !== "all") {
+    params.set("filter", filter);
+  }
+
+  if (column) {
+    params.set("column", column);
+  }
+
+  if (customer) {
+    params.set("customer", customer);
+  }
+
+  if (issueDate) {
+    params.set("issueDate", issueDate);
+  }
+
+  if (amount) {
+    params.set("amount", amount);
+  }
+
+  if (amountOrder !== "none") {
+    params.set("amountOrder", amountOrder);
+  }
+
+  const query = params.toString();
+
+  return query ? `/invoices?${query}` : "/invoices";
+}
+
 type InvoicesPageProps = {
   searchParams: Promise<{
     filter?: string;
+    column?: string;
+    customer?: string;
+    issueDate?: string;
+    amount?: string;
+    amountOrder?: string;
   }>;
 };
 
 export default async function InvoicesPage({ searchParams }: InvoicesPageProps) {
   const organizationId = await getCurrentOrganizationId();
-  const { filter = "all" } = await searchParams;
+  const {
+    filter = "all",
+    column = "",
+    customer = "",
+    issueDate = "",
+    amount = "",
+    amountOrder = "none",
+  } = await searchParams;
+
+  const normalizedCustomer = customer.trim().toLowerCase();
+  const amountNumber = Number(amount.replace(",", "."));
 
   const invoices = await prisma.invoice.findMany({
     where: {
       organizationId,
     },
     orderBy: {
-      dueDate: "asc",
+      issueDate: "desc",
     },
     include: {
       customer: true,
@@ -59,12 +124,57 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
     0,
   );
 
-  const filteredInvoices =
+  const statusFilteredInvoices =
     filter === "pending"
       ? unpaidInvoices
       : filter === "paid"
         ? paidInvoices
         : invoices;
+
+  const filteredInvoices = [...statusFilteredInvoices]
+    .filter((invoice) =>
+      normalizedCustomer
+        ? invoice.customer.name.toLowerCase().includes(normalizedCustomer)
+        : true,
+    )
+    .filter((invoice) =>
+      issueDate ? formatDateInputValue(invoice.issueDate) === issueDate : true,
+    )
+    .filter((invoice) =>
+      amount && !Number.isNaN(amountNumber)
+        ? invoice.amountCents >= Math.round(amountNumber * 100)
+        : true,
+    )
+    .sort((first, second) => {
+      if (amountOrder === "desc") {
+        return second.amountCents - first.amountCents;
+      }
+
+      if (amountOrder === "asc") {
+        return first.amountCents - second.amountCents;
+      }
+
+      return second.issueDate.getTime() - first.issueDate.getTime();
+    });
+
+  const baseFilterHref = (nextFilter: string) =>
+    buildInvoicesHref({
+      filter: nextFilter,
+      column,
+      customer,
+      issueDate,
+      amount,
+      amountOrder,
+    });
+
+  const redirectTo = buildInvoicesHref({
+    filter,
+    column,
+    customer,
+    issueDate,
+    amount,
+    amountOrder,
+  });
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
@@ -89,7 +199,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
 
         <section className="grid gap-4 md:grid-cols-3">
           <SummaryCard
-            href="/invoices"
+            href={baseFilterHref("all")}
             active={filter === "all"}
             label="Total facturas"
             value={String(invoices.length)}
@@ -98,7 +208,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
             icon={FileText}
           />
           <SummaryCard
-            href="/invoices?filter=pending"
+            href={baseFilterHref("pending")}
             active={filter === "pending"}
             label="Pendiente de cobro"
             value={formatAmount(pendingAmountCents)}
@@ -107,7 +217,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
             icon={AlertTriangle}
           />
           <SummaryCard
-            href="/invoices?filter=paid"
+            href={baseFilterHref("paid")}
             active={filter === "paid"}
             label="Cobradas"
             value={String(paidInvoices.length)}
@@ -122,9 +232,17 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
             <div>
               <h2 className="font-semibold">Listado de facturas</h2>
               <p className="mt-1 text-sm text-slate-500">
-                Filtra por total, pendientes de cobro o cobradas.
+                Pulsa en Cliente, Fecha de emision o Importe para filtrar.
               </p>
             </div>
+
+            {(customer || issueDate || amount || amountOrder !== "none") ? (
+              <Button asChild variant="outline" className="rounded-lg border-slate-200">
+                <Link href={filter === "all" ? "/invoices" : `/invoices?filter=${filter}`}>
+                  Limpiar filtros
+                </Link>
+              </Button>
+            ) : null}
           </div>
 
           {filteredInvoices.length === 0 ? (
@@ -137,9 +255,83 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
                 <thead className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500">
                   <tr>
                     <th className="px-5 py-3 font-medium">Factura</th>
-                    <th className="px-5 py-3 font-medium">Cliente</th>
-                    <th className="px-5 py-3 font-medium">Fecha de emision</th>
-                    <th className="px-5 py-3 font-medium">Importe</th>
+                    <th className="px-5 py-3 font-medium">
+                      <ColumnLink href={buildInvoicesHref({ filter, column: "customer", customer, issueDate, amount, amountOrder })} active={column === "customer"}>
+                        Cliente
+                      </ColumnLink>
+                      {column === "customer" ? (
+                        <form className="mt-3 flex gap-2">
+                          <input type="hidden" name="filter" value={filter} />
+                          <input type="hidden" name="column" value="customer" />
+                          <input type="hidden" name="issueDate" value={issueDate} />
+                          <input type="hidden" name="amount" value={amount} />
+                          <input type="hidden" name="amountOrder" value={amountOrder} />
+                          <input
+                            name="customer"
+                            defaultValue={customer}
+                            placeholder="Buscar cliente"
+                            className="h-9 w-44 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-400"
+                          />
+                          <button className="rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium">
+                            Buscar
+                          </button>
+                        </form>
+                      ) : null}
+                    </th>
+                    <th className="px-5 py-3 font-medium">
+                      <ColumnLink href={buildInvoicesHref({ filter, column: "issueDate", customer, issueDate, amount, amountOrder })} active={column === "issueDate"}>
+                        Fecha de emision
+                      </ColumnLink>
+                      {column === "issueDate" ? (
+                        <form className="mt-3 flex gap-2">
+                          <input type="hidden" name="filter" value={filter} />
+                          <input type="hidden" name="column" value="issueDate" />
+                          <input type="hidden" name="customer" value={customer} />
+                          <input type="hidden" name="amount" value={amount} />
+                          <input type="hidden" name="amountOrder" value={amountOrder} />
+                          <input
+                            type="date"
+                            name="issueDate"
+                            defaultValue={issueDate}
+                            className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-400"
+                          />
+                          <button className="rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium">
+                            Buscar
+                          </button>
+                        </form>
+                      ) : null}
+                    </th>
+                    <th className="px-5 py-3 font-medium">
+                      <ColumnLink href={buildInvoicesHref({ filter, column: "amount", customer, issueDate, amount, amountOrder })} active={column === "amount"}>
+                        Importe
+                      </ColumnLink>
+                      {column === "amount" ? (
+                        <form className="mt-3 grid w-56 gap-2">
+                          <input type="hidden" name="filter" value={filter} />
+                          <input type="hidden" name="column" value="amount" />
+                          <input type="hidden" name="customer" value={customer} />
+                          <input type="hidden" name="issueDate" value={issueDate} />
+                          <input
+                            name="amount"
+                            defaultValue={amount}
+                            placeholder="Importe minimo"
+                            className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-400"
+                          />
+                          <select
+                            name="amountOrder"
+                            defaultValue={amountOrder}
+                            className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-400"
+                          >
+                            <option value="none">Orden normal</option>
+                            <option value="desc">Mayor importe</option>
+                            <option value="asc">Menor importe</option>
+                          </select>
+                          <button className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium">
+                            Aplicar
+                          </button>
+                        </form>
+                      ) : null}
+                    </th>
                     <th className="px-5 py-3 font-medium">Marcar como cobrada</th>
                     <th className="px-5 py-3 font-medium">Accion</th>
                   </tr>
@@ -154,11 +346,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
                       <td className="px-5 py-4">
                         <form action={markInvoiceAsPaid}>
                           <input type="hidden" name="invoiceId" value={invoice.id} />
-                          <input
-                            type="hidden"
-                            name="redirectTo"
-                            value={filter === "all" ? "/invoices" : `/invoices?filter=${filter}`}
-                          />
+                          <input type="hidden" name="redirectTo" value={redirectTo} />
                           <Button
                             type="submit"
                             variant="outline"
@@ -184,6 +372,27 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
         </section>
       </div>
     </main>
+  );
+}
+
+function ColumnLink({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`inline-flex items-center rounded-lg px-2 py-1 transition ${
+        active ? "bg-blue-50 text-blue-700" : "hover:bg-slate-100 hover:text-slate-700"
+      }`}
+    >
+      {children}
+    </Link>
   );
 }
 
