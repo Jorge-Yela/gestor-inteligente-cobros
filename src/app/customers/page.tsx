@@ -40,6 +40,13 @@ export default async function CustomersPage() {
       (total, invoice) => total + invoice.amountCents,
       0,
     );
+    const totalAmountCents = customer.invoices.reduce(
+      (total, invoice) => total + invoice.amountCents,
+      0,
+    );
+    const debtProgress = totalAmountCents > 0
+      ? Math.round((pendingAmountCents / totalAmountCents) * 100)
+      : 0;
 
     return {
       id: customer.id,
@@ -51,6 +58,7 @@ export default async function CustomersPage() {
       unpaidCount: unpaidInvoices.length,
       pendingAmountCents,
       pendingAmount: formatAmount(pendingAmountCents),
+      debtProgress,
     };
   });
 
@@ -102,13 +110,11 @@ export default async function CustomersPage() {
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[980px] text-left text-sm">
+              <table className="w-full min-w-[820px] text-left text-sm">
                 <thead className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500">
                   <tr>
                     <th className="px-5 py-3 font-medium">Cliente</th>
-                    <th className="px-5 py-3 font-medium">Contacto</th>
-                    <th className="px-5 py-3 font-medium">Email</th>
-                    <th className="px-5 py-3 font-medium">Telefono</th>
+                    <th className="px-5 py-3 font-medium">Deuda</th>
                     <th className="px-5 py-3 font-medium">Facturas</th>
                     <th className="px-5 py-3 font-medium">Pendiente</th>
                     <th className="px-5 py-3 font-medium">Accion</th>
@@ -121,9 +127,19 @@ export default async function CustomersPage() {
                         <p className="font-semibold">{customer.name}</p>
                         <p className="mt-1 text-xs text-slate-500">{customer.unpaidCount} facturas pendientes</p>
                       </td>
-                      <td className="px-5 py-4 text-slate-500">{customer.contactName}</td>
-                      <td className="px-5 py-4 text-slate-500">{customer.email}</td>
-                      <td className="px-5 py-4 text-slate-500">{customer.phone}</td>
+                      <td className="px-5 py-4">
+                        <div className="flex min-w-[180px] items-center gap-3">
+                          <div className="h-2 flex-1 rounded-full bg-slate-100">
+                            <div
+                              className="h-2 rounded-full bg-amber-500"
+                              style={{ width: `${customer.debtProgress}%` }}
+                            />
+                          </div>
+                          <span className="w-10 text-right text-xs font-semibold text-slate-600">
+                            {customer.debtProgress}%
+                          </span>
+                        </div>
+                      </td>
                       <td className="px-5 py-4 font-medium">{customer.invoiceCount}</td>
                       <td className="px-5 py-4">
                         <span className="rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
