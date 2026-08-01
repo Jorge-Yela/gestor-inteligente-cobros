@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  AlertTriangle,
+  CheckCircle2,
   Building2,
   CalendarClock,
   CircleDollarSign,
@@ -70,11 +70,15 @@ type CustomerDetailPageProps = {
   params: Promise<{
     customerId: string;
   }>;
+  searchParams: Promise<{
+    invoices?: string;
+  }>;
 };
 
-export default async function CustomerDetailPage({ params }: CustomerDetailPageProps) {
+export default async function CustomerDetailPage({ params, searchParams }: CustomerDetailPageProps) {
   const organizationId = await getCurrentOrganizationId();
   const { customerId } = await params;
+  const { invoices: invoiceFilter = "pending" } = await searchParams;
 
   const customer = await prisma.customer.findFirst({
     where: {
@@ -106,8 +110,8 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
     .filter((invoice) => invoice.paymentStatus === PaymentStatus.UNPAID)
     .reduce((total, invoice) => total + invoice.amountCents, 0);
 
-  const overdueCount = customer.invoices.filter(
-    (invoice) => invoice.status === InvoiceStatus.OVERDUE,
+  const paidCount = customer.invoices.filter(
+    (invoice) => invoice.paymentStatus === PaymentStatus.PAID,
   ).length;
 
   const today = startOfToday();
@@ -129,6 +133,15 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
   const unpaidInvoices = customer.invoices.filter(
     (invoice) => invoice.paymentStatus === PaymentStatus.UNPAID,
   );
+  const visibleInvoices =
+    invoiceFilter === "paid"
+      ? customer.invoices.filter((invoice) => invoice.paymentStatus === PaymentStatus.PAID)
+      : unpaidInvoices;
+  const invoiceListTitle = invoiceFilter === "paid" ? "Facturas cobradas" : "Facturas pendientes";
+  const invoiceListDescription =
+    invoiceFilter === "paid"
+      ? "Facturas registradas como cobradas para este cliente."
+      : "Selecciona varias facturas para preparar una reclamacion conjunta.";
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
@@ -158,9 +171,11 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
         </div>
 
         <section className="grid gap-4 md:grid-cols-4">
-          <SummaryCard label="Pendiente" value={formatAmount(pendingAmountCents)} detail="Importe por cobrar" tone="amber" icon={CircleDollarSign} />
+          <Link href={`/customers/${customer.id}?invoices=pending`}>
+            <SummaryCard label="Pendiente" value={formatAmount(pendingAmountCents)} detail="Importe por cobrar" tone="amber" icon={CircleDollarSign} />
+          </Link>
           <SummaryCard label="Facturas" value={String(customer.invoices.length)} detail="Asociadas al cliente" tone="blue" icon={FileText} />
-          <SummaryCard label="Vencidas" value={String(overdueCount)} detail="Requieren revision" tone="red" icon={AlertTriangle} />
+          <SummaryCard href={`/customers/${customer.id}?invoices=paid`} label="Cobradas" value={String(paidCount)} detail="Registradas como pagadas" tone="emerald" icon={CheckCircle2} />
           <SummaryCard label="PDFs subidos" value={String(customer.invoiceFiles.length)} detail="Documentos vinculados" tone="emerald" icon={Upload} />
         </section>
 
@@ -202,27 +217,31 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
               <div className="border-b border-slate-100 px-5 py-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <h2 className="font-semibold">Facturas pendientes</h2>
+                    <h2 className="font-semibold">{invoiceListTitle}</h2>
                     <p className="mt-1 text-sm text-slate-500">
-                      Selecciona varias facturas para preparar una reclamacion conjunta.
+                      {invoiceListDescription}
                     </p>
                   </div>
-                  <Button form="bulk-claim-form" type="submit" className="bg-blue-600 shadow-sm hover:bg-blue-700" disabled={unpaidInvoices.length === 0}>
-                    Preparar reclamacion conjunta
-                  </Button>
+                  {invoiceFilter !== "paid" ? (
+                    <Button form="bulk-claim-form" type="submit" className="bg-blue-600 shadow-sm hover:bg-blue-700" disabled={visibleInvoices.length === 0}>
+                      Preparar reclamacion conjunta
+                    </Button>
+                  ) : null}
                 </div>
               </div>
 
-              {unpaidInvoices.length === 0 ? (
+              {visibleInvoices.length === 0 ? (
                 <p className="px-5 py-6 text-sm text-slate-500">
-                  Este cliente no tiene facturas pendientes.
+                  {invoiceFilter === "paid" ? "Este cliente no tiene facturas cobradas." : "Este cliente no tiene facturas pendientes."}
                 </p>
               ) : (
                 <form id="bulk-claim-form" action={`/customers/${customer.id}/claim-preview`} className="overflow-x-auto">
                   <table className="w-full min-w-[820px] text-left text-sm">
                     <thead className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500">
                       <tr>
-                        <th className="px-5 py-3 font-medium">Seleccionar</th>
+                        {invoiceFilter !== "paid" ? (
+                          <th className="px-5 py-3 font-medium">Seleccionar</th>
+                        ) : null}
                         <th className="px-5 py-3 font-medium">Factura</th>
                         <th className="px-5 py-3 font-medium">Fecha control</th>
                         <th className="px-5 py-3 font-medium">Importe</th>
@@ -232,16 +251,18 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {unpaidInvoices.map((invoice) => (
+                      {visibleInvoices.map((invoice) => (
                         <tr key={invoice.id} className="transition hover:bg-slate-50/80">
-                          <td className="px-5 py-4">
-                            <input
-                              type="checkbox"
-                              name="invoiceIds"
-                              value={invoice.id}
-                              className="size-4 rounded border-slate-300 text-blue-600"
-                            />
-                          </td>
+                          {invoiceFilter !== "paid" ? (
+                            <td className="px-5 py-4">
+                              <input
+                                type="checkbox"
+                                name="invoiceIds"
+                                value={invoice.id}
+                                className="size-4 rounded border-slate-300 text-blue-600"
+                              />
+                            </td>
+                          ) : null}
                           <td className="px-5 py-4 font-semibold">{invoice.invoiceNumber}</td>
                           <td className="px-5 py-4 text-slate-500">{formatDate(invoice.dueDate)}</td>
                           <td className="px-5 py-4 font-semibold">{formatAmount(invoice.amountCents)}</td>
@@ -311,12 +332,14 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
 }
 
 function SummaryCard({
+  href,
   label,
   value,
   detail,
   tone,
   icon: Icon,
 }: {
+  href?: string;
   label: string;
   value: string;
   detail: string;
@@ -330,8 +353,8 @@ function SummaryCard({
     emerald: "bg-emerald-50 text-emerald-600",
   };
 
-  return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+  const content = (
+    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md">
       <div className="flex items-center gap-4">
         <div className={`flex size-11 items-center justify-center rounded-full ${tones[tone]}`}>
           <Icon className="size-5" />
@@ -344,6 +367,8 @@ function SummaryCard({
       </div>
     </article>
   );
+
+  return href ? <Link href={href}>{content}</Link> : content;
 }
 
 function InfoRow({
