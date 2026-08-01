@@ -5,7 +5,7 @@ import { PaymentStatus } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
-import { markInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
+import { markInvoiceAsPaid, unmarkInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -348,17 +348,16 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
                       <td className="px-5 py-4 text-slate-500">{formatDate(invoice.issueDate)}</td>
                       <td className="px-5 py-4 font-semibold">{formatAmount(invoice.amountCents)}</td>
                       <td className="px-5 py-4">
-                        <form action={markInvoiceAsPaid}>
+                        <form action={invoice.paymentStatus === PaymentStatus.PAID ? unmarkInvoiceAsPaid : markInvoiceAsPaid}>
                           <input type="hidden" name="invoiceId" value={invoice.id} />
                           <input type="hidden" name="redirectTo" value={redirectTo} />
                           <Button
                             type="submit"
                             variant="outline"
                             size="sm"
-                            disabled={invoice.paymentStatus === PaymentStatus.PAID}
                             className="rounded-lg border-slate-200"
                           >
-                            {invoice.paymentStatus === PaymentStatus.PAID ? "Ya cobrada" : "Marcar como cobrada"}
+                            {invoice.paymentStatus === PaymentStatus.PAID ? "Cobrada" : "Marcar como cobrada"}
                           </Button>
                         </form>
                       </td>

@@ -9,7 +9,7 @@ import {
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
-import { markInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
+import { markInvoiceAsPaid, unmarkInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
@@ -122,10 +122,10 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
           </div>
 
           <div className="flex gap-2">
-            <form action={markInvoiceAsPaid}>
+            <form action={invoice.paymentStatus === PaymentStatus.PAID ? unmarkInvoiceAsPaid : markInvoiceAsPaid}>
               <input type="hidden" name="invoiceId" value={invoice.id} />
-              <Button type="submit" disabled={invoice.paymentStatus === PaymentStatus.PAID}>
-                {invoice.paymentStatus === PaymentStatus.PAID ? "Ya cobrada" : "Marcar como cobrada"}
+              <Button type="submit">
+                {invoice.paymentStatus === PaymentStatus.PAID ? "Cobrada" : "Marcar como cobrada"}
               </Button>
             </form>
           </div>
