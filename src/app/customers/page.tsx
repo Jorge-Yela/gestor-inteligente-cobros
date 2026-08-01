@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, Building2, CircleDollarSign, Plus, Users } from "lucide-react";
+import { Building2, CircleDollarSign, Plus, Users } from "lucide-react";
 
 import { PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
@@ -54,8 +54,8 @@ export default async function CustomersPage() {
     };
   });
 
+  const totalCustomers = rows.length;
   const totalPendingCents = rows.reduce((total, customer) => total + customer.pendingAmountCents, 0);
-  const riskCustomers = rows.filter((customer) => customer.pendingAmountCents > 0).length;
   const totalInvoices = rows.reduce((total, customer) => total + customer.invoiceCount, 0);
 
   return (
@@ -80,9 +80,8 @@ export default async function CustomersPage() {
           </Button>
         </div>
 
-        <section className="grid gap-4 md:grid-cols-4">
-          <SummaryCard label="Clientes" value={String(rows.length)} detail="Registrados" tone="blue" icon={Users} />
-          <SummaryCard label="Clientes en riesgo" value={String(riskCustomers)} detail="Con importe pendiente" tone="red" icon={AlertTriangle} />
+        <section className="grid gap-4 md:grid-cols-3">
+          <SummaryCard label="Total clientes" value={String(totalCustomers)} detail="Registrados en la plataforma" tone="blue" icon={Users} />
           <SummaryCard label="Pendiente total" value={formatAmount(totalPendingCents)} detail="Por cobrar" tone="amber" icon={CircleDollarSign} />
           <SummaryCard label="Facturas" value={String(totalInvoices)} detail="Asociadas a clientes" tone="emerald" icon={Building2} />
         </section>
