@@ -23,11 +23,15 @@ async function getInvoiceForPaymentAction(invoiceId: string, organizationId: str
   return invoice;
 }
 
-function revalidateInvoicePaymentPaths(invoiceId: string) {
+function revalidateInvoicePaymentPaths(invoiceId: string, customerId?: string) {
   revalidatePath("/");
   revalidatePath("/invoices");
   revalidatePath(`/invoices/${invoiceId}`);
   revalidatePath("/customers");
+
+  if (customerId) {
+    revalidatePath(`/customers/${customerId}`);
+  }
 }
 
 export async function markInvoiceAsPaid(formData: FormData) {
@@ -40,6 +44,7 @@ export async function markInvoiceAsPaid(formData: FormData) {
   const organizationId = await getCurrentOrganizationId();
   const invoiceId = String(formData.get("invoiceId") || "");
   const redirectTo = String(formData.get("redirectTo") || `/invoices/${invoiceId}`);
+  const customerId = String(formData.get("customerId") || "");
 
   if (!invoiceId) {
     throw new Error("Invoice id is required");
@@ -69,7 +74,7 @@ export async function markInvoiceAsPaid(formData: FormData) {
     }),
   ]);
 
-  revalidateInvoicePaymentPaths(invoice.id);
+  revalidateInvoicePaymentPaths(invoice.id, customerId || invoice.customerId);
 
   redirect(redirectTo);
 }

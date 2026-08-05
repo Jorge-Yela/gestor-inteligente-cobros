@@ -11,10 +11,11 @@ import {
   Upload,
 } from "lucide-react";
 
-import { InvoiceStatus, PaymentStatus } from "@/generated/prisma/enums";
+import { PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
+import { markInvoiceAsPaid, unmarkInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
@@ -36,28 +37,6 @@ function formatDate(date: Date | null) {
   return date ? dateFormatter.format(date) : "Sin fecha";
 }
 
-function formatInvoiceStatus(status: InvoiceStatus) {
-  const labels: Record<InvoiceStatus, string> = {
-    PENDING_REVIEW: "Revision",
-    ACTIVE: "Activa",
-    OVERDUE: "Vencida",
-    PAID: "Cobrada",
-    CANCELLED: "Cancelada",
-    ARCHIVED: "Archivada",
-  };
-
-  return labels[status];
-}
-
-function formatPaymentStatus(status: PaymentStatus) {
-  const labels: Record<PaymentStatus, string> = {
-    UNPAID: "Pendiente",
-    PAID: "Cobrada",
-    DISPUTED: "En disputa",
-  };
-
-  return labels[status];
-}
 
 function startOfToday() {
   const today = new Date();
@@ -289,7 +268,6 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
                         <th className="px-5 py-3 font-medium">Fecha control</th>
                         <th className="px-5 py-3 font-medium">Importe</th>
                         <th className="px-5 py-3 font-medium">Estado</th>
-                        <th className="px-5 py-3 font-medium">Cobro</th>
                         <th className="px-5 py-3 font-medium">Accion</th>
                       </tr>
                     </thead>
@@ -310,14 +288,25 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
                           <td className="px-5 py-4 text-slate-500">{formatDate(invoice.dueDate)}</td>
                           <td className="px-5 py-4 font-semibold">{formatAmount(invoice.amountCents)}</td>
                           <td className="px-5 py-4">
-                            <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
-                              {formatInvoiceStatus(invoice.status)}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4">
-                            <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
-                              {formatPaymentStatus(invoice.paymentStatus)}
-                            </span>
+                            {invoiceFilter !== "paid" ? (
+                              <button
+                                type="submit"
+                                form={`mark-paid-${invoice.id}`}
+                                className="rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 transition hover:bg-amber-100"
+                                title="Marcar como cobrada"
+                              >
+                                Pendiente de cobro
+                              </button>
+                            ) : (
+                              <button
+                                type="submit"
+                                form={`unmark-paid-${invoice.id}`}
+                                className="rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                                title="Pasar a pendiente de cobro"
+                              >
+                                Cobrada
+                              </button>
+                            )}
                           </td>
                           <td className="px-5 py-4">
                             <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
@@ -330,6 +319,24 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
                   </table>
                 </form>
               )}
+
+              <div className="hidden">
+                {visibleInvoices.map((invoice) =>
+                  invoiceFilter !== "paid" ? (
+                    <form key={invoice.id} id={`mark-paid-${invoice.id}`} action={markInvoiceAsPaid}>
+                      <input type="hidden" name="invoiceId" value={invoice.id} />
+                      <input type="hidden" name="customerId" value={customer.id} />
+                      <input type="hidden" name="redirectTo" value={`/customers/${customer.id}?invoices=pending`} />
+                    </form>
+                  ) : (
+                    <form key={invoice.id} id={`unmark-paid-${invoice.id}`} action={unmarkInvoiceAsPaid}>
+                      <input type="hidden" name="invoiceId" value={invoice.id} />
+                      <input type="hidden" name="customerId" value={customer.id} />
+                      <input type="hidden" name="redirectTo" value={`/customers/${customer.id}?invoices=paid`} />
+                    </form>
+                  ),
+                )}
+              </div>
             </article>
 
             <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
