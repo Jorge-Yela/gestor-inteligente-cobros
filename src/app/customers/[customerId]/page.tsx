@@ -113,6 +113,12 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
   const paidCount = customer.invoices.filter(
     (invoice) => invoice.paymentStatus === PaymentStatus.PAID,
   ).length;
+  const pendingCount = customer.invoices.filter(
+    (invoice) => invoice.paymentStatus !== PaymentStatus.PAID,
+  ).length;
+  const paidPercentage = customer.invoices.length > 0
+    ? Math.round((paidCount / customer.invoices.length) * 100)
+    : 0;
 
   const today = startOfToday();
 
@@ -170,13 +176,50 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
           </div>
         </div>
 
-        <section className="grid gap-4 md:grid-cols-4">
+        <section className="grid gap-4 md:grid-cols-3">
           <Link href={`/customers/${customer.id}?invoices=pending`}>
             <SummaryCard label="Deuda pendiente" value={formatAmount(pendingAmountCents)} detail={`${unpaidInvoices.length} facturas pendientes`} tone="amber" icon={CircleDollarSign} />
           </Link>
-          <SummaryCard label="Facturas" value={String(customer.invoices.length)} detail="Asociadas al cliente" tone="blue" icon={FileText} />
+
           <SummaryCard href={`/customers/${customer.id}?invoices=paid`} label="Cobradas" value={String(paidCount)} detail="Registradas como pagadas" tone="emerald" icon={CheckCircle2} />
-          <SummaryCard label="PDFs subidos" value={String(customer.invoiceFiles.length)} detail="Documentos vinculados" tone="emerald" icon={Upload} />
+
+          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-5">
+              <div
+                className="flex size-28 shrink-0 items-center justify-center rounded-full"
+                style={{ background: `conic-gradient(#10b981 ${paidPercentage}%, #f59e0b 0)` }}
+              >
+                <div className="flex size-20 flex-col items-center justify-center rounded-full bg-white">
+                  <span className="text-xl font-bold">{paidPercentage}%</span>
+                  <span className="text-[11px] font-medium text-slate-500">cobrado</span>
+                </div>
+              </div>
+
+              <div className="min-w-0 flex-1 space-y-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-slate-500">
+                    <span className="size-2.5 rounded-full bg-blue-500" />
+                    Total
+                  </span>
+                  <span className="font-semibold">{customer.invoices.length}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-slate-500">
+                    <span className="size-2.5 rounded-full bg-emerald-500" />
+                    Cobradas
+                  </span>
+                  <span className="font-semibold">{paidCount}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-slate-500">
+                    <span className="size-2.5 rounded-full bg-amber-500" />
+                    Pendientes
+                  </span>
+                  <span className="font-semibold">{pendingCount}</span>
+                </div>
+              </div>
+            </div>
+          </article>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
