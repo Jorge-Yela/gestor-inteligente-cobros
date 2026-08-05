@@ -172,7 +172,7 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
 
         <section className="grid gap-4 md:grid-cols-4">
           <Link href={`/customers/${customer.id}?invoices=pending`}>
-            <SummaryCard label="Pendiente" value={formatAmount(pendingAmountCents)} detail="Importe por cobrar" tone="amber" icon={CircleDollarSign} />
+            <SummaryCard label="Deuda pendiente" value={formatAmount(pendingAmountCents)} detail={`${unpaidInvoices.length} facturas pendientes`} tone="amber" icon={CircleDollarSign} />
           </Link>
           <SummaryCard label="Facturas" value={String(customer.invoices.length)} detail="Asociadas al cliente" tone="blue" icon={FileText} />
           <SummaryCard href={`/customers/${customer.id}?invoices=paid`} label="Cobradas" value={String(paidCount)} detail="Registradas como pagadas" tone="emerald" icon={CheckCircle2} />
