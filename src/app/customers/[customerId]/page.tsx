@@ -51,13 +51,19 @@ type CustomerDetailPageProps = {
   }>;
   searchParams: Promise<{
     invoices?: string;
+    issueDate?: string;
+    amountOrder?: string;
   }>;
 };
 
 export default async function CustomerDetailPage({ params, searchParams }: CustomerDetailPageProps) {
   const organizationId = await getCurrentOrganizationId();
   const { customerId } = await params;
-  const { invoices: invoiceFilter = "pending" } = await searchParams;
+  const {
+    invoices: invoiceFilter = "pending",
+    issueDate = "",
+    amountOrder = "",
+  } = await searchParams;
 
   const customer = await prisma.customer.findFirst({
     where: {
@@ -68,6 +74,14 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
       invoices: {
         orderBy: {
           dueDate: "asc",
+        },
+        include: {
+          claimDrafts: {
+            orderBy: {
+              createdAt: "desc",
+            },
+            take: 1,
+          },
         },
       },
       invoiceFiles: {
@@ -118,10 +132,24 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
   const unpaidInvoices = customer.invoices.filter(
     (invoice) => invoice.paymentStatus === PaymentStatus.UNPAID,
   );
-  const visibleInvoices =
+  const baseVisibleInvoices =
     invoiceFilter === "paid"
       ? customer.invoices.filter((invoice) => invoice.paymentStatus === PaymentStatus.PAID)
       : unpaidInvoices;
+  const dateFilteredInvoices = issueDate
+    ? baseVisibleInvoices.filter((invoice) => invoice.issueDate.toISOString().slice(0, 10) === issueDate)
+    : baseVisibleInvoices;
+  const visibleInvoices = [...dateFilteredInvoices].sort((first, second) => {
+    if (amountOrder === "desc") {
+      return second.amountCents - first.amountCents;
+    }
+
+    if (amountOrder === "asc") {
+      return first.amountCents - second.amountCents;
+    }
+
+    return first.issueDate.getTime() - second.issueDate.getTime();
+  });
   const invoiceListTitle = invoiceFilter === "paid" ? "Facturas cobradas" : "Facturas pendientes";
   const invoiceListDescription =
     invoiceFilter === "paid"
@@ -244,11 +272,20 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
                       {invoiceListDescription}
                     </p>
                   </div>
-                  {invoiceFilter !== "paid" ? (
-                    <Button form="bulk-claim-form" type="submit" className="bg-blue-600 shadow-sm hover:bg-blue-700" disabled={visibleInvoices.length === 0}>
-                      Preparar reclamacion conjunta
-                    </Button>
-                  ) : null}
+                  <div className="flex flex-wrap gap-2">
+                    {(issueDate || amountOrder) ? (
+                      <Button asChild variant="outline" className="rounded-lg border-slate-200">
+                        <Link href={`/customers/${customer.id}?invoices=${invoiceFilter}`}>
+                          Quitar filtros
+                        </Link>
+                      </Button>
+                    ) : null}
+                    {invoiceFilter !== "paid" ? (
+                      <Button form="bulk-claim-form" type="submit" className="bg-blue-600 shadow-sm hover:bg-blue-700" disabled={visibleInvoices.length === 0}>
+                        Preparar reclamacion conjunta
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
               </div>
 
@@ -257,16 +294,63 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
                   {invoiceFilter === "paid" ? "Este cliente no tiene facturas cobradas." : "Este cliente no tiene facturas pendientes."}
                 </p>
               ) : (
-                <form id="bulk-claim-form" action={`/customers/${customer.id}/claim-preview`} className="overflow-x-auto">
-                  <table className="w-full min-w-[820px] text-left text-sm">
+                <>
+
+                  <form id="bulk-claim-form" action={`/customers/${customer.id}/claim-preview`} className="hidden" />
+                  <div className="overflow-x-auto">
+                  <table className="w-full min-w-[900px] text-left text-sm">
                     <thead className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500">
                       <tr>
                         {invoiceFilter !== "paid" ? (
                           <th className="px-5 py-3 font-medium">Seleccionar</th>
                         ) : null}
                         <th className="px-5 py-3 font-medium">Factura</th>
-                        <th className="px-5 py-3 font-medium">Fecha control</th>
-                        <th className="px-5 py-3 font-medium">Importe</th>
+                        <th className="px-5 py-3 font-medium">
+                          <details className="relative">
+                            <summary className="cursor-pointer list-none rounded-md px-2 py-1 hover:bg-blue-50 hover:text-blue-600">
+                              Fecha factura
+                            </summary>
+                            <form className="fixed left-1/2 top-40 z-50 w-72 -translate-x-1/2 rounded-xl border border-slate-200 bg-white p-4 shadow-xl">
+                              <input type="hidden" name="invoices" value={invoiceFilter} />
+                              <input type="hidden" name="amountOrder" value={amountOrder} />
+                              <p className="mb-2 text-xs font-semibold text-slate-600">Buscar por fecha</p>
+                              <input
+                                name="issueDate"
+                                type="date"
+                                defaultValue={issueDate}
+                                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                              />
+                              <Button type="submit" variant="outline" size="sm" className="mt-3 rounded-lg border-slate-200">
+                                Aplicar
+                              </Button>
+                            </form>
+                          </details>
+                        </th>
+                        <th className="px-5 py-3 font-medium">Ultima reclamacion</th>
+                        <th className="px-5 py-3 font-medium">
+                          <details className="relative">
+                            <summary className="cursor-pointer list-none rounded-md px-2 py-1 hover:bg-blue-50 hover:text-blue-600">
+                              Importe
+                            </summary>
+                            <form className="fixed left-1/2 top-40 z-50 w-64 -translate-x-1/2 rounded-xl border border-slate-200 bg-white p-4 shadow-xl">
+                              <input type="hidden" name="invoices" value={invoiceFilter} />
+                              <input type="hidden" name="issueDate" value={issueDate} />
+                              <p className="mb-2 text-xs font-semibold text-slate-600">Ordenar importe</p>
+                              <select
+                                name="amountOrder"
+                                defaultValue={amountOrder}
+                                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                              >
+                                <option value="">Sin ordenar</option>
+                                <option value="desc">Mayor a menor</option>
+                                <option value="asc">Menor a mayor</option>
+                              </select>
+                              <Button type="submit" variant="outline" size="sm" className="mt-3 rounded-lg border-slate-200">
+                                Aplicar
+                              </Button>
+                            </form>
+                          </details>
+                        </th>
                         <th className="px-5 py-3 font-medium">Estado</th>
                         <th className="px-5 py-3 font-medium">Accion</th>
                       </tr>
@@ -278,6 +362,7 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
                             <td className="px-5 py-4">
                               <input
                                 type="checkbox"
+                                form="bulk-claim-form"
                                 name="invoiceIds"
                                 value={invoice.id}
                                 className="size-4 rounded border-slate-300 text-blue-600"
@@ -285,7 +370,10 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
                             </td>
                           ) : null}
                           <td className="px-5 py-4 font-semibold">{invoice.invoiceNumber}</td>
-                          <td className="px-5 py-4 text-slate-500">{formatDate(invoice.dueDate)}</td>
+                          <td className="px-5 py-4 text-slate-500">{formatDate(invoice.issueDate)}</td>
+                          <td className="px-5 py-4 text-slate-500">
+                            {invoice.claimDrafts[0] ? formatDate(invoice.claimDrafts[0].createdAt) : "Sin reclamaciones"}
+                          </td>
                           <td className="px-5 py-4 font-semibold">{formatAmount(invoice.amountCents)}</td>
                           <td className="px-5 py-4">
                             {invoiceFilter !== "paid" ? (
@@ -317,7 +405,8 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
                       ))}
                     </tbody>
                   </table>
-                </form>
+                  </div>
+                </>
               )}
 
               <div className="hidden">
