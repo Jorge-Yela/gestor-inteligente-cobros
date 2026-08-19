@@ -137,7 +137,9 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
       ? customer.invoices.filter((invoice) => invoice.paymentStatus === PaymentStatus.PAID)
       : unpaidInvoices;
   const dateFilteredInvoices = issueDate
-    ? baseVisibleInvoices.filter((invoice) => invoice.issueDate.toISOString().slice(0, 10) === issueDate)
+    ? baseVisibleInvoices.filter(
+        (invoice) => invoice.issueDate?.toISOString().slice(0, 10) === issueDate,
+      )
     : baseVisibleInvoices;
   const visibleInvoices = [...dateFilteredInvoices].sort((first, second) => {
     if (amountOrder === "desc") {
@@ -148,7 +150,7 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
       return first.amountCents - second.amountCents;
     }
 
-    return first.issueDate.getTime() - second.issueDate.getTime();
+    return (first.issueDate?.getTime() ?? 0) - (second.issueDate?.getTime() ?? 0);
   });
   const invoiceListTitle = invoiceFilter === "paid" ? "Facturas cobradas" : "Facturas pendientes";
   const invoiceListDescription =
@@ -229,7 +231,7 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
           </article>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
+        <section className="grid min-w-0 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
           <aside className="space-y-6">
             <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex items-center gap-3">
@@ -262,7 +264,7 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
             </article>
           </aside>
 
-          <section className="space-y-6">
+          <section className="min-w-0 space-y-6">
             <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-5 py-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -298,7 +300,7 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
 
                   <form id="bulk-claim-form" action={`/customers/${customer.id}/claim-preview`} className="hidden" />
                   <div className="overflow-x-auto">
-                  <table className="w-full min-w-[900px] text-left text-sm">
+                  <table className="w-full min-w-[820px] text-left text-sm">
                     <thead className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500">
                       <tr>
                         {invoiceFilter !== "paid" ? (

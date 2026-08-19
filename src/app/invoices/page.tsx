@@ -158,7 +158,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
         return first.amountCents - second.amountCents;
       }
 
-      return second.issueDate.getTime() - first.issueDate.getTime();
+      return (second.issueDate?.getTime() ?? 0) - (first.issueDate?.getTime() ?? 0);
     });
 
   const baseFilterHref = (nextFilter: string) =>
