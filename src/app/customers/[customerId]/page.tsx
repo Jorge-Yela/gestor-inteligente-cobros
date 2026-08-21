@@ -401,7 +401,6 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
 
 function SummaryCard({
   href,
-  className = "",
   label,
   value,
   detail,
@@ -409,7 +408,6 @@ function SummaryCard({
   icon: Icon,
 }: {
   href?: string;
-  className?: string;
   label: string;
   value: string;
   detail: string;
