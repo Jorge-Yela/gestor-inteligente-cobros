@@ -92,6 +92,10 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
     .filter((invoice) => invoice.paymentStatus === PaymentStatus.UNPAID)
     .reduce((total, invoice) => total + invoice.amountCents, 0);
 
+  const paidAmountCents = customer.invoices
+    .filter((invoice) => invoice.paymentStatus === PaymentStatus.PAID)
+    .reduce((total, invoice) => total + invoice.amountCents, 0);
+
   const paidCount = customer.invoices.filter(
     (invoice) => invoice.paymentStatus === PaymentStatus.PAID,
   ).length;
@@ -139,7 +143,26 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
             <Link href="/customers" className="text-sm font-medium text-slate-500 hover:text-blue-600">
               Clientes
             </Link>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight">{customer.name}</h1>
+            <div className="group relative mt-3 w-fit">
+              <h1 className="text-3xl font-bold tracking-tight">{customer.name}</h1>
+              <div className="pointer-events-auto invisible absolute left-0 top-full z-50 mt-2 w-80 rounded-xl border border-slate-200 bg-white p-4 text-sm opacity-0 shadow-xl transition group-hover:visible group-hover:opacity-100 hover:visible hover:opacity-100">
+                <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                    <Building2 className="size-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-950">Datos del cliente</p>
+                    <p className="text-xs text-slate-500">{customer.taxId || "Sin CIF/NIF"}</p>
+                  </div>
+                </div>
+                <dl className="mt-3 space-y-3">
+                  <InfoRow label="Persona de contacto" value={customer.contactName || "Sin contacto"} />
+                  <InfoRow label="Email" value={customer.email || "Sin email"} />
+                  <InfoRow label="Telefono" value={customer.phone || "Sin telefono"} />
+                  <InfoRow label="Direccion" value={customer.address || "Sin direccion"} />
+                </dl>
+              </div>
+            </div>
             <p className="mt-2 text-slate-500">
               Ficha del cliente, facturas asociadas y recomendaciones de cobro.
             </p>
@@ -163,7 +186,7 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
             <SummaryCard label="Deuda pendiente" value={formatAmount(pendingAmountCents)} detail={`${unpaidInvoices.length} facturas pendientes`} tone="amber" icon={CircleDollarSign} />
           </Link>
 
-          <SummaryCard href={`/customers/${customer.id}?invoices=paid`} className="h-full" label="Cobradas" value={String(paidCount)} detail="Registradas como pagadas" tone="emerald" icon={CheckCircle2} />
+          <SummaryCard href={`/customers/${customer.id}?invoices=paid`} label="Cobradas" value={formatAmount(paidAmountCents)} detail={`${paidCount} facturas cobradas`} tone="emerald" icon={CheckCircle2} />
 
           <article className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="mb-4 font-semibold">Salud del cliente</h2>
@@ -205,29 +228,7 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
           </article>
         </section>
 
-        <section className="grid min-w-0 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-          <aside className="space-y-6">
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="flex size-11 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-                  <Building2 className="size-5" />
-                </div>
-                <div>
-                  <h2 className="font-semibold">Datos del cliente</h2>
-                  <p className="text-sm text-slate-500">{customer.taxId || "Sin CIF/NIF"}</p>
-                </div>
-              </div>
-
-              <dl className="mt-6 space-y-4">
-                <InfoRow label="Persona de contacto" value={customer.contactName || "Sin contacto"} />
-                <InfoRow label="Email" value={customer.email || "Sin email"} />
-                <InfoRow label="Telefono" value={customer.phone || "Sin telefono"} />
-                <InfoRow label="Direccion" value={customer.address || "Sin direccion"} />
-              </dl>
-            </article>
-          </aside>
-
-          <section className="min-w-0 space-y-6">
+        <section className="min-w-0 space-y-6">
             <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-5 py-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -392,7 +393,6 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
                 )}
               </div>
             </article>
-          </section>
         </section>
       </div>
     </main>
