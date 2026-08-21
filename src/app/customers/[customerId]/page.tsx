@@ -6,8 +6,6 @@ import {
   CalendarClock,
   CircleDollarSign,
   FileText,
-  Mail,
-  Phone,
   Upload,
 } from "lucide-react";
 
@@ -38,12 +36,6 @@ function formatDate(date: Date | null) {
 }
 
 
-function startOfToday() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  return today;
-}
 
 type CustomerDetailPageProps = {
   params: Promise<{
@@ -84,12 +76,9 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
           },
         },
       },
-      invoiceFiles: {
+      contacts: {
         orderBy: {
-          createdAt: "desc",
-        },
-        include: {
-          invoice: true,
+          createdAt: "asc",
         },
       },
     },
@@ -113,22 +102,6 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
     ? Math.round((paidCount / customer.invoices.length) * 100)
     : 0;
 
-  const today = startOfToday();
-
-  const invoicesToClaim = customer.invoices.filter(
-    (invoice) =>
-      invoice.paymentStatus === PaymentStatus.UNPAID &&
-      invoice.dueDate &&
-      invoice.dueDate <= today,
-  );
-
-  const invoicesWithoutControlDate = customer.invoices.filter(
-    (invoice) =>
-      invoice.paymentStatus === PaymentStatus.UNPAID &&
-      !invoice.dueDate,
-  );
-
-  const suggestedInvoices = [...invoicesToClaim, ...invoicesWithoutControlDate];
   const unpaidInvoices = customer.invoices.filter(
     (invoice) => invoice.paymentStatus === PaymentStatus.UNPAID,
   );
@@ -179,20 +152,21 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
                 Subir factura
               </Link>
             </Button>
-            <Button variant="outline" className="rounded-lg border-slate-200 bg-white">
-              Editar cliente
+            <Button asChild variant="outline" className="rounded-lg border-slate-200 bg-white">
+              <Link href={`/customers/${customer.id}/edit`}>Editar cliente</Link>
             </Button>
           </div>
         </div>
 
-        <section className="grid gap-4 md:grid-cols-3">
-          <Link href={`/customers/${customer.id}?invoices=pending`}>
+        <section className="grid items-stretch gap-4 md:grid-cols-3">
+          <Link href={`/customers/${customer.id}?invoices=pending`} className="h-full">
             <SummaryCard label="Deuda pendiente" value={formatAmount(pendingAmountCents)} detail={`${unpaidInvoices.length} facturas pendientes`} tone="amber" icon={CircleDollarSign} />
           </Link>
 
-          <SummaryCard href={`/customers/${customer.id}?invoices=paid`} label="Cobradas" value={String(paidCount)} detail="Registradas como pagadas" tone="emerald" icon={CheckCircle2} />
+          <SummaryCard href={`/customers/${customer.id}?invoices=paid`} className="h-full" label="Cobradas" value={String(paidCount)} detail="Registradas como pagadas" tone="emerald" icon={CheckCircle2} />
 
-          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <article className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="mb-4 font-semibold">Salud del cliente</h2>
             <div className="flex items-center gap-5">
               <div
                 className="flex size-28 shrink-0 items-center justify-center rounded-full"
@@ -245,22 +219,11 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
               </div>
 
               <dl className="mt-6 space-y-4">
-                <InfoRow label="Contacto" value={customer.contactName || "Sin contacto"} />
-                <InfoRow label="Email" value={customer.email || "Sin email"} icon={Mail} />
-                <InfoRow label="Telefono" value={customer.phone || "Sin telefono"} icon={Phone} />
+                <InfoRow label="Persona de contacto" value={customer.contactName || "Sin contacto"} />
+                <InfoRow label="Email" value={customer.email || "Sin email"} />
+                <InfoRow label="Telefono" value={customer.phone || "Sin telefono"} />
                 <InfoRow label="Direccion" value={customer.address || "Sin direccion"} />
               </dl>
-            </article>
-
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="font-semibold">Prioridad</h2>
-              <div className="mt-5 rounded-xl bg-slate-50 p-4">
-                <p className="text-sm text-slate-500">Acciones recomendadas</p>
-                <p className="mt-2 text-3xl font-bold">{suggestedInvoices.length}</p>
-                <p className="mt-1 text-sm text-slate-500">
-                  Facturas vencidas o pendientes de fecha de control.
-                </p>
-              </div>
             </article>
           </aside>
 
@@ -429,42 +392,6 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
                 )}
               </div>
             </article>
-
-            <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-              <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
-                <div>
-                  <h2 className="font-semibold">PDFs del cliente</h2>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Archivos subidos desde la ficha de este cliente o asociados despues.
-                  </p>
-                </div>
-                <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
-                  <Link href={"/invoice-files/upload?customerId=" + customer.id}>Subir PDF</Link>
-                </Button>
-              </div>
-
-              {customer.invoiceFiles.length === 0 ? (
-                <p className="px-5 py-6 text-sm text-slate-500">
-                  Todavia no hay PDFs asociados a este cliente.
-                </p>
-              ) : (
-                <div className="divide-y divide-slate-100">
-                  {customer.invoiceFiles.map((file) => (
-                    <div key={file.id} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold">{file.fileName}</p>
-                        <p className="mt-1 text-sm text-slate-500">
-                          {file.invoice ? "Factura " + file.invoice.invoiceNumber : "Pendiente de registrar como factura"}
-                        </p>
-                      </div>
-                      <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
-                        <Link href={`/invoice-files/${file.id}`}>Ver archivo</Link>
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </article>
           </section>
         </section>
       </div>
@@ -474,6 +401,7 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
 
 function SummaryCard({
   href,
+  className = "",
   label,
   value,
   detail,
@@ -481,6 +409,7 @@ function SummaryCard({
   icon: Icon,
 }: {
   href?: string;
+  className?: string;
   label: string;
   value: string;
   detail: string;

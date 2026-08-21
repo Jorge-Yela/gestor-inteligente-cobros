@@ -15,7 +15,13 @@ export const createCustomerSchema = z.object({
   name: z.string().trim().min(1, "El nombre del cliente es obligatorio"),
   taxId: optionalText,
   contactName: optionalText,
+  address: optionalText,
   email: optionalEmail,
   phone: optionalText,
   notes: optionalText,
+});
+
+
+export const updateCustomerSchema = createCustomerSchema.extend({
+  customerId: z.string().trim().min(1, "El cliente es obligatorio"),
 });

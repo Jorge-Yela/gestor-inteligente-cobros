@@ -141,9 +141,24 @@ model Customer {
   invoices     Invoice[]
   invoiceFiles InvoiceFile[]
   claimDrafts ClaimDraft[]
+  contacts      CustomerContact[]
 
   @@index([organizationId])
   @@index([name])
+}
+
+model CustomerContact {
+  id         String   @id @default(cuid())
+  customerId String
+  name       String?
+  email      String?
+  phone      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
 }
 
 model Invoice {

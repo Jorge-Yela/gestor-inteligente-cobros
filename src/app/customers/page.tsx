@@ -44,6 +44,9 @@ export default async function CustomersPage() {
       (total, invoice) => total + invoice.amountCents,
       0,
     );
+    const paidAmountCents = customer.invoices
+      .filter((invoice) => invoice.paymentStatus === PaymentStatus.PAID)
+      .reduce((total, invoice) => total + invoice.amountCents, 0);
     const debtProgress = totalAmountCents > 0
       ? Math.round((pendingAmountCents / totalAmountCents) * 100)
       : 0;
@@ -58,6 +61,7 @@ export default async function CustomersPage() {
       unpaidCount: unpaidInvoices.length,
       pendingAmountCents,
       pendingAmount: formatAmount(pendingAmountCents),
+      paidAmount: formatAmount(paidAmountCents),
       debtProgress,
     };
   });
@@ -91,7 +95,12 @@ export default async function CustomersPage() {
         <section className="grid gap-4 md:grid-cols-3">
           <SummaryCard label="Total clientes" value={String(totalCustomers)} detail="Registrados en la plataforma" tone="blue" icon={Users} />
           <SummaryCard label="Pendiente total" value={formatAmount(totalPendingCents)} detail="Por cobrar" tone="amber" icon={CircleDollarSign} />
-          <SummaryCard label="Facturas" value={String(totalInvoices)} detail="Asociadas a clientes" tone="emerald" icon={Building2} />
+          <Link href="/invoices" className="group relative block">
+            <SummaryCard label="Facturas" value={String(totalInvoices)} detail="Asociadas a clientes" tone="emerald" icon={Building2} />
+            <span className="pointer-events-none absolute right-4 top-4 rounded-lg border border-blue-100 bg-white px-2.5 py-1 text-xs font-semibold text-blue-600 opacity-0 shadow-sm transition group-hover:opacity-100">
+              Ir a facturas
+            </span>
+          </Link>
         </section>
 
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -117,14 +126,16 @@ export default async function CustomersPage() {
                     <th className="px-5 py-3 font-medium">Deuda</th>
                     <th className="px-5 py-3 font-medium">Facturas</th>
                     <th className="px-5 py-3 font-medium">Pendiente</th>
-                    <th className="px-5 py-3 font-medium">Accion</th>
+                    <th className="px-5 py-3 font-medium">Cobrado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {rows.map((customer) => (
                     <tr key={customer.id} className="transition hover:bg-slate-50/80">
                       <td className="px-5 py-4">
-                        <p className="font-semibold">{customer.name}</p>
+                        <Link href={`/customers/${customer.id}`} className="font-semibold text-slate-950 transition hover:text-blue-600 hover:underline">
+                          {customer.name}
+                        </Link>
                         <p className="mt-1 text-xs text-slate-500">{customer.unpaidCount} facturas pendientes</p>
                       </td>
                       <td className="px-5 py-4">
@@ -147,9 +158,9 @@ export default async function CustomersPage() {
                         </span>
                       </td>
                       <td className="px-5 py-4">
-                        <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
-                          <Link href={`/customers/${customer.id}`}>Ver detalle</Link>
-                        </Button>
+                        <span className="rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                          {customer.paidAmount}
+                        </span>
                       </td>
                     </tr>
                   ))}

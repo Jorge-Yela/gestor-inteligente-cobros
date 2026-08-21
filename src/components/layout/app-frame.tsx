@@ -19,8 +19,8 @@ import { signOutUser } from "@/server/actions/sign-out";
 
 const navigationItems = [
   { label: "Panel de control", href: "/", icon: Home },
-  { label: "Facturas", href: "/invoices", icon: FileText },
   { label: "Clientes", href: "/customers", icon: Users },
+  { label: "Facturas", href: "/invoices", icon: FileText },
   { label: "Reclamaciones", href: "/claim-drafts", icon: Mail },
   { label: "Plantillas", href: "/templates", icon: FileText },
   { label: "Informes", href: "/customer-stats", icon: BarChart3 },
