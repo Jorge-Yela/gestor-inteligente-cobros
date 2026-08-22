@@ -44,8 +44,7 @@ export default async function ClaimDraftsPage() {
       template: true,
     },
   });
-
-  const preparedCount = drafts.filter((draft) => draft.status === ClaimDraftStatus.DRAFT).length;
+
   const sentDrafts = drafts.filter((draft) => draft.status === ClaimDraftStatus.SENT);
   const jointClaimCount = new Set(
     drafts
@@ -67,7 +66,9 @@ export default async function ClaimDraftsPage() {
         </div>
 
         <section className="grid gap-4 md:grid-cols-3">
-          <SummaryCard label="Preparadas" value={String(preparedCount)} detail="Reclamaciones individuales" tone="blue" icon={PencilLine} />
+          <Link href="/claim-drafts/sent" className="block">
+            <SummaryCard label="Reclamaciones realizadas" value={String(sentDrafts.length)} detail="Correos enviados o registrados" tone="blue" icon={PencilLine} />
+          </Link>
           <SummaryCard label="Reclamaciones conjuntas" value={String(jointClaimCount)} detail="Clientes con varias facturas" tone="emerald" icon={CheckCircle2} />
           <SummaryCard label="Registradas" value={String(sentDrafts.length)} detail="Reclamaciones enviadas o anotadas" tone="violet" icon={Mail} />
         </section>
