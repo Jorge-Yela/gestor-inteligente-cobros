@@ -64,7 +64,9 @@ export default async function SentClaimDraftsPage({ searchParams }: SentClaimDra
     }),
   ]);
 
-  const customerOptions = customers.map((customer) => customer.name);
+  const customerOptions = Array.from(
+    new Set(customers.map((customer) => customer.name)),
+  );
 
   const filteredDrafts = sentDrafts.filter((draft) => {
     const matchesCustomer = normalizedCustomer
