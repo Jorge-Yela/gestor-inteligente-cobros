@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Bot, FileText, PencilLine } from "lucide-react";
+import { BarChart3, Bot, CheckCircle2, FileText, PencilLine } from "lucide-react";
 
 import { ClaimDraftStatus, PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
@@ -72,6 +72,21 @@ export default async function ClaimDraftsPage() {
   ]);
 
   const sentDrafts = drafts.filter((draft) => draft.status === ClaimDraftStatus.SENT);
+  const collectedSentDrafts = sentDrafts.filter(
+    (draft) => draft.invoice.paymentStatus === PaymentStatus.PAID,
+  );
+  const pendingSentDrafts = sentDrafts.filter(
+    (draft) => draft.invoice.paymentStatus !== PaymentStatus.PAID,
+  );
+
+  const collectedClaimedCents = collectedSentDrafts.reduce(
+    (total, draft) => total + draft.invoice.amountCents,
+    0,
+  );
+  const pendingClaimedCents = pendingSentDrafts.reduce(
+    (total, draft) => total + draft.invoice.amountCents,
+    0,
+  );
 
   const monthlyClaimedAmounts = sentDrafts.reduce<Map<string, { label: string; amountCents: number }>>(
     (months, draft) => {
@@ -210,9 +225,17 @@ export default async function ClaimDraftsPage() {
         </div>
 
         <section className="grid gap-4 md:grid-cols-3">
-          <Link href="/claim-drafts/sent" className="block">
-            <SummaryCard label="Reclamaciones realizadas" value={String(sentDrafts.length)} detail="Correos enviados o registrados" tone="blue" icon={PencilLine} />
-          </Link>
+          <div className="space-y-3">
+            <Link href="/claim-drafts/sent" className="block">
+              <SummaryCard label="Reclamaciones realizadas" value={String(sentDrafts.length)} detail="Correos enviados o registrados" tone="blue" icon={PencilLine} />
+            </Link>
+            <ClaimCollectionCard
+              collectedCount={collectedSentDrafts.length}
+              pendingCount={pendingSentDrafts.length}
+              collectedAmount={collectedClaimedCents}
+              pendingAmount={pendingClaimedCents}
+            />
+          </div>
           <ClaimedAmountChart
             months={claimedMonths}
             totalAmount={totalClaimedCents}
@@ -225,6 +248,7 @@ export default async function ClaimDraftsPage() {
             amount={recommendedAmountCents}
           />
         </section>
+
 
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
@@ -324,6 +348,73 @@ export default async function ClaimDraftsPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+function ClaimCollectionCard({
+  collectedCount,
+  pendingCount,
+  collectedAmount,
+  pendingAmount,
+}: {
+  collectedCount: number;
+  pendingCount: number;
+  collectedAmount: number;
+  pendingAmount: number;
+}) {
+  const totalCount = collectedCount + pendingCount;
+  const maxCount = Math.max(collectedCount, pendingCount, 1);
+  const bars = [
+    {
+      label: "Cobradas",
+      count: collectedCount,
+      amount: collectedAmount,
+      color: "bg-emerald-500",
+      textColor: "text-emerald-700",
+    },
+    {
+      label: "Pendientes",
+      count: pendingCount,
+      amount: pendingAmount,
+      color: "bg-amber-500",
+      textColor: "text-amber-700",
+    },
+  ];
+
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+          <CheckCircle2 className="size-4" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold">Reclamaciones hechas</p>
+          <p className="mt-0.5 text-xs text-slate-500">{totalCount} reclamaciones registradas</p>
+        </div>
+      </div>
+
+      <div className="mt-4 flex h-32 items-end justify-between gap-4">
+        {bars.map((bar) => {
+          const height = Math.max((bar.count / maxCount) * 100, bar.count > 0 ? 12 : 3);
+
+          return (
+            <div key={bar.label} className="flex flex-1 flex-col items-center justify-end gap-2">
+              <div className="flex h-20 w-full items-end justify-center rounded-md bg-slate-50 px-3">
+                <div
+                  className={`w-full rounded-t-md ${bar.color}`}
+                  style={{ height: `${height}%` }}
+                />
+              </div>
+              <div className="text-center">
+                <p className={`text-xs font-semibold ${bar.textColor}`}>{bar.count}</p>
+                <p className="mt-0.5 text-[11px] text-slate-500">{bar.label}</p>
+                <p className="mt-0.5 text-[11px] font-medium text-slate-700">{formatAmount(bar.amount)}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </article>
   );
 }
 
