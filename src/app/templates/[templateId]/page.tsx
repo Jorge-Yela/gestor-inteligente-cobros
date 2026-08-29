@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { archiveTemplate } from "@/server/actions/archive-template";
+import { deleteTemplate } from "@/server/actions/delete-template";
 import { updateTemplate } from "@/server/actions/update-template";
 
 type TemplateDetailPageProps = {
@@ -135,7 +136,6 @@ export default async function TemplateDetailPage({
               <Button asChild variant="outline">
                 <Link href="/templates">Cancelar</Link>
               </Button>
-              <Button type="submit">Guardar cambios</Button>
             </div>
           </form>
 
@@ -153,6 +153,21 @@ export default async function TemplateDetailPage({
               </Button>
             </div>
           </form>
+        <form action={deleteTemplate} className="border-t p-5">
+          <input type="hidden" name="templateId" value={template.id} />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-red-700">Borrar plantilla</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Esta accion elimina la plantilla definitivamente. Las reclamaciones antiguas se conservaran.
+              </p>
+            </div>
+            <Button type="submit" variant="outline" className="border-red-200 text-red-700 hover:bg-red-50">
+              Borrar plantilla
+            </Button>
+          </div>
+        </form>
+
         </section>
       </div>
     </main>

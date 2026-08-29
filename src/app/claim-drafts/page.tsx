@@ -4,19 +4,7 @@ import { BarChart3, Bot, CheckCircle2, FileText, PencilLine } from "lucide-react
 import { ClaimDraftStatus, PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
-import { Button } from "@/components/ui/button";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
-
-function formatStatus(status: ClaimDraftStatus) {
-  const labels: Record<ClaimDraftStatus, string> = {
-    DRAFT: "Preparada",
-    READY: "Lista",
-    SENT: "Registrada",
-    CANCELLED: "Cancelada",
-  };
-
-  return labels[status];
-}
 
 const dateFormatter = new Intl.DateTimeFormat("es-ES", {
   day: "2-digit",
@@ -250,102 +238,9 @@ export default async function ClaimDraftsPage() {
         </section>
 
 
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="font-semibold">Reclamaciones registradas</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Ultimas reclamaciones enviadas o registradas por el usuario.
-              </p>
-            </div>
-          </div>
+        
 
-          {sentDrafts.length === 0 ? (
-            <p className="mt-5 text-sm text-slate-500">
-              Todavia no hay reclamaciones registradas como enviadas.
-            </p>
-          ) : (
-            <div className="mt-5 divide-y divide-slate-100">
-              {sentDrafts.slice(0, 5).map((draft) => (
-                <div key={draft.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm font-semibold">{draft.customer.name}</p>
-                    <p className="mt-1 text-sm text-slate-500">
-                      Factura {draft.invoice.invoiceNumber} · {draft.subject}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="rounded-md bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700">
-                      Registrada
-                    </span>
-                    <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
-                      <Link href={`/invoices/${draft.invoiceId}`}>Ver factura</Link>
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-5 py-4">
-            <h2 className="font-semibold">Reclamaciones registradas</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Vista global de reclamaciones preparadas, listas o archivadas por el usuario.
-            </p>
-          </div>
-
-          {drafts.length === 0 ? (
-            <p className="px-5 py-8 text-sm text-slate-500">
-              Todavia no hay reclamaciones registradas.
-            </p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[980px] text-left text-sm">
-                <thead className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500">
-                  <tr>
-                    <th className="px-5 py-3 font-medium">Cliente</th>
-                    <th className="px-5 py-3 font-medium">Factura</th>
-                    <th className="px-5 py-3 font-medium">Asunto</th>
-                    <th className="px-5 py-3 font-medium">Plantilla</th>
-                    <th className="px-5 py-3 font-medium">Estado</th>
-                    <th className="px-5 py-3 font-medium">Creado</th>
-                    <th className="px-5 py-3 font-medium">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {drafts.map((draft) => (
-                    <tr key={draft.id} className="transition hover:bg-slate-50/80">
-                      <td className="px-5 py-4 font-semibold">{draft.customer.name}</td>
-                      <td className="px-5 py-4 text-slate-500">{draft.invoice.invoiceNumber}</td>
-                      <td className="px-5 py-4">{draft.subject}</td>
-                      <td className="px-5 py-4 text-slate-500">
-                        {draft.template?.name || "Sin plantilla"}
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
-                          {formatStatus(draft.status)}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-slate-500">{formatDate(draft.createdAt)}</td>
-                      <td className="px-5 py-4">
-                        <div className="flex flex-wrap gap-2">
-                          <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
-                            <Link href={`/invoices/${draft.invoiceId}`}>Ver factura</Link>
-                          </Button>
-                          <Button asChild size="sm" className="rounded-lg">
-                            <Link href={`/claim-drafts/${draft.id}`}>Preparar envio</Link>
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+        
       </div>
     </main>
   );
