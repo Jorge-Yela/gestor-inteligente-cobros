@@ -33,11 +33,12 @@ export function UploadInvoicePdf({ customerId }: UploadInvoicePdfProps) {
       setProgress(value);
       setMessage(`Subiendo facturas... ${value}%`);
     },
-    onClientUploadComplete: () => {
-      setMessage("Facturas aceptadas correctamente. Abriendo listado de facturas...");
+    onClientUploadComplete: (uploadedFiles) => {
+      setMessage("Facturas interpretadas correctamente. Abriendo revision...");
       setProgress(100);
       setFiles([]);
-      router.push("/invoices");
+      const fileIds = uploadedFiles.map((file) => file.serverData?.invoiceFileId).filter(Boolean).join(",");
+      router.push(fileIds ? `/invoice-files/import-review?fileIds=${fileIds}` : "/invoices");
       router.refresh();
     },
     onUploadError: (error) => {

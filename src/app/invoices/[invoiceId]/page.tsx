@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarClock, CircleDollarSign, FileText } from "lucide-react";
+import { AlertTriangle, CalendarClock, CircleDollarSign } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import {
@@ -9,6 +9,8 @@ import {
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
+import { AttachInvoicePdf } from "@/app/invoices/[invoiceId]/attach-invoice-pdf";
+import { deleteInvoice } from "@/server/actions/delete-invoice";
 import { markInvoiceAsPaid, unmarkInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
@@ -59,6 +61,42 @@ function formatPaymentStatus(status: PaymentStatus) {
   return labels[status];
 }
 
+function getDelayTone(delayDays: number | null) {
+  if (delayDays === null) {
+    return {
+      icon: "bg-slate-50 text-slate-500",
+      dot: "bg-slate-400",
+      text: "text-slate-500",
+      label: "Sin fecha",
+    };
+  }
+
+  if (delayDays <= 15) {
+    return {
+      icon: "bg-emerald-50 text-emerald-600",
+      dot: "bg-emerald-500",
+      text: "text-emerald-700",
+      label: "Retraso bajo",
+    };
+  }
+
+  if (delayDays <= 45) {
+    return {
+      icon: "bg-amber-50 text-amber-600",
+      dot: "bg-amber-500",
+      text: "text-amber-700",
+      label: "Retraso medio",
+    };
+  }
+
+  return {
+    icon: "bg-red-50 text-red-600",
+    dot: "bg-red-500",
+    text: "text-red-700",
+    label: "Retraso alto",
+  };
+}
+
 type InvoiceDetailPageProps = {
   params: Promise<{
     invoiceId: string;
@@ -104,6 +142,15 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
   }
 
   const lastClaimDate = invoice.claimDrafts[0]?.createdAt || null;
+  const today = new Date();
+  const delayDays = invoice.issueDate
+    ? Math.max(
+        Math.floor((today.getTime() - invoice.issueDate.getTime()) / (1000 * 60 * 60 * 24)),
+        0,
+      )
+    : null;
+  const delayTone = getDelayTone(delayDays);
+  const sentClaimDrafts = invoice.claimDrafts.filter((draft) => draft.status === "SENT");
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
@@ -121,11 +168,22 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
             </p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <form action={invoice.paymentStatus === PaymentStatus.PAID ? unmarkInvoiceAsPaid : markInvoiceAsPaid}>
               <input type="hidden" name="invoiceId" value={invoice.id} />
               <Button type="submit">
                 {invoice.paymentStatus === PaymentStatus.PAID ? "Cobrada" : "Marcar como cobrada"}
+              </Button>
+            </form>
+
+            <form action={deleteInvoice}>
+              <input type="hidden" name="invoiceId" value={invoice.id} />
+              <Button
+                type="submit"
+                variant="outline"
+                className="rounded-lg border-red-200 bg-white text-red-600 hover:bg-red-50 hover:text-red-700"
+              >
+                Borrar factura
               </Button>
             </form>
           </div>
@@ -156,17 +214,23 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
             </div>
           </article>
 
-          <Link href={`/invoices/${invoice.id}/claims`} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-200 hover:shadow-md">
+          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-4">
-              <div className="flex size-11 items-center justify-center rounded-full bg-violet-50 text-violet-600">
-                <FileText className="size-5" />
+              <div className={`flex size-11 items-center justify-center rounded-full ${delayTone.icon}`}>
+                <AlertTriangle className="size-5" />
               </div>
               <div>
-                <p className="text-sm text-slate-500">Reclamaciones</p>
-                <p className="mt-1 text-2xl font-bold">{invoice.claimDrafts.length}</p>
+                <p className="text-sm text-slate-500">Dias de retraso</p>
+                <p className="mt-1 text-2xl font-bold">
+                  {delayDays === null ? "Sin fecha" : `${delayDays} dias`}
+                </p>
+                <p className={`mt-1 flex items-center gap-2 text-xs font-semibold ${delayTone.text}`}>
+                  <span className={`size-2 rounded-full ${delayTone.dot}`} />
+                  {delayTone.label}
+                </p>
               </div>
             </div>
-          </Link>
+          </article>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
@@ -228,9 +292,6 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button asChild variant="outline" size="sm">
-                      <Link href={`/invoice-files/${invoice.file.id}`}>Ver archivo</Link>
-                    </Button>
-                    <Button asChild variant="outline" size="sm">
                       <a href={invoice.file.fileUrl} target="_blank" rel="noreferrer">
                         Ver PDF
                       </a>
@@ -238,47 +299,18 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                   </div>
                 </div>
               ) : (
-                <p className="mt-5 text-sm text-slate-500">
-                  Esta factura no tiene ningun PDF asociado.
-                </p>
+                <div>
+                  <p className="mt-5 text-sm text-slate-500">
+                    Esta factura no tiene ningun PDF asociado.
+                  </p>
+                  <AttachInvoicePdf invoiceId={invoice.id} />
+                </div>
               )}
             </article>
 
 
 
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="font-semibold">Reclamaciones realizadas</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Historial de reclamaciones preparadas o registradas para esta factura.
-              </p>
-
-              <div className="mt-5 space-y-4">
-                {invoice.claimDrafts.length === 0 ? (
-                  <p className="text-sm text-slate-500">
-                    Todavia no hay reclamaciones preparadas para esta factura.
-                  </p>
-                ) : (
-                  invoice.claimDrafts.map((draft) => (
-                    <div key={draft.id} className="rounded-lg border border-slate-200 p-4">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                          <p className="text-sm font-medium">{draft.subject}</p>
-                          <p className="mt-1 text-xs text-slate-500">
-                            Preparada el {formatDate(draft.createdAt)}
-                          </p>
-                        </div>
-                        <span className="w-fit rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium">
-                          {draft.status === "SENT" ? "Enviada" : "Preparada"}
-                        </span>
-                      </div>
-                      <p className="mt-4 line-clamp-4 whitespace-pre-line text-sm leading-6 text-slate-500">
-                        {draft.body}
-                      </p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </article>
+            
 
           </div>
 
@@ -289,12 +321,12 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
             </p>
 
             <div className="mt-5 space-y-4">
-              {invoice.claimDrafts.length === 0 ? (
+              {sentClaimDrafts.length === 0 ? (
                 <p className="text-sm text-slate-500">
                   Todavia no hay reclamaciones preparadas.
                 </p>
               ) : (
-                invoice.claimDrafts.map((draft) => (
+                sentClaimDrafts.map((draft) => (
                   <div key={draft.id} className="border-l border-blue-200 pl-4">
                     <p className="text-sm font-medium">{draft.subject}</p>
                     <p className="mt-1 text-sm text-slate-500">

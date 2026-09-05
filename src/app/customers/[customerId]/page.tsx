@@ -170,9 +170,9 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
 
           <div className="flex flex-wrap gap-2">
             <Button asChild className="bg-blue-600 shadow-sm hover:bg-blue-700">
-              <Link href={`/invoice-files/upload?customerId=${customer.id}`}>
+              <Link href={`/customers/${customer.id}/invoices/new`}>
                 <Upload className="size-4" />
-                Subir factura
+                Añadir factura
               </Link>
             </Button>
             <Button asChild variant="outline" className="rounded-lg border-slate-200 bg-white">

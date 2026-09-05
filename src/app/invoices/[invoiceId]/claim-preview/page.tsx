@@ -89,6 +89,30 @@ export default async function ClaimPreviewPage({ params }: ClaimPreviewPageProps
     controlDate: formatDate(invoice.dueDate),
   };
 
+  const templateGroups = [
+    {
+      tone: TemplateTone.FRIENDLY,
+      title: "Recordatorio amable",
+      description: "Mensajes suaves para primeros avisos o clientes habituales.",
+      badgeClassName: "bg-blue-50 text-blue-700",
+    },
+    {
+      tone: TemplateTone.FIRM,
+      title: "Reclamacion firme",
+      description: "Mensajes mas directos cuando ya existe retraso o falta de respuesta.",
+      badgeClassName: "bg-amber-50 text-amber-700",
+    },
+    {
+      tone: TemplateTone.FINAL_NOTICE,
+      title: "Ultimo aviso",
+      description: "Comunicaciones finales antes de tomar nuevas medidas.",
+      badgeClassName: "bg-red-50 text-red-700",
+    },
+  ].map((group) => ({
+    ...group,
+    templates: templates.filter((template) => template.tone === group.tone),
+  }));
+
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
@@ -137,44 +161,68 @@ export default async function ClaimPreviewPage({ params }: ClaimPreviewPageProps
           </aside>
 
           <section className="space-y-5">
-            {templates.map((template) => {
-              const subject = renderTemplate(template.subject, variables);
-              const body = renderTemplate(template.body, variables);
-              const gmailHref = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(invoice.customer.email || "")}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-              return (
-                <article key={template.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            {templateGroups.map((group) => (
+              <details key={group.tone} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" open={group.templates.length > 0}>
+                <summary className="cursor-pointer list-none px-5 py-4 transition hover:bg-slate-50">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                        {formatTone(template.tone)}
-                      </span>
-                      <h2 className="mt-3 font-semibold">{template.name}</h2>
-                      <p className="mt-1 text-sm text-slate-500">{subject}</p>
+                      <h2 className="font-semibold">{group.title}</h2>
+                      <p className="mt-1 text-sm text-slate-500">{group.description}</p>
                     </div>
-
-                    <form action={createBulkClaimDrafts}>
-                      <input type="hidden" name="customerId" value={invoice.customerId} />
-                      <input type="hidden" name="templateId" value={template.id} />
-                      <input type="hidden" name="subject" value={subject} />
-                      <input type="hidden" name="body" value={body} />
-                      <input type="hidden" name="gmailHref" value={gmailHref} />
-                      <input type="hidden" name="invoiceIds" value={invoice.id} />
-                      <Button type="submit" disabled={!invoice.customer.email} className="bg-blue-600 shadow-sm hover:bg-blue-700">
-                        <Send className="mr-2 size-4" />
-                        Enviar correo
-                      </Button>
-                    </form>
+                    <span className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${group.badgeClassName}`}>
+                      {group.templates.length} plantilla{group.templates.length === 1 ? "" : "s"}
+                    </span>
                   </div>
+                </summary>
 
-                  <div className="mt-5 whitespace-pre-line rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-                    {body}
+                {group.templates.length === 0 ? (
+                  <p className="border-t border-slate-100 px-5 py-5 text-sm text-slate-500">
+                    No hay plantillas en este grupo.
+                  </p>
+                ) : (
+                  <div className="space-y-4 border-t border-slate-100 p-5">
+                    {group.templates.map((template) => {
+                      const subject = renderTemplate(template.subject, variables);
+                      const body = renderTemplate(template.body, variables);
+                      const gmailHref = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(invoice.customer.email || "")}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+                      return (
+                        <article key={template.id} className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+                                {formatTone(template.tone)}
+                              </span>
+                              <h3 className="mt-3 font-semibold">{template.name}</h3>
+                              <p className="mt-1 text-sm text-slate-500">{subject}</p>
+                            </div>
+
+                            <form action={createBulkClaimDrafts}>
+                              <input type="hidden" name="customerId" value={invoice.customerId} />
+                              <input type="hidden" name="templateId" value={template.id} />
+                              <input type="hidden" name="subject" value={subject} />
+                              <input type="hidden" name="body" value={body} />
+                              <input type="hidden" name="gmailHref" value={gmailHref} />
+                              <input type="hidden" name="invoiceIds" value={invoice.id} />
+                              <Button type="submit" disabled={!invoice.customer.email} className="bg-blue-600 shadow-sm hover:bg-blue-700">
+                                <Send className="mr-2 size-4" />
+                                Enviar correo
+                              </Button>
+                            </form>
+                          </div>
+
+                          <div className="mt-5 whitespace-pre-line rounded-xl border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-600">
+                            {body}
+                          </div>
+                        </article>
+                      );
+                    })}
                   </div>
-                </article>
-              );
-            })}
+                )}
+              </details>
+            ))}
 
-            {templates.length === 0 ? (
+          {templates.length === 0 ? (
               <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <Mail className="size-6 text-slate-400" />
                 <h2 className="mt-4 font-semibold">No hay plantillas disponibles</h2>
