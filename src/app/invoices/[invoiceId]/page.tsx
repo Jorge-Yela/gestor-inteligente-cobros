@@ -2,10 +2,7 @@ import Link from "next/link";
 import { AlertTriangle, CalendarClock, CircleDollarSign } from "lucide-react";
 import { notFound } from "next/navigation";
 
-import {
-  InvoiceStatus,
-  PaymentStatus,
-} from "@/generated/prisma/enums";
+import { PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
@@ -37,19 +34,6 @@ function formatDate(date: Date | null) {
   return dateFormatter.format(date);
 }
 
-
-function formatInvoiceStatus(status: InvoiceStatus) {
-  const labels: Record<InvoiceStatus, string> = {
-    PENDING_REVIEW: "Pendiente de revision",
-    ACTIVE: "En seguimiento",
-    OVERDUE: "Vencida",
-    PAID: "Cobrada",
-    CANCELLED: "Cancelada",
-    ARCHIVED: "Archivada",
-  };
-
-  return labels[status];
-}
 
 function formatPaymentStatus(status: PaymentStatus) {
   const labels: Record<PaymentStatus, string> = {
@@ -113,7 +97,15 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
       organizationId,
     },
     include: {
-      customer: true,
+      customer: {
+        include: {
+          invoices: {
+            orderBy: {
+              issueDate: "desc",
+            },
+          },
+        },
+      },
       timelineEvents: {
         orderBy: {
           createdAt: "desc",
@@ -151,6 +143,54 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
     : null;
   const delayTone = getDelayTone(delayDays);
   const sentClaimDrafts = invoice.claimDrafts.filter((draft) => draft.status === "SENT");
+  const customerInvoices = invoice.customer.invoices;
+  const customerPaidInvoices = customerInvoices.filter(
+    (customerInvoice) => customerInvoice.paymentStatus === PaymentStatus.PAID,
+  );
+  const customerPendingInvoices = customerInvoices.filter(
+    (customerInvoice) =>
+      customerInvoice.id !== invoice.id &&
+      customerInvoice.paymentStatus !== PaymentStatus.PAID,
+  );
+  const paidInvoicesWithDates = customerPaidInvoices.filter(
+    (customerInvoice) => customerInvoice.issueDate && customerInvoice.paidAt,
+  );
+  const averagePaymentDays = paidInvoicesWithDates.length > 0
+    ? Math.round(
+        paidInvoicesWithDates.reduce((total, customerInvoice) => {
+          if (!customerInvoice.issueDate || !customerInvoice.paidAt) {
+            return total;
+          }
+
+          const diffDays = Math.max(
+            Math.ceil((customerInvoice.paidAt.getTime() - customerInvoice.issueDate.getTime()) / (1000 * 60 * 60 * 24)),
+            0,
+          );
+
+          return total + diffDays;
+        }, 0) / paidInvoicesWithDates.length,
+      )
+    : null;
+  const latePaidInvoices = paidInvoicesWithDates.filter((customerInvoice) => {
+    if (!customerInvoice.issueDate || !customerInvoice.paidAt) {
+      return false;
+    }
+
+    const diffDays = Math.max(
+      Math.ceil((customerInvoice.paidAt.getTime() - customerInvoice.issueDate.getTime()) / (1000 * 60 * 60 * 24)),
+      0,
+    );
+
+    return diffDays > 30;
+  });
+  const customerPaymentSummary =
+    paidInvoicesWithDates.length === 0
+      ? "Aun no hay historial suficiente de cobros para este cliente."
+      : latePaidInvoices.length > paidInvoicesWithDates.length / 2
+        ? "Este cliente suele pagar tarde."
+        : averagePaymentDays !== null && averagePaymentDays <= 15
+          ? "Este cliente suele pagar rapido."
+          : "Este cliente tiene un comportamiento de pago estable.";
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
@@ -266,22 +306,14 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                   <dd className="mt-1 font-medium">{formatDate(lastClaimDate)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-slate-500">Estado</dt>
-                  <dd className="mt-1">
-                    <span className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium">
-                      {formatInvoiceStatus(invoice.status)}
-                    </span>
-                  </dd>
-                </div>
-                <div>
                   <dt className="text-sm text-slate-500">Cobro</dt>
                   <dd className="mt-1 font-medium">{formatPaymentStatus(invoice.paymentStatus)}</dd>
                 </div>
               </dl>
-            </article>
 
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="font-semibold">PDF asociado</h2>
+
+              <section className="mt-6 border-t border-slate-100 pt-5">
+                <h3 className="font-semibold">PDF asociado</h3>
               {invoice.file ? (
                 <div className="mt-5 space-y-4">
                   <div>
@@ -306,7 +338,61 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                   <AttachInvoicePdf invoiceId={invoice.id} />
                 </div>
               )}
+              </section>
+
+              <section className="mt-6 border-t border-slate-100 pt-5">
+                <h3 className="font-semibold">Relacion con el cliente</h3>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-lg bg-slate-50 px-4 py-3">
+                    <p className="text-xs font-medium text-slate-500">Historial de pago</p>
+                    <p className="mt-2 text-sm font-semibold">{customerPaymentSummary}</p>
+                  </div>
+
+                  <div className="rounded-lg bg-slate-50 px-4 py-3">
+                    <p className="text-xs font-medium text-slate-500">Plazo medio</p>
+                    <p className="mt-2 text-sm font-semibold">
+                      {averagePaymentDays === null ? "Sin datos" : `${averagePaymentDays} dias`}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg bg-amber-50 px-4 py-3">
+                    <p className="text-xs font-medium text-amber-700">Otras pendientes</p>
+                    <p className="mt-2 text-sm font-semibold text-amber-800">
+                      {customerPendingInvoices.length} factura{customerPendingInvoices.length === 1 ? "" : "s"}
+                    </p>
+                  </div>
+                </div>
+
+                {customerPendingInvoices.length > 0 ? (
+                  <div className="mt-4 overflow-hidden rounded-lg border border-slate-200">
+                    <div className="grid grid-cols-[1fr_auto_auto] gap-3 bg-slate-50 px-4 py-2 text-xs font-medium text-slate-500">
+                      <span>Factura</span>
+                      <span>Fecha</span>
+                      <span>Importe</span>
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                      {customerPendingInvoices.slice(0, 5).map((customerInvoice) => (
+                        <Link
+                          key={customerInvoice.id}
+                          href={`/invoices/${customerInvoice.id}`}
+                          className="grid grid-cols-[1fr_auto_auto] gap-3 px-4 py-3 text-sm transition hover:bg-slate-50"
+                        >
+                          <span className="font-medium">{customerInvoice.invoiceNumber}</span>
+                          <span className="text-slate-500">{formatDate(customerInvoice.issueDate)}</span>
+                          <span className="font-semibold">{formatAmount(customerInvoice.amountCents)}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-4 text-sm text-slate-500">
+                    Este cliente no tiene otras facturas pendientes.
+                  </p>
+                )}
+              </section>
             </article>
+
 
 
 
