@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { TimelineEventType } from "@/generated/prisma/enums";
+import { ClaimDraftStatus, TimelineEventType } from "@/generated/prisma/enums";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { canManageData, getCurrentUserRole } from "@/lib/permissions/current-role";
@@ -58,6 +58,7 @@ export async function createBulkClaimDrafts(formData: FormData) {
           templateId: templateId || null,
           subject,
           body,
+          status: ClaimDraftStatus.SENT,
         },
       }),
     ),
@@ -76,6 +77,8 @@ export async function createBulkClaimDrafts(formData: FormData) {
 
   revalidatePath(`/customers/${customerId}`);
   revalidatePath("/claim-drafts");
+  revalidatePath("/claim-drafts/sent");
+  revalidatePath("/timeline");
 
   invoices.forEach((invoice) => {
     revalidatePath(`/invoices/${invoice.id}`);

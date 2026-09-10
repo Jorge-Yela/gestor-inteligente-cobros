@@ -51,6 +51,15 @@ export default async function Home() {
           },
           include: {
             customer: true,
+          claimDrafts: {
+            orderBy: {
+              createdAt: "desc",
+            },
+            select: {
+              id: true,
+              createdAt: true,
+            },
+          },
           },
         },
       },
@@ -160,6 +169,64 @@ export default async function Home() {
     },
   ];
 
+  const topDebtors = Array.from(
+    unpaidInvoices.reduce((customers, invoice) => {
+      const current = customers.get(invoice.customerId) || {
+        id: invoice.customerId,
+        name: invoice.customer.name,
+        pendingCents: 0,
+        unpaidCount: 0,
+      };
+
+      current.pendingCents += invoice.amountCents;
+      current.unpaidCount += 1;
+      customers.set(invoice.customerId, current);
+
+      return customers;
+    }, new Map<string, { id: string; name: string; pendingCents: number; unpaidCount: number }>()),
+  )
+    .map(([, customer]) => ({
+      id: customer.id,
+      name: customer.name,
+      pendingAmount: formatAmount(customer.pendingCents),
+      unpaidCount: customer.unpaidCount,
+      pendingCents: customer.pendingCents,
+    }))
+    .sort((first, second) => second.pendingCents - first.pendingCents)
+    .slice(0, 3);
+
+  const dashboardToday = new Date();
+
+  const recommendedInvoices = unpaidInvoices
+    .map((invoice) => {
+      const claimDrafts = invoice.claimDrafts || [];
+      const claimCount = claimDrafts.length;
+      const lastClaim = claimDrafts[0] || null;
+      const daysSinceLastClaim = lastClaim
+        ? Math.floor((dashboardToday.getTime() - lastClaim.createdAt.getTime()) / (1000 * 60 * 60 * 24))
+        : null;
+
+      return {
+        id: invoice.id,
+        customerId: invoice.customerId,
+        customerName: invoice.customer.name,
+        invoiceNumber: invoice.invoiceNumber,
+        amountCents: invoice.amountCents,
+        amount: formatAmount(invoice.amountCents),
+        claimCount,
+        shouldClaim: !lastClaim || (daysSinceLastClaim !== null && daysSinceLastClaim >= 7),
+        nextStep:
+          claimCount === 0
+            ? "Enviar recordatorio amable"
+            : claimCount === 1
+              ? "Enviar reclamacion firme"
+              : "Enviar ultimo aviso",
+      };
+    })
+    .filter((invoice) => invoice.shouldClaim)
+    .sort((first, second) => second.amountCents - first.amountCents)
+    .slice(0, 5);
+
   const dashboardInvoices = invoices.slice(0, 6).map((invoice) => ({
     id: invoice.id,
     customer: invoice.customer.name,
@@ -244,6 +311,73 @@ export default async function Home() {
     })),
   };
 
+  const todayForTasks = new Date();
+
+  const dailyTasks = unpaidInvoices
+    .map((invoice) => {
+      const claimDrafts = invoice.claimDrafts || [];
+      const lastClaim = claimDrafts[0] || null;
+      const daysSinceIssue = invoice.issueDate
+        ? Math.max(Math.floor((todayForTasks.getTime() - invoice.issueDate.getTime()) / (1000 * 60 * 60 * 24)), 0)
+        : null;
+      const daysSinceLastClaim = lastClaim
+        ? Math.max(Math.floor((todayForTasks.getTime() - lastClaim.createdAt.getTime()) / (1000 * 60 * 60 * 24)), 0)
+        : null;
+
+      if (!invoice.customer.email) {
+        return {
+          id: `${invoice.id}-email`,
+          title: invoice.customer.name,
+          detail: `Factura ${invoice.invoiceNumber}: falta email para poder reclamar.`,
+          action: "Completar cliente",
+          href: `/customers/${invoice.customerId}/edit`,
+          priority: 90,
+          tone: "amber" as const,
+        };
+      }
+
+      if (daysSinceIssue === null) {
+        return {
+          id: `${invoice.id}-date`,
+          title: invoice.customer.name,
+          detail: `Factura ${invoice.invoiceNumber}: falta fecha de emision.`,
+          action: "Revisar factura",
+          href: `/invoices/${invoice.id}`,
+          priority: 70,
+          tone: "amber" as const,
+        };
+      }
+
+      if (claimDrafts.length === 0 && (daysSinceIssue >= 7 || invoice.amountCents >= 100000)) {
+        return {
+          id: `${invoice.id}-first`,
+          title: invoice.customer.name,
+          detail: `Factura ${invoice.invoiceNumber}: ${formatAmount(invoice.amountCents)} pendiente desde hace ${daysSinceIssue} dias.`,
+          action: "Enviar recordatorio",
+          href: `/invoices/${invoice.id}/claim-preview`,
+          priority: invoice.amountCents + daysSinceIssue * 10000,
+          tone: "blue" as const,
+        };
+      }
+
+      if (daysSinceLastClaim !== null && daysSinceLastClaim >= 7) {
+        return {
+          id: `${invoice.id}-follow`,
+          title: invoice.customer.name,
+          detail: `Factura ${invoice.invoiceNumber}: ultima reclamacion hace ${daysSinceLastClaim} dias.`,
+          action: invoice.amountCents >= 100000 ? "Llamar cliente" : "Hacer seguimiento",
+          href: `/invoices/${invoice.id}`,
+          priority: invoice.amountCents + daysSinceLastClaim * 12000,
+          tone: invoice.amountCents >= 100000 ? "red" as const : "blue" as const,
+        };
+      }
+
+      return null;
+    })
+    .filter((task) => Boolean(task))
+    .sort((first, second) => second.priority - first.priority)
+    .slice(0, 4);
+
   return (
     <AppShell
       stats={stats}
@@ -252,6 +386,10 @@ export default async function Home() {
       events={dashboardEvents}
       paymentStats={paymentStats}
       calendarItems={calendarItems}
+          topDebtors={topDebtors}
+      dailyTasks={dailyTasks}
+      recommendedInvoices={recommendedInvoices}
+
     />
   );
 }

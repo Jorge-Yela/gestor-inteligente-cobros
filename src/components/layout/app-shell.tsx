@@ -1,19 +1,13 @@
 import Link from "next/link";
 import {
-  AlertTriangle,
   BarChart3,
-  Bot,
   CheckCircle2,
-  ChevronRight,
   CircleDollarSign,
-  CalendarDays,
   FileText,
   Home,
   LogOut,
   Mail,
-  Phone,
   Search,
-  Send,
   Settings,
   Upload,
   Users,
@@ -69,6 +63,22 @@ type DashboardPaymentMonth = {
   barHeight: number;
 };
 
+type DashboardDailyTask = {
+  id: string;
+  title: string;
+  detail: string;
+  action: string;
+  href: string;
+  tone: "blue" | "amber" | "red";
+};
+
+type DashboardTopDebtor = {
+  id: string;
+  name: string;
+  pendingAmount: string;
+  unpaidCount: number;
+};
+
 type DashboardPaymentStats = {
   paidThisMonthCount: number;
   unpaidCount: number;
@@ -84,6 +94,8 @@ type AppShellProps = {
   events: DashboardEvent[];
   paymentStats: DashboardPaymentStats;
   calendarItems: DashboardCalendarItem[];
+  topDebtors: DashboardTopDebtor[];
+  dailyTasks?: DashboardDailyTask[];
 };
 
 const navigationItems = [
@@ -95,21 +107,13 @@ const navigationItems = [
   { label: "Informes", href: "/customer-stats", icon: BarChart3 },
 ];
 
-const taskItems = [
-  { label: "Revisar facturas prioritarias", priority: "Alta", time: "09:00", tone: "text-red-600 bg-red-50" },
-  { label: "Preparar reclamaciones", priority: "Alta", time: "10:30", tone: "text-red-600 bg-red-50" },
-  { label: "Asignar fechas de control", priority: "Media", time: "12:00", tone: "text-amber-600 bg-amber-50" },
-  { label: "Confirmar cobros recientes", priority: "Baja", time: "15:00", tone: "text-sky-600 bg-sky-50" },
-];
-
-export function AppShell({ stats, quickLinks, invoices, events, paymentStats, calendarItems }: AppShellProps) {
-  const primaryInvoices = invoices.slice(0, 5);
-  const recentEvents = events.slice(0, 4);
+export function AppShell({
+  stats,
+  paymentStats,
+  topDebtors,
+  dailyTasks = [],
+}: AppShellProps) {
   const firstStat = stats[0];
-  const secondStat = stats[1];
-  const fourthStat = quickLinks[0];
-  const totalPaymentCount = paymentStats.paidThisMonthCount + paymentStats.unpaidCount;
-  const paidPercentage = totalPaymentCount > 0 ? Math.round((paymentStats.paidThisMonthCount / totalPaymentCount) * 100) : 0;
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
@@ -186,135 +190,17 @@ export function AppShell({ stats, quickLinks, invoices, events, paymentStats, ca
           </header>
 
           <div className="flex-1 space-y-5 p-5">
-            <section className="grid gap-4 md:grid-cols-3">
-              <MetricCard icon={CircleDollarSign} label={firstStat?.label || "Pendiente de cobro"} value={firstStat?.value || "0 €"} detail={firstStat?.detail || "Sin facturas activas"} tone="amber" />
-              <MetricCard icon={CheckCircle2} label="Cobrado este mes" value={secondStat?.value || "0 €"} detail={secondStat?.detail || "Actividad registrada"} tone="emerald" />
-              <MetricCard icon={Users} label={fourthStat?.label || "Clientes en riesgo"} value={fourthStat?.value || "0"} detail={fourthStat?.detail || "Seguimiento prioritario"} tone="violet" />
-            </section>
-
-            <section className="grid gap-5 xl:grid-cols-[1fr_1.05fr_300px]">
-              <article className="rounded-xl border border-slate-200 bg-white shadow-sm">
-                <PanelHeader title="Que debes hacer hoy" />
-                <div className="space-y-1 p-5">
-                  {taskItems.map((task) => (
-                    <div key={task.label} className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 rounded-lg px-1 py-3 text-sm">
-                      <span className="size-4 rounded border border-slate-300" />
-                      <span className="font-medium text-slate-700">{task.label}</span>
-                      <span className={`rounded-md px-2 py-1 text-xs font-medium ${task.tone}`}>{task.priority}</span>
-                      <span className="text-xs text-slate-500">{task.time}</span>
-                    </div>
-                  ))}
-                  <Link href="/customers" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline">
-                    Ver clientes prioritarios
-                    <ChevronRight className="size-4" />
-                  </Link>
-                </div>
-              </article>
-
-              <article className="rounded-xl border border-slate-200 bg-white shadow-sm">
-                <PanelHeader title="Facturas prioritarias" actionHref="/invoices" />
-                {primaryInvoices.length === 0 ? (
-                  <p className="p-5 text-sm text-slate-500">Todavia no hay facturas cargadas.</p>
-                ) : (
-                  <div className="overflow-x-auto px-5 pb-5">
-                    <table className="w-full min-w-[620px] text-left text-sm">
-                      <thead className="text-xs text-slate-500">
-                        <tr>
-                          <th className="py-3 font-medium">Cliente</th>
-                          <th className="py-3 font-medium">Importe</th>
-                          <th className="py-3 font-medium">Estado</th>
-                          <th className="py-3 font-medium">Accion</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {primaryInvoices.map((invoice, index) => (
-                          <tr key={invoice.id}>
-                            <td className="py-3 font-medium">{invoice.customer}</td>
-                            <td className="py-3">{invoice.amount}</td>
-                            <td className="py-3">
-                              <span className="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-600">{invoice.status}</span>
-                            </td>
-                            <td className="py-3">
-                              <Button asChild variant="outline" size="sm" className="h-8 rounded-lg">
-                                <Link href={`/invoices/${invoice.id}`}>
-                                  {index % 2 === 0 ? <Phone className="size-3.5" /> : <Send className="size-3.5" />}
-                                  Revisar
-                                </Link>
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </article>
-
-              <aside className="space-y-5">
-                <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <h2 className="font-semibold">Salud de tus cobros</h2>
-                    <AlertTriangle className="size-4 text-slate-400" />
-                  </div>
-                  <div className="mx-auto mt-7 flex size-36 items-center justify-center rounded-full border-[12px] border-emerald-500 bg-emerald-50 text-3xl font-bold text-emerald-700">
-                    82%
-                  </div>
-                  <p className="mt-5 text-center font-semibold text-emerald-700">Situacion buena</p>
-                  <p className="mt-1 text-center text-sm text-slate-500">Vas por buen camino</p>
-                </article>
-
-                <article className="rounded-xl border border-slate-200 bg-white shadow-sm">
-                  <PanelHeader title="Actividad reciente" actionHref="/timeline" />
-                  <div className="space-y-4 p-5 pt-0">
-                    {recentEvents.length === 0 ? (
-                      <p className="text-sm text-slate-500">Todavia no hay actividad registrada.</p>
-                    ) : (
-                      recentEvents.map((event) => (
-                        <div key={event.id} className="flex gap-3">
-                          <CheckCircle2 className="mt-0.5 size-5 text-emerald-600" />
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-medium">{event.title}</p>
-                            <p className="text-xs text-slate-500">{event.customerName || event.description}</p>
-                          </div>
-                          <span className="ml-auto text-xs text-slate-400">{event.date}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </article>
-              </aside>
-            </section>
-
-            <section className="grid gap-5 xl:grid-cols-[1.15fr_1fr]">
-              <PaymentStatsCard
-                paidThisMonthAmount={paymentStats.paidThisMonthAmount}
-                pendingAmount={paymentStats.pendingAmount}
-                paidThisMonthCount={paymentStats.paidThisMonthCount}
-                unpaidCount={paymentStats.unpaidCount}
-                paidPercentage={paidPercentage}
-                monthly={paymentStats.monthly}
-              />
-              <SmartCalendarCard items={calendarItems} />
-            </section>
-
-            <section className="grid gap-5 xl:grid-cols-2">
-              <ChartCard title="Importe pendiente por antiguedad" variant="bars" />
-              <ChartCard title="Cobros mensuales" variant="area" />
-            </section>
-
-            <section className="rounded-xl border border-blue-100 bg-white p-5 shadow-sm">
-              <div className="flex items-start gap-4">
-                <div className="flex size-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                  <Bot className="size-5" />
-                </div>
-                <div>
-                  <h2 className="font-semibold">Copiloto de Cobros</h2>
-                  <p className="mt-2 max-w-2xl rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                    Buenos dias. Hoy te recomendamos centrarte en las facturas prioritarias y revisar los clientes con importes vencidos.
-                  </p>
-                </div>
+          <section className="grid items-start gap-4 md:grid-cols-3">
+            <div className="space-y-4 md:col-span-2">
+              <div className="grid gap-4 md:grid-cols-2">
+                <MetricCard icon={CircleDollarSign} label={firstStat?.label || "Pendiente de cobro"} value={firstStat?.value || "0 €"} detail={firstStat?.detail || "Sin facturas activas"} tone="amber" />
+                <MetricCard icon={CheckCircle2} label="Cobrado este mes" value={paymentStats.paidThisMonthAmount} detail={`${paymentStats.paidThisMonthCount} facturas cobradas este mes`} tone="emerald" />
               </div>
-            </section>
+              <DailyTasksCard tasks={dailyTasks} />
+            </div>
+            <DebtorRankingCard debtors={topDebtors} />
+          </section>
+
           </div>
         </section>
       </div>
@@ -322,17 +208,86 @@ export function AppShell({ stats, quickLinks, invoices, events, paymentStats, ca
   );
 }
 
-function PanelHeader({ title, actionHref }: { title: string; actionHref?: string }) {
+function DailyTasksCard({ tasks }: { tasks: DashboardDailyTask[] }) {
+  const tones = {
+    blue: "bg-blue-50 text-blue-700",
+    amber: "bg-amber-50 text-amber-700",
+    red: "bg-red-50 text-red-700",
+  };
+
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
-      <h2 className="font-semibold">{title}</h2>
-      {actionHref ? (
-        <Link href={actionHref} className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline">
-          Ver todo
-          <ChevronRight className="size-4" />
-        </Link>
-      ) : null}
-    </div>
+    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="border-b border-slate-100 pb-4">
+        <h2 className="font-semibold">Tareas del dia</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Facturas y clientes que requieren atencion segun importe, antiguedad y seguimiento.
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+        Recuerda marcar las facturas que ya hemos conseguido cobrar.
+      </div>
+
+      {tasks.length === 0 ? (
+        <p className="mt-4 text-sm text-slate-500">No hay tareas urgentes detectadas.</p>
+      ) : (
+        <div className="mt-4 space-y-3">
+          {tasks.map((task) => (
+            <Link key={task.id} href={task.href} className="block rounded-xl border border-slate-200 p-4 transition hover:border-blue-200 hover:bg-slate-50">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold">{task.title}</p>
+                  <p className="mt-1 text-sm text-slate-500">{task.detail}</p>
+                </div>
+                <span className={`w-fit rounded-md px-2.5 py-1 text-xs font-semibold ${tones[task.tone]}`}>
+                  {task.action}
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </article>
+  );
+}
+
+function DebtorRankingCard({ debtors = [] }: { debtors?: DashboardTopDebtor[] }) {
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mb-4 flex items-center gap-4">
+        <div className="flex size-11 items-center justify-center rounded-full bg-violet-50 text-violet-600">
+          <Users className="size-5" />
+        </div>
+        <div>
+          <p className="text-sm text-slate-500">Ranking de deuda</p>
+          <p className="mt-1 text-lg font-bold">Top 3 clientes</p>
+        </div>
+      </div>
+
+      {debtors.length === 0 ? (
+        <p className="text-sm text-slate-500">No hay clientes con deuda pendiente.</p>
+      ) : (
+        <div className="space-y-2">
+          {debtors.map((customer, index) => (
+            <Link
+              key={customer.id}
+              href={`/customers/${customer.id}`}
+              className="flex items-center justify-between gap-3 rounded-lg px-1 py-2 text-sm transition hover:bg-slate-50"
+            >
+              <div className="min-w-0">
+                <p className="truncate font-semibold">
+                  {index + 1}. {customer.name}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {customer.unpaidCount} factura{customer.unpaidCount === 1 ? "" : "s"} pendiente{customer.unpaidCount === 1 ? "" : "s"}
+                </p>
+              </div>
+              <span className="shrink-0 font-semibold text-amber-700">{customer.pendingAmount}</span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </article>
   );
 }
 
@@ -368,151 +323,8 @@ function MetricCard({
           <p className="mt-1 text-xs text-slate-500">{detail}</p>
         </div>
       </div>
+
     </article>
   );
 }
 
-function SmartCalendarCard({ items }: { items: DashboardCalendarItem[] }) {
-  const weekDays = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
-
-  return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="font-semibold">Calendario inteligente</h2>
-          <p className="mt-1 text-sm text-slate-500">Proximas fechas de control y acciones sugeridas.</p>
-        </div>
-        <div className="flex size-10 items-center justify-center rounded-full bg-sky-50 text-sky-700">
-          <CalendarDays className="size-5" />
-        </div>
-      </div>
-
-      <div className="mt-5 grid grid-cols-7 gap-2">
-        {weekDays.map((day, index) => (
-          <div key={day} className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-center">
-            <p className="text-[11px] font-medium text-slate-500">{day}</p>
-            <p className="mt-1 text-lg font-bold text-slate-900">{index + 1}</p>
-            <span className={`mx-auto mt-2 block size-2 rounded-full ${index < Math.min(items.length, 7) ? "bg-blue-500" : "bg-slate-200"}`} />
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-5 space-y-3">
-        {items.length === 0 ? (
-          <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
-            No hay fechas de control pendientes en las proximas facturas.
-          </p>
-        ) : (
-          items.map((item) => (
-            <Link
-              key={item.id}
-              href={item.href}
-              className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 transition hover:bg-slate-50"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold">{item.customer}</p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {item.invoiceNumber} · {item.date}
-                </p>
-              </div>
-              <span className="shrink-0 text-sm font-semibold text-slate-900">{item.amount}</span>
-            </Link>
-          ))
-        )}
-      </div>
-    </article>
-  );
-}
-
-function PaymentStatsCard({
-  paidThisMonthAmount,
-  pendingAmount,
-  paidThisMonthCount,
-  unpaidCount,
-  paidPercentage,
-  monthly,
-}: {
-  paidThisMonthAmount: string;
-  pendingAmount: string;
-  paidThisMonthCount: number;
-  unpaidCount: number;
-  paidPercentage: number;
-  monthly: DashboardPaymentMonth[];
-}) {
-  return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="font-semibold">Estadisticas de pago</h2>
-          <p className="mt-1 text-sm text-slate-500">Cobros registrados este mes y evolucion mensual.</p>
-        </div>
-        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-          {paidThisMonthCount} cobradas este mes
-        </span>
-      </div>
-
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl bg-emerald-50 p-4">
-          <p className="text-sm font-medium text-emerald-700">Cobrado este mes</p>
-          <p className="mt-2 text-2xl font-bold text-slate-950">{paidThisMonthAmount}</p>
-          <p className="mt-1 text-xs text-emerald-700">{paidThisMonthCount} facturas cobradas</p>
-        </div>
-        <div className="rounded-xl bg-amber-50 p-4">
-          <p className="text-sm font-medium text-amber-700">Pendiente actual</p>
-          <p className="mt-2 text-2xl font-bold text-slate-950">{pendingAmount}</p>
-          <p className="mt-1 text-xs text-amber-700">{unpaidCount} facturas pendientes</p>
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <div className="flex items-center justify-between text-sm">
-          <span className="font-medium text-slate-700">Ratio de cobro del mes</span>
-          <span className="font-semibold text-emerald-700">{paidPercentage}%</span>
-        </div>
-        <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
-          <div className="h-full rounded-full bg-emerald-500" style={{ width: `${paidPercentage}%` }} />
-        </div>
-      </div>
-
-      <div className="mt-6 flex h-32 items-end gap-3 border-t border-slate-100 pt-5">
-        {monthly.map((month) => (
-          <div key={month.label} className="flex flex-1 flex-col justify-end gap-2">
-            <div className="rounded-t-lg bg-blue-500" style={{ height: `${month.barHeight}%` }} title={month.paidAmount} />
-            <span className="text-center text-[11px] text-slate-500">{month.label}</span>
-          </div>
-        ))}
-      </div>
-    </article>
-  );
-}
-
-function ChartCard({ title, variant }: { title: string; variant: "line" | "bars" | "area" }) {
-  return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="font-semibold">{title}</h2>
-      <div className="mt-5 flex h-40 items-end gap-3 border-t border-slate-100 pt-5">
-        {variant === "bars" ? (
-          [72, 56, 43, 48].map((height, index) => (
-            <div key={index} className="flex flex-1 flex-col justify-end gap-2">
-              <div
-                className={`rounded-t-lg ${index === 0 ? "bg-red-400" : index === 1 ? "bg-orange-400" : index === 2 ? "bg-yellow-400" : "bg-emerald-400"}`}
-                style={{ height: `${height}%` }}
-              />
-              <span className="text-center text-[11px] text-slate-500">{index === 0 ? "0-30" : index === 1 ? "31-60" : index === 2 ? "61-90" : "+90"}</span>
-            </div>
-          ))
-        ) : (
-          [18, 26, 38, 52, 68, 58].map((height, index) => (
-            <div key={index} className="flex flex-1 flex-col justify-end gap-2">
-              <div
-                className={`${variant === "area" ? "bg-blue-200" : "bg-blue-500"} rounded-t-full`}
-                style={{ height: `${height}%` }}
-              />
-              <span className="text-center text-[11px] text-slate-500">{["Ene", "Feb", "Mar", "Abr", "May", "Jun"][index]}</span>
-            </div>
-          ))
-        )}
-      </div>
-    </article>
-  );
-}
