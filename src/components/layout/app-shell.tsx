@@ -22,45 +22,19 @@ type DashboardStat = {
   detail: string;
 };
 
-type DashboardQuickLink = {
+type DashboardCollectionMonth = {
   label: string;
-  value: string;
+  collectedAmount: string;
+  pendingAmount: string;
+  collectedHeight: number;
+  pendingHeight: number;
+};
+
+type DashboardPortfolioHealth = {
+  score: number;
+  tone: "green" | "amber" | "red";
+  label: string;
   detail: string;
-  href: string;
-};
-
-type DashboardInvoice = {
-  id: string;
-  customer: string;
-  number: string;
-  amount: string;
-  status: string;
-};
-
-type DashboardEvent = {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  invoiceId: string | null;
-  invoiceNumber: string | null;
-  customerName: string | null;
-};
-
-type DashboardCalendarItem = {
-  id: string;
-  customer: string;
-  invoiceNumber: string;
-  amount: string;
-  date: string;
-  href: string;
-};
-
-type DashboardPaymentMonth = {
-  label: string;
-  paidCount: number;
-  paidAmount: string;
-  barHeight: number;
 };
 
 type DashboardDailyTask = {
@@ -84,18 +58,15 @@ type DashboardPaymentStats = {
   unpaidCount: number;
   paidThisMonthAmount: string;
   pendingAmount: string;
-  monthly: DashboardPaymentMonth[];
 };
 
 type AppShellProps = {
   stats: DashboardStat[];
-  quickLinks: DashboardQuickLink[];
-  invoices: DashboardInvoice[];
-  events: DashboardEvent[];
   paymentStats: DashboardPaymentStats;
-  calendarItems: DashboardCalendarItem[];
   topDebtors: DashboardTopDebtor[];
   dailyTasks?: DashboardDailyTask[];
+  portfolioHealth?: DashboardPortfolioHealth;
+  collectionChart?: DashboardCollectionMonth[];
 };
 
 const navigationItems = [
@@ -112,6 +83,8 @@ export function AppShell({
   paymentStats,
   topDebtors,
   dailyTasks = [],
+  portfolioHealth,
+  collectionChart = [],
 }: AppShellProps) {
   const firstStat = stats[0];
 
@@ -198,8 +171,13 @@ export function AppShell({
               </div>
               <DailyTasksCard tasks={dailyTasks} />
             </div>
-            <DebtorRankingCard debtors={topDebtors} />
+            <div className="space-y-4">
+              <DebtorRankingCard debtors={topDebtors} />
+              <PortfolioHealthCard health={portfolioHealth} />
+            </div>
           </section>
+
+          <CollectionChartCard months={collectionChart} />
 
           </div>
         </section>
@@ -247,6 +225,90 @@ function DailyTasksCard({ tasks }: { tasks: DashboardDailyTask[] }) {
           ))}
         </div>
       )}
+    </article>
+  );
+}
+
+function CollectionChartCard({ months }: { months: DashboardCollectionMonth[] }) {
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="font-semibold">Cobrado vs pendiente</h2>
+          <p className="mt-1 text-sm text-slate-500">Evolucion de los ultimos 6 meses.</p>
+        </div>
+        <div className="flex gap-3 text-xs text-slate-500">
+          <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-emerald-500" />Cobrado</span>
+          <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-amber-500" />Pendiente</span>
+        </div>
+      </div>
+
+      <div className="mt-5 flex h-56 items-end justify-between gap-4">
+        {months.map((month) => (
+          <div key={month.label} className="flex flex-1 flex-col items-center gap-3">
+            <div className="flex h-40 w-full max-w-16 items-end justify-center gap-1.5">
+              <div
+                className="w-5 rounded-t-md bg-emerald-500"
+                style={{ height: `${month.collectedHeight}%` }}
+                title={`Cobrado: ${month.collectedAmount}`}
+              />
+              <div
+                className="w-5 rounded-t-md bg-amber-500"
+                style={{ height: `${month.pendingHeight}%` }}
+                title={`Pendiente: ${month.pendingAmount}`}
+              />
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-semibold capitalize">{month.label}</p>
+              <p className="mt-1 text-[11px] text-emerald-700">{month.collectedAmount}</p>
+              <p className="text-[11px] text-amber-700">{month.pendingAmount}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function PortfolioHealthCard({ health }: { health?: DashboardPortfolioHealth }) {
+  const score = health?.score ?? 100;
+  const tone = health?.tone ?? "green";
+  const tones = {
+    green: {
+      ring: "border-emerald-500 bg-emerald-50 text-emerald-700",
+      badge: "bg-emerald-50 text-emerald-700",
+    },
+    amber: {
+      ring: "border-amber-500 bg-amber-50 text-amber-700",
+      badge: "bg-amber-50 text-amber-700",
+    },
+    red: {
+      ring: "border-red-500 bg-red-50 text-red-700",
+      badge: "bg-red-50 text-red-700",
+    },
+  };
+
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm text-slate-500">Salud de cartera</p>
+          <h2 className="mt-1 font-semibold">{health?.label || "Cartera sana"}</h2>
+        </div>
+        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${tones[tone].badge}`}>
+          Semaforo
+        </span>
+      </div>
+
+      <div className="mt-5 flex items-center gap-5">
+        <div className={`flex size-24 shrink-0 items-center justify-center rounded-full border-[10px] text-2xl font-bold ${tones[tone].ring}`}>
+          {score}
+        </div>
+        <div className="text-sm">
+          <p className="font-medium text-slate-700">{score}/100</p>
+          <p className="mt-1 text-slate-500">{health?.detail || "Los cobros evolucionan bien."}</p>
+        </div>
+      </div>
     </article>
   );
 }
@@ -327,4 +389,3 @@ function MetricCard({
     </article>
   );
 }
-

@@ -36,7 +36,6 @@ export async function simulateInvoiceFileOcr(formData: FormData) {
 
   const reading = await readInvoiceFileData({
     fileName: file.fileName,
-    fileUrl: file.fileUrl,
   });
 
   await prisma.invoiceFile.update({
