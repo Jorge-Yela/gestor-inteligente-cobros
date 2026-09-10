@@ -118,7 +118,7 @@ export async function unmarkInvoiceAsPaid(formData: FormData) {
     }),
   ]);
 
-  revalidateInvoicePaymentPaths(invoice.id);
+  revalidateInvoicePaymentPaths(invoice.id, invoice.customerId);
 
   redirect(redirectTo);
 }
