@@ -38,8 +38,9 @@ function normalizeHeader(value: string) {
 }
 
 function getValue(row: Record<string, unknown>, aliases: string[]) {
+  const normalizedAliases = aliases.map(normalizeHeader);
   const entry = Object.entries(row).find(([key]) =>
-    aliases.includes(normalizeHeader(key)),
+    normalizedAliases.includes(normalizeHeader(key)),
   );
 
   return entry?.[1] ?? "";
@@ -58,10 +59,10 @@ function mapSheetRow(row: Record<string, unknown>): InvoiceImportRow {
     customerName: formatExcelValue(getValue(row, ["cliente", "nombrecliente", "empresa", "customer", "customername"])),
     customerTaxId: formatExcelValue(getValue(row, ["cif", "nif", "cifnif", "taxid", "vat"])),
     customerEmail: formatExcelValue(getValue(row, ["email", "correo", "correoelectronico"])),
-    invoiceNumber: formatExcelValue(getValue(row, ["factura", "numerofactura", "nfactura", "numfactura", "invoice", "invoicenumber"])),
+    invoiceNumber: formatExcelValue(getValue(row, ["factura", "numero factura", "numero de factura", "numerofactura", "nfactura", "numfactura", "n factura", "nº factura", "invoice", "invoicenumber"])),
     issueDate: formatExcelValue(getValue(row, ["fecha", "fechafactura", "fechaemision", "issue", "issuedate"])),
     dueDate: formatExcelValue(getValue(row, ["fechavencimiento", "fechacontrol", "vencimiento", "duedate"])),
-    amount: formatExcelValue(getValue(row, ["importe", "total", "importe total", "amount"])),
+    amount: formatExcelValue(getValue(row, ["importe", "total", "importe total", "total factura", "importe factura", "amount"])),
     currency: formatExcelValue(getValue(row, ["moneda", "currency"])) || "EUR",
   };
 }

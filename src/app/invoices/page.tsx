@@ -344,7 +344,14 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
                   {filteredInvoices.map((invoice) => (
                     <tr key={invoice.id} className="transition hover:bg-slate-50/80">
                       <td className="px-5 py-4 font-semibold">{invoice.invoiceNumber}</td>
-                      <td className="px-5 py-4">{invoice.customer.name}</td>
+                      <td className="px-5 py-4">
+                        <Link
+                          href={`/customers/${invoice.customerId}`}
+                          className="font-semibold text-slate-950 transition hover:text-blue-600 hover:underline"
+                        >
+                          {invoice.customer.name}
+                        </Link>
+                      </td>
                       <td className="px-5 py-4 text-slate-500">{formatDate(invoice.issueDate)}</td>
                       <td className="px-5 py-4 font-semibold">{formatAmount(invoice.amountCents)}</td>
                       <td className="px-5 py-4">

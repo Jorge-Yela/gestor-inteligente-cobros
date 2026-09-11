@@ -24,6 +24,43 @@ const invoiceRowsSchema = z.array(invoiceRowSchema).min(1);
 
 type InvoiceRow = z.infer<typeof invoiceRowSchema>;
 
+function normalizeImportedRows(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((row) => {
+      const item = row && typeof row === "object" ? row as Record<string, unknown> : {};
+
+      return {
+        customerName: String(item.customerName ?? "").trim(),
+        customerTaxId: String(item.customerTaxId ?? "").trim(),
+        customerEmail: String(item.customerEmail ?? "").trim(),
+        invoiceNumber: String(item.invoiceNumber ?? "").trim(),
+        issueDate: String(item.issueDate ?? "").trim(),
+        dueDate: String(item.dueDate ?? "").trim(),
+        amount: String(item.amount ?? "").trim(),
+        currency: String(item.currency ?? "EUR").trim() || "EUR",
+      };
+    })
+    .filter((row) => row.customerName || row.invoiceNumber || row.amount)
+    .filter((row) => row.customerName || row.invoiceNumber);
+}
+
+function getInvalidRows(rows: ReturnType<typeof normalizeImportedRows>) {
+  return rows
+    .map((row, index) => ({
+      index: index + 1,
+      missing: [
+        !row.customerName ? "cliente" : "",
+        !row.invoiceNumber ? "numero de factura" : "",
+        !row.amount ? "importe" : "",
+      ].filter(Boolean),
+    }))
+    .filter((row) => row.missing.length > 0);
+}
+
 function normalizeText(value?: string) {
   return value?.trim() || "";
 }
@@ -150,10 +187,21 @@ export async function importInvoicesFromExcelRows(formData: FormData) {
 
   const organizationId = await getCurrentOrganizationId();
   const rowsValue = String(formData.get("rows") || "[]");
-  const parsedRows = invoiceRowsSchema.safeParse(JSON.parse(rowsValue));
+  const rows = normalizeImportedRows(JSON.parse(rowsValue));
+  const invalidRows = getInvalidRows(rows);
+
+  if (invalidRows.length > 0) {
+    const details = invalidRows
+      .map((row) => `fila ${row.index}: falta ${row.missing.join(", ")}`)
+      .join("; ");
+
+    throw new Error(`Revisa el Excel: ${details}`);
+  }
+
+  const parsedRows = invoiceRowsSchema.safeParse(rows);
 
   if (!parsedRows.success) {
-    throw new Error("Revisa el Excel: faltan datos obligatorios en alguna fila");
+    throw new Error("Revisa el Excel: hay algun dato con formato incorrecto");
   }
 
   await prisma.$transaction(async (tx) => {
