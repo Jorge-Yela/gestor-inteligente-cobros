@@ -71,6 +71,11 @@ export default async function ClaimPreviewPage({ params }: ClaimPreviewPageProps
     where: {
       organizationId,
       archivedAt: null,
+      NOT: {
+        name: {
+          startsWith: "Conjunta",
+        },
+      },
     },
     orderBy: [
       {
@@ -204,7 +209,7 @@ export default async function ClaimPreviewPage({ params }: ClaimPreviewPageProps
                               <input type="hidden" name="body" value={body} />
                               <input type="hidden" name="gmailHref" value={gmailHref} />
                               <input type="hidden" name="invoiceIds" value={invoice.id} />
-                              <Button type="submit" disabled={!invoice.customer.email} className="bg-blue-600 shadow-sm hover:bg-blue-700">
+                              <Button type="submit" className="bg-blue-600 shadow-sm hover:bg-blue-700">
                                 <Send className="mr-2 size-4" />
                                 Enviar correo
                               </Button>

@@ -17,8 +17,12 @@ function parseOptionalDate(value: string | null) {
 }
 
 function parseAmountToCents(value: string) {
-  const normalizedValue = value.replace(",", ".").trim();
-  const amount = Number(normalizedValue);
+  const amount = Number(
+    value
+      .replace(/[^\d,.-]/g, "")
+      .replace(/\.(?=\d{3}(\D|$))/g, "")
+      .replace(",", "."),
+  );
 
   if (!Number.isFinite(amount) || amount <= 0) {
     throw new Error("El importe no es valido");
@@ -41,7 +45,6 @@ export async function updateInvoice(formData: FormData) {
   const invoiceNumber = String(formData.get("invoiceNumber") || "").trim();
   const amount = String(formData.get("amount") || "").trim();
   const issueDate = String(formData.get("issueDate") || "").trim();
-  const controlDate = String(formData.get("controlDate") || "").trim();
   const notes = String(formData.get("notes") || "").trim();
 
   if (!invoiceId || !customerId || !invoiceNumber || !amount) {
