@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, CircleDollarSign, Plus, Users } from "lucide-react";
+import { Building2, CircleDollarSign, Plus, Search, Users } from "lucide-react";
 
 import { PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
@@ -16,8 +16,43 @@ function formatAmount(amountCents: number) {
   return currencyFormatter.format(amountCents / 100);
 }
 
-export default async function CustomersPage() {
+type CustomersPageProps = {
+  searchParams?: Promise<{
+    q?: string | string[];
+    sort?: string | string[];
+    order?: string | string[];
+  }>;
+};
+
+function getSearchValue(value?: string | string[]) {
+  return Array.isArray(value) ? value[0] || "" : value || "";
+}
+
+export default async function CustomersPage({ searchParams }: CustomersPageProps) {
   const organizationId = await getCurrentOrganizationId();
+  const params = await searchParams;
+  const query = getSearchValue(params?.q).trim();
+  const sort = getSearchValue(params?.sort);
+  const order = getSearchValue(params?.order) === "asc" ? "asc" : "desc";
+
+  function getSortHref(column: "debt" | "pending" | "paid") {
+    const nextOrder = sort === column && order === "desc" ? "asc" : "desc";
+    const search = new URLSearchParams({
+      ...(query ? { q: query } : {}),
+      sort: column,
+      order: nextOrder,
+    });
+
+    return `/customers?${search.toString()}`;
+  }
+
+  function getSortLabel(column: "debt" | "pending" | "paid", label: string) {
+    if (sort !== column) {
+      return label;
+    }
+
+    return `${label} ${order === "desc" ? "↓" : "↑"}`;
+  }
 
   const customers = await prisma.customer.findMany({
     where: {
@@ -31,7 +66,24 @@ export default async function CustomersPage() {
     },
   });
 
-  const rows = customers.map((customer) => {
+  const filteredCustomers = query
+    ? customers.filter((customer) => {
+        const searchableText = [
+          customer.name,
+          customer.contactName,
+          customer.email,
+          customer.phone,
+          customer.taxId,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        return searchableText.includes(query.toLowerCase());
+      })
+    : customers;
+
+  const rows = filteredCustomers.map((customer) => {
     const unpaidInvoices = customer.invoices.filter(
       (invoice) => invoice.paymentStatus === PaymentStatus.UNPAID,
     );
@@ -83,10 +135,29 @@ export default async function CustomersPage() {
       unpaidCount: unpaidInvoices.length,
       pendingAmountCents,
       pendingAmount: formatAmount(pendingAmountCents),
+      paidAmountCents,
       paidAmount: formatAmount(paidAmountCents),
       debtProgress,
       debtTone,
     };
+  });
+
+  const sortedRows = [...rows].sort((first, second) => {
+    const direction = order === "asc" ? 1 : -1;
+
+    if (sort === "debt") {
+      return (first.debtProgress - second.debtProgress) * direction;
+    }
+
+    if (sort === "pending") {
+      return (first.pendingAmountCents - second.pendingAmountCents) * direction;
+    }
+
+    if (sort === "paid") {
+      return (first.paidAmountCents - second.paidAmountCents) * direction;
+    }
+
+    return first.name.localeCompare(second.name);
   });
 
   const totalCustomers = rows.length;
@@ -127,18 +198,28 @@ export default async function CustomersPage() {
         </section>
 
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex flex-col gap-2 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-semibold">Cartera de clientes</h2>
               <p className="mt-1 text-sm text-slate-500">
                 Entra en cada cliente para ver recomendaciones y subir nuevas facturas.
               </p>
             </div>
+
+            <form className="relative w-full sm:max-w-sm">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <input
+                name="q"
+                defaultValue={query}
+                placeholder="Buscar cliente..."
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+              />
+            </form>
           </div>
 
           {rows.length === 0 ? (
             <p className="px-5 py-8 text-sm text-slate-500">
-              Todavia no hay clientes registrados.
+              {query ? "No hay clientes que coincidan con la busqueda." : "Todavia no hay clientes registrados."}
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -146,14 +227,26 @@ export default async function CustomersPage() {
                 <thead className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500">
                   <tr>
                     <th className="px-5 py-3 font-medium">Cliente</th>
-                    <th className="px-5 py-3 font-medium">Deuda</th>
+                    <th className="px-5 py-3 font-medium">
+                      <Link href={getSortHref("debt")} className="text-blue-600 hover:underline">
+                        {getSortLabel("debt", "Deuda")}
+                      </Link>
+                    </th>
                     <th className="px-5 py-3 font-medium">Facturas</th>
-                    <th className="px-5 py-3 font-medium">Pendiente</th>
-                    <th className="px-5 py-3 font-medium">Cobrado</th>
+                    <th className="px-5 py-3 font-medium">
+                      <Link href={getSortHref("pending")} className="text-blue-600 hover:underline">
+                        {getSortLabel("pending", "Pendiente")}
+                      </Link>
+                    </th>
+                    <th className="px-5 py-3 font-medium">
+                      <Link href={getSortHref("paid")} className="text-blue-600 hover:underline">
+                        {getSortLabel("paid", "Cobrado")}
+                      </Link>
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {rows.map((customer) => (
+                  {sortedRows.map((customer) => (
                     <tr key={customer.id} className="transition hover:bg-slate-50/80">
                       <td className="px-5 py-4">
                         <Link href={`/customers/${customer.id}`} className="font-semibold text-slate-950 transition hover:text-blue-600 hover:underline">

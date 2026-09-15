@@ -254,68 +254,78 @@ export default async function Home() {
     pendingAmount: formatAmount(pendingAmountCents),
   };
 
-  const todayForTasks = new Date();
-
   const dailyTasks = unpaidInvoices
     .map((invoice) => {
-      const claimDrafts = invoice.claimDrafts || [];
-      const lastClaim = claimDrafts[0] || null;
-      const daysSinceIssue = invoice.issueDate
-        ? Math.max(Math.floor((todayForTasks.getTime() - invoice.issueDate.getTime()) / (1000 * 60 * 60 * 24)), 0)
-        : null;
+      const lastClaim = invoice.claimDrafts?.[0] || null;
+      const claimCount = invoice.claimDrafts?.length || 0;
+      const daysOpen = invoice.issueDate
+        ? Math.max(Math.floor((now.getTime() - invoice.issueDate.getTime()) / (1000 * 60 * 60 * 24)), 0)
+        : 0;
       const daysSinceLastClaim = lastClaim
-        ? Math.max(Math.floor((todayForTasks.getTime() - lastClaim.createdAt.getTime()) / (1000 * 60 * 60 * 24)), 0)
+        ? Math.max(Math.floor((now.getTime() - lastClaim.createdAt.getTime()) / (1000 * 60 * 60 * 24)), 0)
         : null;
 
-      if (!invoice.customer.email) {
-        return {
-          id: `${invoice.id}-email`,
-          title: invoice.customer.name,
-          detail: `Factura ${invoice.invoiceNumber}: falta email para poder reclamar.`,
-          action: "Completar cliente",
-          href: `/customers/${invoice.customerId}/edit`,
-          priority: 90,
-          tone: "amber" as const,
-        };
+      let priority = 0;
+      const reasons = [];
+
+      if (invoice.amountCents >= 500000) {
+        priority += 35;
+        reasons.push("importe alto");
+      } else if (invoice.amountCents >= 150000) {
+        priority += 20;
+        reasons.push("importe relevante");
       }
 
-      if (daysSinceIssue === null) {
-        return {
-          id: `${invoice.id}-date`,
-          title: invoice.customer.name,
-          detail: `Factura ${invoice.invoiceNumber}: falta fecha de emision.`,
-          action: "Revisar factura",
-          href: `/invoices/${invoice.id}`,
-          priority: 70,
-          tone: "amber" as const,
-        };
+      if (daysOpen >= 60) {
+        priority += 45;
+        reasons.push("mas de 60 dias abierta");
+      } else if (daysOpen >= 30) {
+        priority += 25;
+        reasons.push("mas de 30 dias abierta");
+      } else if (daysOpen >= 15) {
+        priority += 10;
+        reasons.push("seguimiento preventivo");
       }
 
-      if (claimDrafts.length === 0 && (daysSinceIssue >= 7 || invoice.amountCents >= 100000)) {
-        return {
-          id: `${invoice.id}-first`,
-          title: invoice.customer.name,
-          detail: `Factura ${invoice.invoiceNumber}: ${formatAmount(invoice.amountCents)} pendiente desde hace ${daysSinceIssue} dias.`,
-          action: "Enviar recordatorio",
-          href: `/invoices/${invoice.id}/claim-preview`,
-          priority: invoice.amountCents + daysSinceIssue * 10000,
-          tone: "blue" as const,
-        };
+      if (claimCount === 0) {
+        priority += 20;
+        reasons.push("sin reclamacion enviada");
+      } else if (daysSinceLastClaim !== null && daysSinceLastClaim >= 14) {
+        priority += 15;
+        reasons.push("reclamacion sin respuesta reciente");
       }
 
-      if (daysSinceLastClaim !== null && daysSinceLastClaim >= 7) {
-        return {
-          id: `${invoice.id}-follow`,
-          title: invoice.customer.name,
-          detail: `Factura ${invoice.invoiceNumber}: ultima reclamacion hace ${daysSinceLastClaim} dias.`,
-          action: invoice.amountCents >= 100000 ? "Llamar cliente" : "Hacer seguimiento",
-          href: `/invoices/${invoice.id}`,
-          priority: invoice.amountCents + daysSinceLastClaim * 12000,
-          tone: invoice.amountCents >= 100000 ? "red" as const : "blue" as const,
-        };
+      const customerPendingCount = unpaidInvoices.filter(
+        (pendingInvoice) => pendingInvoice.customerId === invoice.customerId,
+      ).length;
+
+      if (customerPendingCount >= 3) {
+        priority += 20;
+        reasons.push(`${customerPendingCount} facturas pendientes del cliente`);
       }
 
-      return null;
+      if (priority < 25) {
+        return null;
+      }
+
+      const action =
+        priority >= 80
+          ? "Enviar reclamacion"
+          : claimCount === 0
+            ? "Enviar recordatorio"
+            : "Revisar seguimiento";
+
+      const tone = priority >= 80 ? "red" : priority >= 50 ? "amber" : "blue";
+
+      return {
+        id: invoice.id,
+        title: `${invoice.customer.name} · Factura ${invoice.invoiceNumber}`,
+        detail: `${formatAmount(invoice.amountCents)} pendiente · ${daysOpen} dias abierta · ${reasons.slice(0, 3).join(", ")}`,
+        action,
+        href: `/invoices/${invoice.id}`,
+        priority,
+        tone,
+      };
     })
     .filter((task): task is {
       id: string;

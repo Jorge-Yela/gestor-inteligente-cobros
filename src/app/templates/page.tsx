@@ -94,7 +94,7 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
             <Button asChild className="rounded-lg bg-blue-600 shadow-sm hover:bg-blue-700">
               <Link href="/templates/new">
                 <Plus className="mr-2 size-4" />
-                Nueva plantilla
+                Crea tu propio aviso
               </Link>
             </Button>
           </div>
@@ -119,7 +119,7 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
                   <div>
                     <p className="font-semibold">{group.badge}</p>
                     <p className="mt-1 text-2xl font-bold">{groupTemplates.length}</p>
-                    <p className="mt-1 text-xs text-slate-500">Plantillas disponibles</p>
+                    <p className="mt-1 text-xs text-slate-500">Avisos disponibles</p>
                   </div>
                 </div>
               </Link>
@@ -154,7 +154,7 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
 
                     {groupTemplates.length === 0 ? (
                       <div className="px-5 py-6 text-sm text-slate-500">
-                        Todavia no hay plantillas para este tono.
+                        Todavia no hay avisos para este tono.
                       </div>
                     ) : (
                       <div className="grid gap-4 p-5 lg:grid-cols-2 xl:grid-cols-3">
@@ -190,7 +190,7 @@ export default async function TemplatesPage({ searchParams }: TemplatesPageProps
                             </div>
 
                             <Button asChild variant="outline" size="sm" className="mt-5 rounded-lg border-slate-200 bg-white">
-                              <Link href={`/templates/${template.id}`}>Editar plantilla</Link>
+                              <Link href={`/templates/${template.id}`}>Editar aviso</Link>
                             </Button>
                           </div>
                         ))}

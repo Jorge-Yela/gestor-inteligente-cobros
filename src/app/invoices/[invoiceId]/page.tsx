@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, CalendarClock, CircleDollarSign } from "lucide-react";
+import { AlertTriangle, CalendarClock, CircleDollarSign, Phone } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { PaymentStatus } from "@/generated/prisma/enums";
@@ -10,6 +10,7 @@ import { AttachInvoicePdf } from "@/app/invoices/[invoiceId]/attach-invoice-pdf"
 import { deleteInvoice } from "@/server/actions/delete-invoice";
 import { markInvoiceAsPaid, unmarkInvoiceAsPaid, updateInvoicePaidDate } from "@/server/actions/mark-invoice-paid";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { registerInvoiceCall } from "@/server/actions/register-invoice-call";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -151,6 +152,22 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
     : null;
   const delayTone = getDelayTone(delayDays);
   const sentClaimDrafts = invoice.claimDrafts.filter((draft) => draft.status === "SENT");
+  const callEvents = invoice.timelineEvents.filter((event) => event.title === "Llamada realizada");
+  const claimTimelineItems = [
+    ...sentClaimDrafts.map((draft) => ({
+      id: draft.id,
+      date: draft.updatedAt || draft.createdAt,
+      title: draft.subject,
+      description: draft.body,
+    })),
+    ...callEvents.map((event) => ({
+      id: event.id,
+      date: event.createdAt,
+      title: event.title,
+      description: event.description || "Llamada de seguimiento registrada.",
+    })),
+  ].sort((first, second) => second.date.getTime() - first.date.getTime());
+
   const customerInvoices = invoice.customer.invoices;
   const customerPaidInvoices = customerInvoices.filter(
     (customerInvoice) => customerInvoice.paymentStatus === PaymentStatus.PAID,
@@ -317,9 +334,18 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                   <Button asChild variant="outline" size="sm" className="rounded-lg border-slate-200">
                     <Link href={`/invoices/${invoice.id}/edit`}>Editar detalles</Link>
                   </Button>
-                  <Button asChild size="sm" className="rounded-lg bg-blue-600 hover:bg-blue-700">
-                    <Link href={`/invoices/${invoice.id}/claim-preview`}>Preparar reclamacion</Link>
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <Button asChild size="sm" className="rounded-lg bg-blue-600 hover:bg-blue-700">
+                      <Link href={`/invoices/${invoice.id}/claim-preview`}>Preparar reclamacion</Link>
+                    </Button>
+                    <form action={registerInvoiceCall}>
+                      <input type="hidden" name="invoiceId" value={invoice.id} />
+                      <Button type="submit" variant="outline" size="sm" className="w-full rounded-lg border-slate-200">
+                        <Phone className="mr-2 size-4" />
+                        Llamada
+                      </Button>
+                    </form>
+                  </div>
                 </div>
               </div>
 
@@ -442,19 +468,19 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
             </p>
 
             <div className="mt-5 space-y-4">
-              {sentClaimDrafts.length === 0 ? (
+              {claimTimelineItems.length === 0 ? (
                 <p className="text-sm text-slate-500">
                   Todavia no hay reclamaciones preparadas.
                 </p>
               ) : (
-                sentClaimDrafts.map((draft) => (
-                  <div key={draft.id} className="border-l border-blue-200 pl-4">
-                    <p className="text-sm font-medium">{draft.subject}</p>
+                claimTimelineItems.map((item) => (
+                  <div key={item.id} className="border-l border-blue-200 pl-4">
+                    <p className="text-sm font-medium">{item.title}</p>
                     <p className="mt-1 text-sm text-slate-500">
-                      {draft.status === "SENT" ? "Enviada" : "Preparada"}
+                      {item.title === "Llamada realizada" ? "Llamada registrada" : "Enviada"}
                     </p>
                     <p className="mt-2 text-xs text-slate-500">
-                      {formatDate(draft.createdAt)}
+                      {formatDate(item.date)}
                     </p>
                   </div>
                 ))
