@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NEXUM",
+  title: "NORVALOR",
   description: "Gestion inteligente de cobros",
   other: {
     google: "notranslate",

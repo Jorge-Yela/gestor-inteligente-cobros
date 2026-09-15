@@ -32,7 +32,7 @@ export default async function LoginPage() {
                 N
               </div>
               <div>
-                <p className="text-4xl font-bold tracking-tight text-[#071a3d]">NEXUM</p>
+                <p className="text-4xl font-bold tracking-tight text-[#071a3d]">NORVALOR</p>
                 <p className="text-sm font-medium text-slate-500">Invoice & Payment Management</p>
               </div>
             </div>
@@ -41,7 +41,7 @@ export default async function LoginPage() {
               <div className="text-center">
                 <h1 className="text-3xl font-semibold tracking-tight">Bienvenido de nuevo</h1>
                 <p className="mt-3 text-sm text-slate-500">
-                  Inicia sesión para continuar en NEXUM
+                  Inicia sesión para continuar en NORVALOR
                 </p>
               </div>
 

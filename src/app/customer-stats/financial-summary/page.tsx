@@ -398,7 +398,7 @@ export default async function FinancialSummaryPage({
         {status !== "pending" ? (
         <section className="print-report overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 px-5 py-4">
-            <h2 className="font-semibold">Facturas cobradas gracias a Nexum</h2>
+            <h2 className="font-semibold">Facturas cobradas gracias a Norvalor</h2>
             <p className="mt-1 text-sm text-slate-500">
               Ingresos registrados como cobrados.
             </p>

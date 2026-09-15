@@ -47,7 +47,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
         <aside className="hidden bg-sky-700 text-white lg:flex lg:flex-col">
           <div className="flex h-20 items-center px-7">
             <Link href="/" className="text-3xl font-bold tracking-wide">
-              NE<span className="text-sky-100">X</span>UM
+              NOR<span className="text-sky-100">VAL</span>OR
             </Link>
           </div>
 
