@@ -340,20 +340,23 @@ export default async function Home() {
         tone: portfolioHealthTone,
         label: portfolioHealthLabel,
         detail: portfolioHealthDetail,
-        trend:
+        trendLabel:
           collectionTrend > 0
             ? `+${collectionTrend}% vs mes anterior`
             : collectionTrend < 0
               ? `${collectionTrend}% vs mes anterior`
               : "Sin cambio vs mes anterior",
-        concentration: `${topDebtConcentration}% de la deuda en top 3 clientes`,
-        silentInvoices: `${silentInvoicesCount} factura${silentInvoicesCount === 1 ? "" : "s"} sin reclamacion`,
-        oldestDebt: oldestUnpaidDays > 0 ? `${oldestUnpaidDays} dias de deuda mas antigua` : "Sin deuda antigua",
-        aging: [
-          { label: "0-30 dias", value: unpaidAgeBuckets.recent, tone: "green" },
-          { label: "31-60 dias", value: unpaidAgeBuckets.warning, tone: "amber" },
-          { label: "+60 dias", value: unpaidAgeBuckets.critical, tone: "red" },
-        ],
+        trendDetail: `Este mes se han cobrado ${formatAmount(paidThisMonthAmountCents)} y quedan ${formatAmount(pendingAmountCents)} pendientes. La tendencia compara el cobro reciente con el mes anterior.`,
+        concentrationLabel: `${topDebtConcentration}% en top 3 clientes`,
+        concentrationDetail: `Los 3 clientes con mayor deuda concentran el ${topDebtConcentration}% del total pendiente. Si este dato es alto, la cartera depende demasiado de pocos clientes.`,
+        followUpLabel: `${silentInvoicesCount} sin reclamacion`,
+        followUpDetail: silentInvoicesCount > 0
+          ? `${silentInvoicesCount} factura${silentInvoicesCount === 1 ? "" : "s"} pendiente${silentInvoicesCount === 1 ? "" : "s"} no tienen reclamacion reciente. Son candidatas para revisar o reclamar.`
+          : "Todas las facturas pendientes tienen seguimiento reciente.",
+        ageLabel: `${oldestUnpaidDays} dias max.`,
+        ageDetail: oldestUnpaidDays > 0
+          ? `La deuda pendiente mas antigua lleva ${oldestUnpaidDays} dias abierta. Reparto actual: ${unpaidAgeBuckets.recent} facturas entre 0-30 dias, ${unpaidAgeBuckets.warning} entre 31-60 dias y ${unpaidAgeBuckets.critical} con mas de 60 dias.`
+          : "No hay deuda antigua pendiente.",
       }}
       collectionChart={monthlyCollectionChart.map((month) => ({
         label: month.label,
