@@ -45,6 +45,7 @@ export async function updateInvoice(formData: FormData) {
   const invoiceNumber = String(formData.get("invoiceNumber") || "").trim();
   const amount = String(formData.get("amount") || "").trim();
   const issueDate = String(formData.get("issueDate") || "").trim();
+  const controlDate = String(formData.get("controlDate") || "").trim();
   const notes = String(formData.get("notes") || "").trim();
 
   if (!invoiceId || !customerId || !invoiceNumber || !amount) {
