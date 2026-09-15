@@ -182,8 +182,30 @@ export default async function CustomerDetailPage({ params, searchParams }: Custo
         </div>
 
         <section className="grid items-stretch gap-4 md:grid-cols-3">
-          <Link href={`/customers/${customer.id}?invoices=pending`} className="h-full">
-            <SummaryCard label="Deuda pendiente" value={formatAmount(pendingAmountCents)} detail={`${unpaidInvoices.length} facturas pendientes`} tone="amber" icon={CircleDollarSign} />
+          <Link href={`/customers/${customer.id}?invoices=pending`} className="group h-full">
+            <article className="relative flex h-full overflow-hidden rounded-xl border border-amber-100 bg-white p-5 shadow-sm transition hover:border-amber-200 hover:shadow-md">
+              <div className="absolute inset-y-0 left-0 w-1.5 bg-amber-500" />
+              <div className="flex min-w-0 flex-1 flex-col justify-between pl-3">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-slate-500">Deuda pendiente</p>
+                    <p className="mt-2 text-3xl font-bold tracking-tight text-slate-950">{formatAmount(pendingAmountCents)}</p>
+                  </div>
+                  <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+                    <CircleDollarSign className="size-5" />
+                  </div>
+                </div>
+
+                <div className="mt-5 flex items-center justify-between gap-3">
+                  <p className="text-sm text-slate-500">
+                    {unpaidInvoices.length} factura{unpaidInvoices.length === 1 ? "" : "s"} pendiente{unpaidInvoices.length === 1 ? "" : "s"}
+                  </p>
+                  <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                    En seguimiento
+                  </span>
+                </div>
+              </div>
+            </article>
           </Link>
 
           <SummaryCard href={`/customers/${customer.id}?invoices=paid`} label="Cobradas" value={formatAmount(paidAmountCents)} detail={`${paidCount} facturas cobradas`} tone="emerald" icon={CheckCircle2} />

@@ -122,3 +122,45 @@ export async function unmarkInvoiceAsPaid(formData: FormData) {
 
   redirect(redirectTo);
 }
+
+
+export async function updateInvoicePaidDate(formData: FormData) {
+  const currentRole = await getCurrentUserRole();
+
+  if (!canManageData(currentRole)) {
+    throw new Error("No tienes permisos para realizar esta accion");
+  }
+
+  const organizationId = await getCurrentOrganizationId();
+  const invoiceId = String(formData.get("invoiceId") || "");
+  const paidDate = String(formData.get("paidDate") || "");
+
+  if (!invoiceId || !paidDate) {
+    throw new Error("Faltan datos obligatorios");
+  }
+
+  const invoice = await getInvoiceForPaymentAction(invoiceId, organizationId);
+
+  await prisma.invoice.update({
+    where: {
+      id: invoice.id,
+    },
+    data: {
+      status: InvoiceStatus.PAID,
+      paymentStatus: PaymentStatus.PAID,
+      paidAt: new Date(`${paidDate}T00:00:00.000Z`),
+      timelineEvents: {
+        create: {
+          organizationId,
+          type: TimelineEventType.INVOICE_UPDATED,
+          title: "Fecha de cobro actualizada",
+          description: "Se modifico manualmente la fecha de cobro de la factura.",
+        },
+      },
+    },
+  });
+
+  revalidateInvoicePaymentPaths(invoice.id, invoice.customerId);
+
+  redirect(`/invoices/${invoice.id}`);
+}

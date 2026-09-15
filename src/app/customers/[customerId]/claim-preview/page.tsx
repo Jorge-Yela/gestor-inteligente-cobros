@@ -107,6 +107,9 @@ export default async function CustomerClaimPreviewPage({
     where: {
       organizationId,
       archivedAt: null,
+      name: {
+        startsWith: "Conjunta",
+      },
     },
     orderBy: [
       {
@@ -223,8 +226,10 @@ export default async function CustomerClaimPreviewPage({
                     {group.templates.map((template) => {
                       const subject = renderTemplate(template.subject, {
                         customerName: customer.name,
+    cliente: customer.name,
                         invoiceNumber: `${customer.invoices.length} facturas pendientes`,
                         amount: formatAmount(totalAmountCents),
+    importe: formatAmount(totalAmountCents),
                         controlDate: "varias fechas",
                       });
 
@@ -263,7 +268,7 @@ Importe total pendiente: ${formatAmount(totalAmountCents)}`;
                               {customer.invoices.map((invoice) => (
                                 <input key={invoice.id} type="hidden" name="invoiceIds" value={invoice.id} />
                               ))}
-                              <Button type="submit" disabled={!customer.email} className="bg-blue-600 shadow-sm hover:bg-blue-700">
+                              <Button type="submit" className="bg-blue-600 shadow-sm hover:bg-blue-700">
                                 <Send className="mr-2 size-4" />
                                 Enviar correo
                               </Button>

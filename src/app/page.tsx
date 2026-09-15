@@ -106,19 +106,102 @@ export default async function Home() {
   const totalPortfolioCents = pendingAmountCents + paidThisMonthAmountCents;
   const paidRatio = totalPortfolioCents > 0 ? paidThisMonthAmountCents / totalPortfolioCents : 1;
   const unpaidRatio = totalPortfolioCents > 0 ? pendingAmountCents / totalPortfolioCents : 0;
+
+  const debtByCustomer = Array.from(
+    unpaidInvoices
+      .reduce((map, invoice) => {
+        const currentAmount = map.get(invoice.customerId) || 0;
+
+        map.set(invoice.customerId, currentAmount + invoice.amountCents);
+
+        return map;
+      }, new Map<string, number>())
+      .values(),
+  ).sort((first, second) => second - first);
+
+  const topThreeDebtCents = debtByCustomer
+    .slice(0, 3)
+    .reduce((total, amount) => total + amount, 0);
+  const topDebtConcentration =
+    pendingAmountCents > 0 ? Math.round((topThreeDebtCents / pendingAmountCents) * 100) : 0;
+
+  const silentInvoicesCount = unpaidInvoices.filter(
+    (invoice) => invoice.claimDrafts.length === 0,
+  ).length;
+
+  const unpaidAgeBuckets = unpaidInvoices.reduce(
+    (buckets, invoice) => {
+      if (!invoice.issueDate) {
+        buckets.recent += 1;
+
+        return buckets;
+      }
+
+      const diffDays = Math.max(
+        Math.floor((now.getTime() - invoice.issueDate.getTime()) / (1000 * 60 * 60 * 24)),
+        0,
+      );
+
+      if (diffDays > 60) {
+        buckets.critical += 1;
+      } else if (diffDays > 30) {
+        buckets.warning += 1;
+      } else {
+        buckets.recent += 1;
+      }
+
+      return buckets;
+    },
+    {
+      recent: 0,
+      warning: 0,
+      critical: 0,
+    },
+  );
+
   const oldestUnpaidDays = unpaidInvoices.reduce((maxDays, invoice) => {
     if (!invoice.issueDate) {
       return maxDays;
     }
 
-    const diffDays = Math.max(Math.floor((now.getTime() - invoice.issueDate.getTime()) / (1000 * 60 * 60 * 24)), 0);
+    const diffDays = Math.max(
+      Math.floor((now.getTime() - invoice.issueDate.getTime()) / (1000 * 60 * 60 * 24)),
+      0,
+    );
 
     return Math.max(maxDays, diffDays);
   }, 0);
-  const agePenalty = Math.min(30, Math.floor(oldestUnpaidDays / 3));
+
+  const previousMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const previousMonthPaidAmountCents = paidInvoices
+    .filter(
+      (invoice) =>
+        invoice.paidAt &&
+        invoice.paidAt.getMonth() === previousMonthDate.getMonth() &&
+        invoice.paidAt.getFullYear() === previousMonthDate.getFullYear(),
+    )
+    .reduce((total, invoice) => total + invoice.amountCents, 0);
+
+  const collectionTrend =
+    previousMonthPaidAmountCents > 0
+      ? Math.round(
+          ((paidThisMonthAmountCents - previousMonthPaidAmountCents) / previousMonthPaidAmountCents) * 100,
+        )
+      : paidThisMonthAmountCents > 0
+        ? 100
+        : 0;
+
+  const agePenalty = Math.min(25, Math.floor(oldestUnpaidDays / 4));
+  const concentrationPenalty =
+    topDebtConcentration >= 70 ? 15 : topDebtConcentration >= 50 ? 8 : 0;
+  const silentPenalty = Math.min(15, silentInvoicesCount * 3);
+
   const portfolioHealthScore = Math.max(
     0,
-    Math.min(100, Math.round(100 - unpaidRatio * 55 + paidRatio * 20 - agePenalty)),
+    Math.min(
+      100,
+      Math.round(100 - unpaidRatio * 45 + paidRatio * 15 - agePenalty - concentrationPenalty - silentPenalty),
+    ),
   );
   const portfolioHealthTone =
     portfolioHealthScore >= 80 ? "green" : portfolioHealthScore >= 50 ? "amber" : "red";
@@ -126,10 +209,10 @@ export default async function Home() {
     portfolioHealthScore >= 80 ? "Cartera sana" : portfolioHealthScore >= 50 ? "Atencion recomendada" : "Riesgo alto";
   const portfolioHealthDetail =
     portfolioHealthScore >= 80
-      ? "Los cobros evolucionan bien."
+      ? "Los cobros evolucionan bien y el riesgo esta controlado."
       : portfolioHealthScore >= 50
-        ? "Conviene mantener el seguimiento activo."
-        : "Hay facturas pendientes que requieren accion prioritaria.";
+        ? "Hay deuda pendiente que conviene seguir de cerca."
+        : "Hay facturas antiguas o clientes concentrando demasiado riesgo.";
 
   const monthlyCollectionChart = Array.from({ length: 6 }, (_, index) => {
     const monthDate = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1);
@@ -244,7 +327,7 @@ export default async function Home() {
       tone: "blue" | "amber" | "red";
     } => task !== null)
     .sort((first, second) => second.priority - first.priority)
-    .slice(0, 4);
+    .slice(0, 8);
 
   return (
     <AppShell
@@ -257,6 +340,20 @@ export default async function Home() {
         tone: portfolioHealthTone,
         label: portfolioHealthLabel,
         detail: portfolioHealthDetail,
+        trend:
+          collectionTrend > 0
+            ? `+${collectionTrend}% vs mes anterior`
+            : collectionTrend < 0
+              ? `${collectionTrend}% vs mes anterior`
+              : "Sin cambio vs mes anterior",
+        concentration: `${topDebtConcentration}% de la deuda en top 3 clientes`,
+        silentInvoices: `${silentInvoicesCount} factura${silentInvoicesCount === 1 ? "" : "s"} sin reclamacion`,
+        oldestDebt: oldestUnpaidDays > 0 ? `${oldestUnpaidDays} dias de deuda mas antigua` : "Sin deuda antigua",
+        aging: [
+          { label: "0-30 dias", value: unpaidAgeBuckets.recent, tone: "green" },
+          { label: "31-60 dias", value: unpaidAgeBuckets.warning, tone: "amber" },
+          { label: "+60 dias", value: unpaidAgeBuckets.critical, tone: "red" },
+        ],
       }}
       collectionChart={monthlyCollectionChart.map((month) => ({
         label: month.label,

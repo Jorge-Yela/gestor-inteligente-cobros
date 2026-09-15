@@ -8,7 +8,7 @@ import { prisma } from "@/lib/db/prisma";
 import { Button } from "@/components/ui/button";
 import { AttachInvoicePdf } from "@/app/invoices/[invoiceId]/attach-invoice-pdf";
 import { deleteInvoice } from "@/server/actions/delete-invoice";
-import { markInvoiceAsPaid, unmarkInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
+import { markInvoiceAsPaid, unmarkInvoiceAsPaid, updateInvoicePaidDate } from "@/server/actions/mark-invoice-paid";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
@@ -32,6 +32,14 @@ function formatDate(date: Date | null) {
   }
 
   return dateFormatter.format(date);
+}
+
+function formatDateInputValue(date: Date | null) {
+  if (!date) {
+    return "";
+  }
+
+  return date.toISOString().slice(0, 10);
 }
 
 
@@ -254,7 +262,33 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
             </div>
           </article>
 
-          <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          {invoice.paymentStatus === PaymentStatus.PAID ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="flex size-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                  <CalendarClock className="size-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500">Fecha de cobro</p>
+                  <p className="mt-1 text-2xl font-bold">{formatDate(invoice.paidAt)}</p>
+                </div>
+              </div>
+
+              <form action={updateInvoicePaidDate} className="flex flex-col gap-2 sm:flex-row">
+                <input type="hidden" name="invoiceId" value={invoice.id} />
+                <input
+                  type="date"
+                  name="paidDate"
+                  defaultValue={formatDateInputValue(invoice.paidAt)}
+                  className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                />
+                <Button type="submit" variant="outline" className="h-10 rounded-lg border-slate-200">
+                  Cambiar fecha
+                </Button>
+              </form>
+            </div>
+          ) : (
             <div className="flex items-center gap-4">
               <div className={`flex size-11 items-center justify-center rounded-full ${delayTone.icon}`}>
                 <AlertTriangle className="size-5" />
@@ -270,7 +304,8 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                 </p>
               </div>
             </div>
-          </article>
+          )}
+        </article>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1fr_360px]">

@@ -35,6 +35,15 @@ type DashboardPortfolioHealth = {
   tone: "green" | "amber" | "red";
   label: string;
   detail: string;
+  trend: string;
+  concentration: string;
+  silentInvoices: string;
+  oldestDebt: string;
+  aging: {
+    label: string;
+    value: number;
+    tone: "green" | "amber" | "red";
+  }[];
 };
 
 type DashboardDailyTask = {
@@ -194,7 +203,7 @@ function DailyTasksCard({ tasks }: { tasks: DashboardDailyTask[] }) {
   };
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article className="min-h-[430px] rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="border-b border-slate-100 pb-4">
         <h2 className="font-semibold">Tareas del dia</h2>
         <p className="mt-1 text-sm text-slate-500">
@@ -207,7 +216,20 @@ function DailyTasksCard({ tasks }: { tasks: DashboardDailyTask[] }) {
       </div>
 
       {tasks.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-500">No hay tareas urgentes detectadas.</p>
+        <div className="mt-4 space-y-3">
+          <div className="rounded-xl border border-slate-200 p-4">
+            <p className="text-sm font-semibold">Revisar clientes con mayor deuda</p>
+            <p className="mt-1 text-sm text-slate-500">Comprueba si algun cliente concentra demasiado importe pendiente.</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 p-4">
+            <p className="text-sm font-semibold">Confirmar cobros recientes</p>
+            <p className="mt-1 text-sm text-slate-500">Marca como cobradas las facturas que ya hayas recuperado.</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 p-4">
+            <p className="text-sm font-semibold">Revisar facturas sin seguimiento</p>
+            <p className="mt-1 text-sm text-slate-500">Detecta facturas pendientes que aun no tienen reclamacion enviada.</p>
+          </div>
+        </div>
       ) : (
         <div className="mt-4 space-y-3">
           {tasks.map((task) => (
@@ -277,15 +299,27 @@ function PortfolioHealthCard({ health }: { health?: DashboardPortfolioHealth }) 
     green: {
       ring: "border-emerald-500 bg-emerald-50 text-emerald-700",
       badge: "bg-emerald-50 text-emerald-700",
+      bar: "bg-emerald-500",
+      text: "text-emerald-700",
     },
     amber: {
       ring: "border-amber-500 bg-amber-50 text-amber-700",
       badge: "bg-amber-50 text-amber-700",
+      bar: "bg-amber-500",
+      text: "text-amber-700",
     },
     red: {
       ring: "border-red-500 bg-red-50 text-red-700",
       badge: "bg-red-50 text-red-700",
+      bar: "bg-red-500",
+      text: "text-red-700",
     },
+  };
+
+  const ageTones = {
+    green: "bg-emerald-50 text-emerald-700",
+    amber: "bg-amber-50 text-amber-700",
+    red: "bg-red-50 text-red-700",
   };
 
   return (
@@ -304,11 +338,49 @@ function PortfolioHealthCard({ health }: { health?: DashboardPortfolioHealth }) 
         <div className={`flex size-24 shrink-0 items-center justify-center rounded-full border-[10px] text-2xl font-bold ${tones[tone].ring}`}>
           {score}
         </div>
-        <div className="text-sm">
+        <div className="min-w-0 text-sm">
           <p className="font-medium text-slate-700">{score}/100</p>
           <p className="mt-1 text-slate-500">{health?.detail || "Los cobros evolucionan bien."}</p>
         </div>
       </div>
+
+      <div className="mt-5">
+        <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+          <div className={`h-full rounded-full ${tones[tone].bar}`} style={{ width: `${score}%` }} />
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-2 text-sm">
+        <div className="rounded-lg bg-slate-50 px-3 py-2">
+          <p className="text-xs text-slate-500">Tendencia</p>
+          <p className={`mt-0.5 font-semibold ${tones[tone].text}`}>{health?.trend || "Sin cambios"}</p>
+        </div>
+        <div className="rounded-lg bg-slate-50 px-3 py-2">
+          <p className="text-xs text-slate-500">Concentracion de deuda</p>
+          <p className="mt-0.5 font-semibold">{health?.concentration || "Sin deuda concentrada"}</p>
+        </div>
+        <div className="rounded-lg bg-slate-50 px-3 py-2">
+          <p className="text-xs text-slate-500">Seguimiento</p>
+          <p className="mt-0.5 font-semibold">{health?.silentInvoices || "Sin facturas silenciosas"}</p>
+        </div>
+        <div className="rounded-lg bg-slate-50 px-3 py-2">
+          <p className="text-xs text-slate-500">Antiguedad</p>
+          <p className="mt-0.5 font-semibold">{health?.oldestDebt || "Sin deuda antigua"}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        {(health?.aging || []).map((item) => (
+          <div key={item.label} className={`rounded-lg px-2 py-2 text-center text-xs font-semibold ${ageTones[item.tone]}`}>
+            <p>{item.value}</p>
+            <p className="mt-0.5 font-medium">{item.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <Link href="/customer-stats" className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+        Revisar riesgos
+      </Link>
     </article>
   );
 }

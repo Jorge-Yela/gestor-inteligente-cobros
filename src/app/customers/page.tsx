@@ -51,6 +51,28 @@ export default async function CustomersPage() {
       ? Math.round((pendingAmountCents / totalAmountCents) * 100)
       : 0;
 
+    const debtTone =
+      debtProgress >= 70
+        ? {
+            border: "border-red-100",
+            side: "border-red-500",
+            text: "text-red-700",
+            bar: "bg-red-500",
+          }
+        : debtProgress >= 30
+          ? {
+              border: "border-amber-100",
+              side: "border-amber-500",
+              text: "text-amber-700",
+              bar: "bg-amber-500",
+            }
+          : {
+              border: "border-emerald-100",
+              side: "border-emerald-500",
+              text: "text-emerald-700",
+              bar: "bg-emerald-500",
+            };
+
     return {
       id: customer.id,
       name: customer.name,
@@ -63,6 +85,7 @@ export default async function CustomersPage() {
       pendingAmount: formatAmount(pendingAmountCents),
       paidAmount: formatAmount(paidAmountCents),
       debtProgress,
+      debtTone,
     };
   });
 
@@ -139,26 +162,36 @@ export default async function CustomersPage() {
                         <p className="mt-1 text-xs text-slate-500">{customer.unpaidCount} facturas pendientes</p>
                       </td>
                       <td className="px-5 py-4">
-                        <div className="flex min-w-[180px] items-center gap-3">
-                          <div className="h-2 flex-1 rounded-full bg-slate-100">
-                            <div
-                              className="h-2 rounded-full bg-amber-500"
-                              style={{ width: `${customer.debtProgress}%` }}
-                            />
+                        <div className={`min-w-[220px] overflow-hidden rounded-lg border ${customer.debtTone.border} bg-white shadow-sm`}>
+                          <div className={`flex border-l-4 ${customer.debtTone.side} px-3 py-2`}>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between gap-3">
+                                <span className={`text-xs font-semibold uppercase tracking-wide ${customer.debtTone.text}`}>
+                                  Deuda
+                                </span>
+                                <span className="text-xs font-semibold text-slate-500">
+                                  {customer.debtProgress}%
+                                </span>
+                              </div>
+                              <p className="mt-1 font-semibold text-slate-950">{customer.pendingAmount}</p>
+                              <div className="mt-2 h-1.5 rounded-full bg-slate-100">
+                                <div
+                                  className={`h-1.5 rounded-full ${customer.debtTone.bar}`}
+                                  style={{ width: `${customer.debtProgress}%` }}
+                                />
+                              </div>
+                            </div>
                           </div>
-                          <span className="w-10 text-right text-xs font-semibold text-slate-600">
-                            {customer.debtProgress}%
-                          </span>
                         </div>
                       </td>
                       <td className="px-5 py-4 font-medium">{customer.invoiceCount}</td>
                       <td className="px-5 py-4">
-                        <span className="rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                        <span className={`rounded-lg bg-amber-50 px-3 py-1.5 text-sm font-semibold ${customer.debtTone.text}`}>
                           {customer.pendingAmount}
                         </span>
                       </td>
                       <td className="px-5 py-4">
-                        <span className="rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                        <span className="rounded-lg bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700">
                           {customer.paidAmount}
                         </span>
                       </td>
