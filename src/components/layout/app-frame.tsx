@@ -37,7 +37,7 @@ function isActivePath(pathname: string, href: string) {
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  if (pathname === "/" || pathname.startsWith("/login")) {
+  if (pathname === "/" || pathname.startsWith("/login") || pathname.startsWith("/register") || pathname.startsWith("/settings/billing")) {
     return <>{children}</>;
   }
 

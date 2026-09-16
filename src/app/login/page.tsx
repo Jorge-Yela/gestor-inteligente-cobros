@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   ArrowRight,
@@ -101,7 +102,7 @@ export default async function LoginPage() {
             </div>
 
             <p className="mt-9 text-center text-sm text-slate-500">
-              ¿No tienes cuenta? <span className="font-semibold text-blue-600">Crear cuenta</span>
+              ¿No tienes cuenta? <Link href="/register" className="font-semibold text-blue-600 hover:underline">Crear cuenta</Link>
             </p>
           </div>
         </section>

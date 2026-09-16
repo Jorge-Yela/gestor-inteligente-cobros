@@ -1,5 +1,6 @@
 import { PaymentStatus } from "@/generated/prisma/enums";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { requireActiveSubscription } from "@/lib/billing/require-active-subscription";
 import { prisma } from "@/lib/db/prisma";
 
 import { AppShell } from "@/components/layout/app-shell";
@@ -15,6 +16,7 @@ function formatAmount(amountCents: number) {
 
 export default async function Home() {
   const organizationId = await getCurrentOrganizationId();
+  await requireActiveSubscription(organizationId);
 
   const organization = await prisma.organization.findFirst({
     where: {

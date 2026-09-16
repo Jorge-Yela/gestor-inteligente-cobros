@@ -82,8 +82,9 @@ enum FollowUpStepStatus {
 model User {
   id        String   @id @default(cuid())
   name      String?
-  email     String   @unique
-  image     String?
+  email        String   @unique
+  passwordHash String?
+  image        String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -97,6 +98,10 @@ model Organization {
   taxId           String?
   billingEmail    String?
   defaultCurrency String   @default("EUR")
+  stripeCustomerId             String?
+  stripeSubscriptionId         String?
+  subscriptionStatus           String?
+  subscriptionCurrentPeriodEnd DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

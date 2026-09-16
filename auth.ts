@@ -1,5 +1,8 @@
+import { compare } from "bcryptjs";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+
+import { prisma } from "@/lib/db/prisma";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
@@ -12,7 +15,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: {},
       },
       async authorize(credentials) {
-        const email = String(credentials?.email || "");
+        const email = String(credentials?.email || "").trim().toLowerCase();
         const password = String(credentials?.password || "");
 
         if (email === "demo@gestorcobros.local" && password === "demo1234") {
@@ -23,7 +26,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           };
         }
 
-        return null;
+        const user = await prisma.user.findUnique({
+          where: {
+            email,
+          },
+        });
+
+        if (!user?.passwordHash) {
+          return null;
+        }
+
+        const passwordValid = await compare(password, user.passwordHash);
+
+        if (!passwordValid) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        };
       },
     }),
   ],
