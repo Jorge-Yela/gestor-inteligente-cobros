@@ -125,7 +125,7 @@ export default async function IssuedInvoicesReportPage({
   );
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-slate-950 print:bg-white">
+    <main className="min-h-screen bg-[#f5f7fb] text-slate-950 print:min-h-0 print:bg-white">
       <style>
         {`
           @media print {
@@ -149,12 +149,15 @@ export default async function IssuedInvoicesReportPage({
             }
 
             .print-table {
+             min-width: 0 !important;
+             table-layout: fixed;
               width: 100%;
               border-collapse: collapse;
               font-size: 11px;
             }
 
             .print-table thead {
+             display: table-header-group;
               background: #e2e8f0 !important;
             }
 
@@ -167,6 +170,7 @@ export default async function IssuedInvoicesReportPage({
             }
 
             .print-table td {
+             overflow-wrap: anywhere;
               border: 1px solid #e2e8f0;
               padding: 8px;
               color: #0f172a;
@@ -177,7 +181,9 @@ export default async function IssuedInvoicesReportPage({
               font-weight: 700;
             }
 
-            .print-summary {
+            .print-table tr { break-inside: avoid; }
+
+           .print-summary {
               border: 1px solid #cbd5e1 !important;
               box-shadow: none !important;
               break-inside: avoid;
@@ -185,17 +191,17 @@ export default async function IssuedInvoicesReportPage({
           }
         `}
       </style>
-      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8 print:max-w-none print:p-0">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <Link href="/customer-stats" className="text-sm font-medium text-slate-500 hover:text-blue-600 print:hidden">
               Volver a informes
             </Link>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight">
+            <h1 className="mt-3 text-3xl font-bold tracking-normal">
               Libro registro de facturas emitidas
             </h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-              Listado de facturas emitidas con fecha, numero, NIF del cliente, base imponible, tipo de IVA y cuota repercutida.
+              Listado de facturas emitidas con fecha, número, NIF del cliente, base imponible, tipo de IVA y cuota repercutida.
             </p>
           </div>
 
@@ -260,12 +266,12 @@ export default async function IssuedInvoicesReportPage({
         </section>
 
         <section className="grid gap-4 md:grid-cols-3 print:grid-cols-3">
-          <SummaryCard label="Base imponible" value={formatAmount(totals.baseCents)} />
-          <SummaryCard label="Cuota IVA" value={formatAmount(totals.vatCents)} />
+          <SummaryCard label="Base imponible estimada" value={formatAmount(totals.baseCents)} />
+          <SummaryCard label="Cuota de IVA estimada" value={formatAmount(totals.vatCents)} />
           <SummaryCard label="Total facturado" value={formatAmount(totals.totalCents)} />
         </section>
 
-        <section className="print-report overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section className="print-report overflow-hidden print:overflow-visible rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="flex flex-col gap-2 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-semibold">Facturas emitidas</h2>
@@ -273,8 +279,8 @@ export default async function IssuedInvoicesReportPage({
                 {invoices.length} factura{invoices.length === 1 ? "" : "s"} encontrada{invoices.length === 1 ? "" : "s"}.
               </p>
             </div>
-            <div className="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700">
-              IVA aplicado por defecto: 21%
+            <div className="max-w-xl rounded-lg bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
+              Desglose estimado: se supone un IVA del 21% en todas las facturas.
             </div>
           </div>
 
@@ -283,16 +289,16 @@ export default async function IssuedInvoicesReportPage({
               No hay facturas emitidas con estos filtros.
             </p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto print:overflow-visible">
               <table className="print-table w-full min-w-[980px] text-left text-sm">
                 <thead className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500">
                   <tr>
                     <th className="px-5 py-3 font-medium">Fecha</th>
-                    <th className="px-5 py-3 font-medium">Numero de factura</th>
+                    <th className="px-5 py-3 font-medium">Número de factura</th>
                     <th className="px-5 py-3 font-medium">NIF/CIF cliente</th>
-                    <th className="px-5 py-3 font-medium text-right">Base imponible</th>
-                    <th className="px-5 py-3 font-medium text-right">Tipo IVA</th>
-                    <th className="px-5 py-3 font-medium text-right">Cuota repercutida</th>
+                    <th className="px-5 py-3 font-medium text-right">Base estimada</th>
+                    <th className="px-5 py-3 font-medium text-right">IVA supuesto</th>
+                    <th className="px-5 py-3 font-medium text-right">Cuota estimada</th>
                     <th className="px-5 py-3 font-medium text-right">Total factura</th>
                   </tr>
                 </thead>
@@ -302,17 +308,17 @@ export default async function IssuedInvoicesReportPage({
 
                     return (
                       <tr key={invoice.id} className="transition hover:bg-slate-50/80">
-                        <td className="px-5 py-4 text-slate-500">{formatDate(invoice.issueDate)}</td>
+                        <td className="whitespace-nowrap px-5 py-4 text-slate-500">{formatDate(invoice.issueDate)}</td>
                         <td className="px-5 py-4 font-semibold">
-                          <Link href={`/invoices/${invoice.id}`} className="hover:text-blue-600 hover:underline">
+                          <Link href={`/invoices/${invoice.id}`} className="block max-w-xs [overflow-wrap:anywhere] hover:text-blue-600 hover:underline print:max-w-none">
                             {invoice.invoiceNumber}
                           </Link>
                         </td>
                         <td className="px-5 py-4 text-slate-500">{invoice.customer.taxId || "Sin CIF/NIF"}</td>
-                        <td className="amount px-5 py-4 text-right font-semibold">{formatAmount(vat.baseCents)}</td>
+                        <td className="amount whitespace-nowrap px-5 py-4 text-right font-semibold tabular-nums">{formatAmount(vat.baseCents)}</td>
                         <td className="px-5 py-4 text-right text-slate-500">{vat.vatRate}</td>
-                        <td className="amount px-5 py-4 text-right font-semibold">{formatAmount(vat.vatCents)}</td>
-                        <td className="amount px-5 py-4 text-right font-semibold">{formatAmount(invoice.amountCents)}</td>
+                        <td className="amount whitespace-nowrap px-5 py-4 text-right font-semibold tabular-nums">{formatAmount(vat.vatCents)}</td>
+                        <td className="amount whitespace-nowrap px-5 py-4 text-right font-semibold tabular-nums">{formatAmount(invoice.amountCents)}</td>
                       </tr>
                     );
                   })}
@@ -330,7 +336,7 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
     <article className="print-summary rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-bold tracking-tight">{value}</p>
+      <p className="mt-2 text-2xl font-bold tracking-normal">{value}</p>
     </article>
   );
 }

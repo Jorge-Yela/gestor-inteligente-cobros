@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { PrintReportButton } from "@/app/customer-stats/financial-summary/print-report-button";
+import { PrintReportButton } from "@/app/customer-stats/issued-invoices/print-report-button";
 import { PaymentStatus } from "@/generated/prisma/enums";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
@@ -208,7 +208,7 @@ export default async function FinancialSummaryPage({
     .sort((first, second) => second.delayDays - first.delayDays);
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] text-slate-950 print:bg-white">
+    <main className="min-h-screen bg-[#f5f7fb] text-slate-950 print:min-h-0 print:bg-white">
       <style>
         {`
           @media print {
@@ -232,12 +232,15 @@ export default async function FinancialSummaryPage({
             }
 
             .print-table {
+             min-width: 0 !important;
+             table-layout: fixed;
               width: 100%;
               border-collapse: collapse;
               font-size: 11px;
             }
 
             .print-table thead {
+             display: table-header-group;
               background: #e2e8f0 !important;
             }
 
@@ -250,6 +253,7 @@ export default async function FinancialSummaryPage({
             }
 
             .print-table td {
+             overflow-wrap: anywhere;
               border: 1px solid #e2e8f0;
               padding: 8px;
               color: #0f172a;
@@ -260,7 +264,9 @@ export default async function FinancialSummaryPage({
               font-weight: 700;
             }
 
-            .print-summary {
+            .print-table tr { break-inside: avoid; }
+
+           .print-summary {
               border: 1px solid #cbd5e1 !important;
               box-shadow: none !important;
               break-inside: avoid;
@@ -268,17 +274,17 @@ export default async function FinancialSummaryPage({
           }
         `}
       </style>
-      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8 print:max-w-none print:p-0">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <Link href="/customer-stats" className="text-sm font-medium text-slate-500 hover:text-blue-600 print:hidden">
               Volver a informes
             </Link>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight">
+            <h1 className="mt-3 text-3xl font-bold tracking-normal">
               Resumen financiero
             </h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-              Consulta facturas cobradas, importes pendientes y edad de la cartera con filtros por cliente y fecha.
+              Consulta facturas cobradas, importes pendientes y edad de la cartera con filtros por cliente y fecha de emisión.
             </p>
           </div>
 
@@ -286,7 +292,7 @@ export default async function FinancialSummaryPage({
         </div>
 
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm print:hidden">
-          <form className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_1fr_1fr_auto_auto] lg:items-end">
+          <form className="grid items-end gap-4 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.2fr)_repeat(4,minmax(0,1fr))_auto_auto]">
             <div>
               <label htmlFor="customerId" className="text-sm font-medium text-slate-700">
                 Cliente
@@ -295,7 +301,7 @@ export default async function FinancialSummaryPage({
                 id="customerId"
                 name="customerId"
                 defaultValue={customerId}
-                className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                className="mt-2 h-11 min-w-0 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
               >
                 <option value="">Todos los clientes</option>
                 {customers.map((customer) => (
@@ -315,7 +321,7 @@ export default async function FinancialSummaryPage({
                 name="from"
                 type="date"
                 defaultValue={from}
-                className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                className="mt-2 h-11 min-w-0 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
               />
             </div>
 
@@ -328,14 +334,14 @@ export default async function FinancialSummaryPage({
                 name="to"
                 type="date"
                 defaultValue={to}
-                className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                className="mt-2 h-11 min-w-0 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
               />
             </div>
 
 
             <div>
               <label htmlFor="minAmount" className="text-sm font-medium text-slate-700">
-                Importe minimo
+                Importe mínimo
               </label>
               <input
                 id="minAmount"
@@ -343,13 +349,13 @@ export default async function FinancialSummaryPage({
                 inputMode="decimal"
                 defaultValue={minAmount}
                 placeholder="Ej: 1000"
-                className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                className="mt-2 h-11 min-w-0 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
               />
             </div>
 
             <div>
               <label htmlFor="maxAmount" className="text-sm font-medium text-slate-700">
-                Importe maximo
+                Importe máximo
               </label>
               <input
                 id="maxAmount"
@@ -357,7 +363,7 @@ export default async function FinancialSummaryPage({
                 inputMode="decimal"
                 defaultValue={maxAmount}
                 placeholder="Ej: 5000"
-                className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                className="mt-2 h-11 min-w-0 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
               />
             </div>
 
@@ -371,7 +377,7 @@ export default async function FinancialSummaryPage({
           </form>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-3">
+        <section className="grid gap-4 md:grid-cols-3 print:grid-cols-3">
           <SummaryCard
             href={`/customer-stats/financial-summary?status=paid`}
             label="Cobrado"
@@ -396,18 +402,18 @@ export default async function FinancialSummaryPage({
         </section>
 
         {status !== "pending" ? (
-        <section className="print-report overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section className="print-report overflow-hidden print:overflow-visible rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 px-5 py-4">
-            <h2 className="font-semibold">Facturas cobradas gracias a Norvalor</h2>
+            <h2 className="font-semibold">Facturas cobradas</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Ingresos registrados como cobrados.
+              Fecha de cobro; si no consta, se muestra la fecha de emisión.
             </p>
           </div>
 
           {paidInvoices.length === 0 ? (
             <p className="px-5 py-8 text-sm text-slate-500">No hay facturas cobradas con estos filtros.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto print:overflow-visible">
               <table className="print-table w-full min-w-[900px] text-left text-sm">
                 <thead className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500">
                   <tr>
@@ -426,7 +432,7 @@ export default async function FinancialSummaryPage({
                     <tr key={invoice.id} className="transition hover:bg-slate-50/80">
                       <td className="px-5 py-4 text-slate-500">{formatDate(invoice.paidAt || invoice.issueDate)}</td>
                       <td className="px-5 py-4 font-semibold">
-                        <Link href={`/invoices/${invoice.id}`} className="hover:text-blue-600 hover:underline">
+                        <Link href={`/invoices/${invoice.id}`} className="block max-w-xs [overflow-wrap:anywhere] hover:text-blue-600 hover:underline print:max-w-none">
                           {invoice.invoiceNumber}
                         </Link>
                       </td>
@@ -435,7 +441,7 @@ export default async function FinancialSummaryPage({
                           {invoice.customer.name}
                         </Link>
                       </td>
-                      <td className="amount px-5 py-4 text-right font-semibold text-emerald-700">
+                      <td className="amount whitespace-nowrap px-5 py-4 text-right font-semibold tabular-nums text-emerald-700">
                         {formatAmount(invoice.amountCents)}
                       </td>
                     </tr>
@@ -449,25 +455,25 @@ export default async function FinancialSummaryPage({
         ) : null}
 
         {status !== "paid" ? (
-        <section className="print-report overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section className="print-report overflow-hidden print:overflow-visible rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 px-5 py-4">
             <h2 className="font-semibold">Facturas pendientes de cobro</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Edad de la cartera ordenada por dias desde la fecha de factura.
+              Antigüedad desde la fecha de emisión, no desde el vencimiento.
             </p>
           </div>
 
           {pendingRows.length === 0 ? (
             <p className="px-5 py-8 text-sm text-slate-500">No hay facturas pendientes con estos filtros.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto print:overflow-visible">
               <table className="print-table w-full min-w-[980px] text-left text-sm">
                 <thead className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500">
                   <tr>
                     <th className="px-5 py-3 font-medium">Cliente</th>
                     <th className="px-5 py-3 font-medium">Factura</th>
-                    <th className="px-5 py-3 font-medium">Fecha factura</th>
-                    <th className="px-5 py-3 font-medium text-right">Dias</th>
+                    <th className="px-5 py-3 font-medium">Fecha de emisión</th>
+                    <th className="px-5 py-3 font-medium text-right">Antigüedad (días)</th>
                     <th className="px-5 py-3 text-right font-medium">
                       <Link href={amountOrderHref} className="inline-flex items-center justify-end text-blue-600 hover:underline">
                         {amountOrderLabel}
@@ -484,13 +490,13 @@ export default async function FinancialSummaryPage({
                         </Link>
                       </td>
                       <td className="px-5 py-4 font-semibold">
-                        <Link href={`/invoices/${invoice.id}`} className="hover:text-blue-600 hover:underline">
+                        <Link href={`/invoices/${invoice.id}`} className="block max-w-xs [overflow-wrap:anywhere] hover:text-blue-600 hover:underline print:max-w-none">
                           {invoice.invoiceNumber}
                         </Link>
                       </td>
                       <td className="px-5 py-4 text-slate-500">{formatDate(invoice.issueDate)}</td>
                       <td className="px-5 py-4 text-right font-semibold">{invoice.delayDays}</td>
-                      <td className="amount px-5 py-4 text-right font-semibold text-amber-700">
+                      <td className="amount whitespace-nowrap px-5 py-4 text-right font-semibold tabular-nums text-amber-700">
                         {formatAmount(invoice.amountCents)}
                       </td>
                     </tr>
@@ -528,12 +534,12 @@ function SummaryCard({
   return (
     <Link
       href={href}
-      className={`rounded-xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+      className={`print-summary rounded-xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
         active ? tones[tone] : "border-slate-200"
       }`}
     >
       <p className="text-sm text-slate-500">{label}</p>
-      <p className={`mt-2 text-2xl font-bold tracking-tight ${tones[tone].split(" ")[1]}`}>{value}</p>
+      <p className={`mt-2 text-2xl font-bold tracking-normal ${tones[tone].split(" ")[1]}`}>{value}</p>
     </Link>
   );
 }

@@ -6,14 +6,14 @@ import { ImportInvoicesExcel } from "@/app/invoice-files/upload/import-invoices-
 export default function UploadInvoiceFilePage() {
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
-      <div className="mx-auto max-w-6xl space-y-6 px-6 py-8">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         <div>
           <Link href="/invoices" className="text-sm font-medium text-slate-500 hover:text-blue-600">
             Facturas
           </Link>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight">Subir facturas</h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-normal">Subir facturas</h1>
           <p className="mt-2 max-w-3xl text-slate-500">
-            Importa un listado Excel con tus facturas pendientes. Podras revisar cada fila antes de registrarlas definitivamente.
+            Importa un listado Excel con tus facturas pendientes. Podrás revisar cada fila antes de registrarlas definitivamente.
           </p>
         </div>
 
@@ -21,13 +21,13 @@ export default function UploadInvoiceFilePage() {
           <StepCard
             icon={FileSpreadsheet}
             title="1. Sube el Excel"
-            description="Selecciona un listado exportado desde tu programa de facturacion."
+            description="Selecciona un listado exportado desde tu programa de facturación."
             tone="blue"
           />
           <StepCard
             icon={SearchCheck}
             title="2. Revisa los datos"
-            description="Comprueba cliente, numero de factura, fecha e importe antes de guardar."
+            description="Comprueba cliente, número de factura, fecha e importe antes de guardar."
             tone="violet"
           />
           <StepCard
@@ -48,7 +48,7 @@ export default function UploadInvoiceFilePage() {
             <div>
               <h2 className="font-semibold">Campos necesarios</h2>
               <p className="mt-1 text-sm leading-6 text-slate-500">
-                El Excel debe incluir cliente, numero de factura, fecha de factura e importe. El CIF, email, telefono, direccion, vencimiento y moneda pueden venir vacios.
+                El Excel debe incluir cliente, número de factura, fecha de factura e importe. El CIF, correo electrónico, teléfono, dirección, vencimiento y moneda pueden venir vacíos.
               </p>
             </div>
           </div>

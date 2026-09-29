@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { PaymentStatus } from "@/generated/prisma/enums";
-import { Button } from "@/components/ui/button";
+import { PrintReportButton } from "@/app/customer-stats/issued-invoices/print-report-button";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
@@ -52,61 +52,63 @@ export default async function CustomerRankingReportPage() {
     .sort((first, second) => second.invoicedCents - first.invoicedCents);
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] p-8 text-slate-950 print:bg-white">
+    <main className="min-h-screen bg-[#f5f7fb] text-slate-950 print:min-h-0 print:bg-white">
       <style>
         {`
           @media print {
             @page { size: A4 landscape; margin: 12mm; }
             .print-hidden { display: none !important; }
-            .print-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+            .print-table { width: 100%; min-width: 0 !important; border-collapse: collapse; font-size: 11px; }
             .print-table th { border: 1px solid #cbd5e1; background: #e2e8f0; padding: 8px; text-align: left; }
-            .print-table td { border: 1px solid #e2e8f0; padding: 8px; }
+            .print-table thead { display: table-header-group; }
+           .print-table tr { break-inside: avoid; }
+           .print-table td { border: 1px solid #e2e8f0; padding: 8px; }
             .amount { text-align: right; font-weight: 700; }
           }
         `}
       </style>
 
-      <div className="mx-auto max-w-6xl space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm print:border-0 print:shadow-none">
-        <div className="flex items-start justify-between gap-4">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8 print:max-w-none print:p-0">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <Link href="/customer-stats/customer-analysis" className="print-hidden text-sm text-slate-500 hover:text-blue-600">
-              Volver al analisis
+              Volver al análisis
             </Link>
-            <h1 className="mt-3 text-2xl font-bold">Ranking de clientes por volumen de facturacion</h1>
+            <h1 className="mt-3 text-3xl font-bold tracking-normal">Ranking por facturación</h1>
             <p className="mt-1 text-sm text-slate-500">
               Clientes ordenados por volumen total facturado.
             </p>
           </div>
 
-          <Button type="button" onClick={() => window.print()} className="print-hidden bg-blue-600 hover:bg-blue-700">
-            Imprimir / Guardar PDF
-          </Button>
+          <PrintReportButton />
         </div>
 
-        <table className="print-table w-full text-left text-sm">
-          <thead>
+        <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white print:overflow-visible print:border-0">
+       <table className="print-table w-full min-w-[800px] text-left text-sm print:min-w-0">
+          <thead className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500">
             <tr>
-              <th>Posicion</th>
-              <th>Cliente</th>
-              <th>Facturas</th>
-              <th className="amount">Facturado</th>
-              <th className="amount">Cobrado</th>
-              <th className="amount">% sobre total</th>
+              <th scope="col" className="px-5 py-3 font-medium">Posición</th>
+              <th scope="col" className="px-5 py-3 font-medium">Cliente</th>
+              <th scope="col" className="px-5 py-3 font-medium">Facturas</th>
+              <th scope="col" className="amount px-5 py-3 text-right font-medium">Facturado</th>
+              <th scope="col" className="amount px-5 py-3 text-right font-medium">Cobrado</th>
+              <th scope="col" className="amount px-5 py-3 text-right font-medium">% sobre total</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {rows.map((customer, index) => (
-              <tr key={customer.id}>
-                <td>{index + 1}</td>
-                <td>{customer.name}</td>
-                <td>{customer.invoiceCount}</td>
-                <td className="amount">{formatAmount(customer.invoicedCents)}</td>
-                <td className="amount">{formatAmount(customer.paidCents)}</td>
-                <td className="amount">{customer.percentage}%</td>
+              <tr key={customer.id} className="transition hover:bg-slate-50">
+                <td className="px-5 py-4 [overflow-wrap:anywhere]">{index + 1}</td>
+                <td className="px-5 py-4 [overflow-wrap:anywhere]">{customer.name}</td>
+                <td className="px-5 py-4 [overflow-wrap:anywhere]">{customer.invoiceCount}</td>
+                <td className="amount whitespace-nowrap px-5 py-4 text-right font-semibold tabular-nums">{formatAmount(customer.invoicedCents)}</td>
+                <td className="amount whitespace-nowrap px-5 py-4 text-right font-semibold tabular-nums">{formatAmount(customer.paidCents)}</td>
+                <td className="amount whitespace-nowrap px-5 py-4 text-right font-semibold tabular-nums">{customer.percentage}%</td>
               </tr>
             ))}
           </tbody>
         </table>
+       </div>
       </div>
     </main>
   );

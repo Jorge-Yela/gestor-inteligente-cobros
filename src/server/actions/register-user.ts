@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 
 import { OrganizationRole } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
+import { getDefaultTemplates } from "@/lib/default-templates";
 
 export async function registerUser(formData: FormData) {
   const name = String(formData.get("name") || "").trim();
@@ -49,7 +50,11 @@ export async function registerUser(formData: FormData) {
       },
     });
 
-    await tx.organizationMember.create({
+    await tx.template.createMany({
+    data: getDefaultTemplates(organization.id),
+  });
+
+  await tx.organizationMember.create({
       data: {
         userId: user.id,
         organizationId: organization.id,

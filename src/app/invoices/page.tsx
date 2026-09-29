@@ -185,7 +185,12 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight">Facturas</h1>
+
+          <Link href="/" className="text-sm font-medium text-slate-500 hover:text-blue-600">
+            Inicio
+          </Link>
+          <h1 className="mt-3 text-3xl font-bold tracking-normal">Facturas</h1>
+
             <p className="mt-2 text-slate-500">
               Controla facturas cargadas, importes pendientes y acciones de cobro.
             </p>
@@ -205,7 +210,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
           <SummaryCard
             href={baseFilterHref("all")}
             active={filter === "all"}
-            label="Total facturas"
+            label="Total de facturas"
             value={String(invoices.length)}
             detail="En la plataforma"
             tone="blue"
@@ -235,9 +240,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
           <div className="flex flex-col gap-2 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-semibold">Listado de facturas</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Pulsa en Cliente, Fecha de emision o Importe para filtrar.
-              </p>
+
             </div>
 
             {(customer || issueDate || amount || amountOrder !== "none") ? (
@@ -249,10 +252,94 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
             ) : null}
           </div>
 
-          {filteredInvoices.length === 0 ? (
-            <p className="px-5 py-8 text-sm text-slate-500">
-              No hay facturas para este filtro.
+
+        {["customer", "issueDate", "amount"].includes(column) ? (
+          <div aria-label="Filtros de facturas" className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+            <p className="mb-3 text-sm font-medium">
+              {column === "customer" ? "Filtrar por cliente" : column === "issueDate" ? "Filtrar por fecha de emisión" : "Filtrar y ordenar por importe"}
             </p>
+            {column === "customer" ? (
+                        <form action="/invoices" method="get" className="flex flex-wrap items-end gap-3">
+                          <input type="hidden" name="filter" value={filter} />
+                          <input type="hidden" name="column" value="customer" />
+                          <input type="hidden" name="issueDate" value={issueDate} />
+                          <input type="hidden" name="amount" value={amount} />
+                          <input type="hidden" name="amountOrder" value={amountOrder} />
+                          <input
+                            aria-label="Buscar cliente" name="customer"
+                            defaultValue={customer}
+                            placeholder="Buscar cliente"
+                            className="h-10 w-full sm:w-56 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-400"
+                          />
+                          <button className="rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium">
+                            Buscar
+                          </button>
+                        </form>
+                      ) : null}
+{column === "issueDate" ? (
+                        <form action="/invoices" method="get" className="flex flex-wrap items-end gap-3">
+                          <input type="hidden" name="filter" value={filter} />
+                          <input type="hidden" name="column" value="issueDate" />
+                          <input type="hidden" name="customer" value={customer} />
+                          <input type="hidden" name="amount" value={amount} />
+                          <input type="hidden" name="amountOrder" value={amountOrder} />
+                          <input
+                            type="date" aria-label="Fecha de emisión"
+                            name="issueDate"
+                            defaultValue={issueDate}
+                            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-400"
+                          />
+                          <button className="rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium">
+                            Buscar
+                          </button>
+                        </form>
+                      ) : null}
+{column === "amount" ? (
+                        <form action="/invoices" method="get" className="flex flex-wrap items-end gap-3">
+                          <input type="hidden" name="filter" value={filter} />
+                          <input type="hidden" name="column" value="amount" />
+                          <input type="hidden" name="customer" value={customer} />
+                          <input type="hidden" name="issueDate" value={issueDate} />
+                          <input
+                            aria-label="Importe mínimo" name="amount"
+                            defaultValue={amount}
+                            placeholder="Importe mínimo"
+                            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-400"
+                          />
+                          <select
+                            aria-label="Orden por importe" name="amountOrder"
+                            defaultValue={amountOrder}
+                            className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-400"
+                          >
+                            <option value="none">Orden normal</option>
+                            <option value="desc">Mayor importe</option>
+                            <option value="asc">Menor importe</option>
+                          </select>
+                          <button className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium">
+                            Aplicar
+                          </button>
+                        </form>
+                      ) : null}
+          </div>
+        ) : null}
+
+{filteredInvoices.length === 0 ? (
+
+          <div className="px-5 py-10 text-center">
+            <FileText className="mx-auto size-8 text-blue-600" aria-hidden="true" />
+            <h3 className="mt-3 font-semibold text-slate-900">
+              {invoices.length === 0
+                ? "Todavía no hay facturas registradas"
+                : "No hay facturas que coincidan con los filtros"}
+            </h3>
+            <Button asChild className="mt-5 bg-blue-600 hover:bg-blue-700">
+              <Link href={invoices.length === 0 ? "/invoice-files/upload" : "/invoices"}>
+                {invoices.length === 0 ? <Upload className="size-4" aria-hidden="true" /> : null}
+                {invoices.length === 0 ? "Subir primera factura" : "Ver todas las facturas"}
+              </Link>
+            </Button>
+          </div>
+
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[980px] text-left text-sm">
@@ -263,81 +350,22 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
                       <ColumnLink href={buildInvoicesHref({ filter, column: "customer", customer, issueDate, amount, amountOrder })} active={column === "customer"}>
                         Cliente
                       </ColumnLink>
-                      {column === "customer" ? (
-                        <form className="mt-3 flex gap-2">
-                          <input type="hidden" name="filter" value={filter} />
-                          <input type="hidden" name="column" value="customer" />
-                          <input type="hidden" name="issueDate" value={issueDate} />
-                          <input type="hidden" name="amount" value={amount} />
-                          <input type="hidden" name="amountOrder" value={amountOrder} />
-                          <input
-                            name="customer"
-                            defaultValue={customer}
-                            placeholder="Buscar cliente"
-                            className="h-9 w-44 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-400"
-                          />
-                          <button className="rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium">
-                            Buscar
-                          </button>
-                        </form>
-                      ) : null}
+
                     </th>
                     <th className="px-5 py-3 font-medium">
                       <ColumnLink href={buildInvoicesHref({ filter, column: "issueDate", customer, issueDate, amount, amountOrder })} active={column === "issueDate"}>
-                        Fecha de emision
+                        Fecha de emisión
                       </ColumnLink>
-                      {column === "issueDate" ? (
-                        <form className="mt-3 flex gap-2">
-                          <input type="hidden" name="filter" value={filter} />
-                          <input type="hidden" name="column" value="issueDate" />
-                          <input type="hidden" name="customer" value={customer} />
-                          <input type="hidden" name="amount" value={amount} />
-                          <input type="hidden" name="amountOrder" value={amountOrder} />
-                          <input
-                            type="date"
-                            name="issueDate"
-                            defaultValue={issueDate}
-                            className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-400"
-                          />
-                          <button className="rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium">
-                            Buscar
-                          </button>
-                        </form>
-                      ) : null}
+
                     </th>
-                    <th className="px-5 py-3 font-medium">
+                    <th className="px-5 py-3 text-right font-medium">
                       <ColumnLink href={buildInvoicesHref({ filter, column: "amount", customer, issueDate, amount, amountOrder })} active={column === "amount"}>
                         Importe
                       </ColumnLink>
-                      {column === "amount" ? (
-                        <form className="mt-3 grid w-56 gap-2">
-                          <input type="hidden" name="filter" value={filter} />
-                          <input type="hidden" name="column" value="amount" />
-                          <input type="hidden" name="customer" value={customer} />
-                          <input type="hidden" name="issueDate" value={issueDate} />
-                          <input
-                            name="amount"
-                            defaultValue={amount}
-                            placeholder="Importe minimo"
-                            className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-400"
-                          />
-                          <select
-                            name="amountOrder"
-                            defaultValue={amountOrder}
-                            className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-400"
-                          >
-                            <option value="none">Orden normal</option>
-                            <option value="desc">Mayor importe</option>
-                            <option value="asc">Menor importe</option>
-                          </select>
-                          <button className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium">
-                            Aplicar
-                          </button>
-                        </form>
-                      ) : null}
+
                     </th>
-                    <th className="px-5 py-3 font-medium">Marcar como cobrada</th>
-                    <th className="px-5 py-3 font-medium">Accion</th>
+                    <th className="px-5 py-3 font-medium">Gestionar cobro</th>
+                    <th className="px-5 py-3 font-medium">Acción</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -352,8 +380,8 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
                           {invoice.customer.name}
                         </Link>
                       </td>
-                      <td className="px-5 py-4 text-slate-500">{formatDate(invoice.issueDate)}</td>
-                      <td className="px-5 py-4 font-semibold">{formatAmount(invoice.amountCents)}</td>
+                      <td className="whitespace-nowrap px-5 py-4 text-slate-500">{formatDate(invoice.issueDate)}</td>
+                      <td className="whitespace-nowrap px-5 py-4 text-right font-semibold tabular-nums">{formatAmount(invoice.amountCents)}</td>
                       <td className="px-5 py-4">
                         <form action={invoice.paymentStatus === PaymentStatus.PAID ? unmarkInvoiceAsPaid : markInvoiceAsPaid}>
                           <input type="hidden" name="invoiceId" value={invoice.id} />
@@ -364,7 +392,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
                             size="sm"
                             className="rounded-lg border-slate-200"
                           >
-                            {invoice.paymentStatus === PaymentStatus.PAID ? "Cobrada" : "Marcar como cobrada"}
+                            {invoice.paymentStatus === PaymentStatus.PAID ? "Marcar como pendiente" : "Marcar como cobrada"}
                           </Button>
                         </form>
                       </td>

@@ -211,7 +211,7 @@ export default async function Home() {
     portfolioHealthScore >= 80 ? "Cartera sana" : portfolioHealthScore >= 50 ? "Atencion recomendada" : "Riesgo alto";
   const portfolioHealthDetail =
     portfolioHealthScore >= 80
-      ? "Los cobros evolucionan bien y el riesgo esta controlado."
+      ? "Los cobros evolucionan bien y el riesgo está controlado."
       : portfolioHealthScore >= 50
         ? "Hay deuda pendiente que conviene seguir de cerca."
         : "Hay facturas antiguas o clientes concentrando demasiado riesgo.";
@@ -280,10 +280,10 @@ export default async function Home() {
 
       if (daysOpen >= 60) {
         priority += 45;
-        reasons.push("mas de 60 dias abierta");
+        reasons.push("más de 60 días abierta");
       } else if (daysOpen >= 30) {
         priority += 25;
-        reasons.push("mas de 30 dias abierta");
+        reasons.push("más de 30 días abierta");
       } else if (daysOpen >= 15) {
         priority += 10;
         reasons.push("seguimiento preventivo");
@@ -291,10 +291,10 @@ export default async function Home() {
 
       if (claimCount === 0) {
         priority += 20;
-        reasons.push("sin reclamacion enviada");
+        reasons.push("sin reclamación enviada");
       } else if (daysSinceLastClaim !== null && daysSinceLastClaim >= 14) {
         priority += 15;
-        reasons.push("reclamacion sin respuesta reciente");
+        reasons.push("reclamación sin respuesta reciente");
       }
 
       const customerPendingCount = unpaidInvoices.filter(
@@ -312,7 +312,7 @@ export default async function Home() {
 
       const action =
         priority >= 80
-          ? "Enviar reclamacion"
+          ? "Enviar reclamación"
           : claimCount === 0
             ? "Enviar recordatorio"
             : "Revisar seguimiento";
@@ -322,7 +322,7 @@ export default async function Home() {
       return {
         id: invoice.id,
         title: `${invoice.customer.name} · Factura ${invoice.invoiceNumber}`,
-        detail: `${formatAmount(invoice.amountCents)} pendiente · ${daysOpen} dias abierta · ${reasons.slice(0, 3).join(", ")}`,
+        detail: `${formatAmount(invoice.amountCents)} pendiente · ${daysOpen} días abierta · ${reasons.slice(0, 3).join(", ")}`,
         action,
         href: `/invoices/${invoice.id}`,
         priority,
@@ -348,7 +348,8 @@ export default async function Home() {
       topDebtors={topDebtors}
       dailyTasks={dailyTasks}
       portfolioHealth={{
-        score: portfolioHealthScore,
+          hasData: invoices.length > 0,
+score: portfolioHealthScore,
         tone: portfolioHealthTone,
         label: portfolioHealthLabel,
         detail: portfolioHealthDetail,
@@ -361,21 +362,21 @@ export default async function Home() {
         trendDetail: `Este mes se han cobrado ${formatAmount(paidThisMonthAmountCents)} y quedan ${formatAmount(pendingAmountCents)} pendientes. La tendencia compara el cobro reciente con el mes anterior.`,
         concentrationLabel: `${topDebtConcentration}% en top 3 clientes`,
         concentrationDetail: `Los 3 clientes con mayor deuda concentran el ${topDebtConcentration}% del total pendiente. Si este dato es alto, la cartera depende demasiado de pocos clientes.`,
-        followUpLabel: `${silentInvoicesCount} sin reclamacion`,
+        followUpLabel: `${silentInvoicesCount} sin reclamación`,
         followUpDetail: silentInvoicesCount > 0
-          ? `${silentInvoicesCount} factura${silentInvoicesCount === 1 ? "" : "s"} pendiente${silentInvoicesCount === 1 ? "" : "s"} no tienen reclamacion reciente. Son candidatas para revisar o reclamar.`
+          ? `${silentInvoicesCount} factura${silentInvoicesCount === 1 ? "" : "s"} pendiente${silentInvoicesCount === 1 ? "" : "s"} no tienen reclamación reciente. Son candidatas para revisar o reclamar.`
           : "Todas las facturas pendientes tienen seguimiento reciente.",
-        ageLabel: `${oldestUnpaidDays} dias max.`,
+        ageLabel: `${oldestUnpaidDays} días máx.`,
         ageDetail: oldestUnpaidDays > 0
-          ? `La deuda pendiente mas antigua lleva ${oldestUnpaidDays} dias abierta. Reparto actual: ${unpaidAgeBuckets.recent} facturas entre 0-30 dias, ${unpaidAgeBuckets.warning} entre 31-60 dias y ${unpaidAgeBuckets.critical} con mas de 60 dias.`
+          ? `La deuda pendiente más antigua lleva ${oldestUnpaidDays} días abierta. Reparto actual: ${unpaidAgeBuckets.recent} facturas entre 0-30 días, ${unpaidAgeBuckets.warning} entre 31-60 días y ${unpaidAgeBuckets.critical} con más de 60 días.`
           : "No hay deuda antigua pendiente.",
       }}
       collectionChart={monthlyCollectionChart.map((month) => ({
         label: month.label,
         collectedAmount: month.collectedAmount,
         pendingAmount: month.pendingAmount,
-        collectedHeight: Math.max(6, Math.round((month.collectedCents / maxMonthlyCollectionCents) * 100)),
-        pendingHeight: Math.max(6, Math.round((month.pendingCents / maxMonthlyCollectionCents) * 100)),
+        collectedHeight: (month.collectedCents / maxMonthlyCollectionCents) * 100,
+        pendingHeight: (month.pendingCents / maxMonthlyCollectionCents) * 100,
       }))}
     />
   );

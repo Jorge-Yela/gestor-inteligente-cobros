@@ -37,7 +37,7 @@ function getErrorMessage(error?: string) {
   const messages: Record<string, string> = {
     "invalid-form": "Revisa los datos del formulario.",
     "customer-not-found": "El cliente seleccionado no existe.",
-    "duplicate-invoice": "Ya existe una factura con ese numero.",
+    "duplicate-invoice": "Ya existe una factura con ese número.",
   };
 
   return error ? messages[error] : null;
@@ -75,24 +75,24 @@ export default async function EditInvoicePage({ params, searchParams }: EditInvo
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
-      <div className="mx-auto max-w-3xl px-6 py-8">
+      <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="mb-8">
           <Link href={`/invoices/${invoice.id}`} className="text-sm font-medium text-slate-500 hover:text-blue-600">
             Volver a la factura
           </Link>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight">Editar factura</h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-normal">Editar factura</h1>
           <p className="mt-2 text-slate-500">
-            Corrige los datos principales si la lectura del PDF o el registro manual contiene algun error.
+            Corrige los datos principales si la lectura del PDF o el registro manual contiene algún error.
           </p>
         </div>
 
         {errorMessage ? (
-          <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mb-5 max-w-4xl rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {errorMessage}
           </div>
         ) : null}
 
-        <form action={updateInvoice} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form action={updateInvoice} className="max-w-4xl rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
           <input type="hidden" name="invoiceId" value={invoice.id} />
 
           <div className="grid gap-5">
@@ -117,7 +117,7 @@ export default async function EditInvoicePage({ params, searchParams }: EditInvo
 
             <div>
               <label className="text-sm font-medium text-slate-700" htmlFor="invoiceNumber">
-                Numero de factura
+                Número de factura
               </label>
               <input
                 id="invoiceNumber"
@@ -145,7 +145,7 @@ export default async function EditInvoicePage({ params, searchParams }: EditInvo
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
                 <label className="text-sm font-medium text-slate-700" htmlFor="issueDate">
-                  Fecha de emision
+                  Fecha de emisión
                 </label>
                 <input
                   id="issueDate"
@@ -184,11 +184,11 @@ export default async function EditInvoicePage({ params, searchParams }: EditInvo
             </div>
           </div>
 
-          <div className="mt-6 flex justify-end gap-2 border-t border-slate-100 pt-5">
-            <Button asChild variant="outline" className="rounded-lg border-slate-200">
+          <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-slate-100 pt-5">
+            <Button asChild variant="outline" className="min-h-11 rounded-lg border-slate-200 px-5">
               <Link href={`/invoices/${invoice.id}`}>Cancelar</Link>
             </Button>
-            <Button type="submit" className="rounded-lg bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" className="min-h-11 rounded-lg bg-blue-600 px-5 text-white hover:bg-blue-700">
               Guardar cambios
             </Button>
           </div>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { PrintReportButton } from "@/app/customer-stats/issued-invoices/print-report-button";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
@@ -67,25 +67,23 @@ export default async function CustomerDelayReportPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <Link href="/customer-stats/customer-analysis" className="print-hidden text-sm text-slate-500 hover:text-blue-600">
-              Volver al analisis
+              Volver al análisis
             </Link>
-            <h1 className="mt-3 text-2xl font-bold">Tasa de retraso por cliente</h1>
+            <h1 className="mt-3 text-2xl font-bold">Días medios desde emisión por cliente</h1>
             <p className="mt-1 text-sm text-slate-500">
-              Promedio de dias desde emision hasta cobro o hasta hoy si sigue pendiente.
+              Promedio desde la fecha de emisión hasta la fecha de cobro o, si no consta, hasta hoy. Solo incluye facturas con fecha de emisión.
             </p>
           </div>
 
-          <Button type="button" onClick={() => window.print()} className="print-hidden bg-blue-600 hover:bg-blue-700">
-            Imprimir / Guardar PDF
-          </Button>
+          <PrintReportButton />
         </div>
 
         <table className="print-table w-full text-left text-sm">
           <thead>
             <tr>
               <th>Cliente</th>
-              <th>Facturas</th>
-              <th className="amount">Retraso medio</th>
+              <th>Facturas del cliente</th>
+              <th className="amount">Días medios desde emisión</th>
             </tr>
           </thead>
           <tbody>
@@ -94,7 +92,7 @@ export default async function CustomerDelayReportPage() {
                 <td>{customer.name}</td>
                 <td>{customer.invoiceCount}</td>
                 <td className="amount">
-                  {customer.averageDelay === null ? "Sin datos" : `${customer.averageDelay} dias`}
+                  {customer.averageDelay === null ? "Sin datos" : `${customer.averageDelay} días`}
                 </td>
               </tr>
             ))}

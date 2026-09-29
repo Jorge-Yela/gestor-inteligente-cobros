@@ -83,8 +83,8 @@ export default async function CustomerAnalysisPage() {
     topCustomerPercentage >= 45
       ? "Dependencia alta"
       : topCustomerPercentage >= 25
-        ? "Concentracion moderada"
-        : "Ingresos diversificados";
+        ? "Concentración moderada"
+        : "Facturación diversificada";
 
   const paidInvoicesWithDates = allInvoices.filter(
     (invoice) => invoice.paymentStatus === PaymentStatus.PAID && invoice.issueDate && invoice.paidAt,
@@ -116,14 +116,14 @@ export default async function CustomerAnalysisPage() {
     .map((customer) => {
       const delays = customer.invoices
         .map((invoice) => {
-          if (!invoice.dueDate) {
+          if (!invoice.issueDate) {
             return null;
           }
 
           const endDate = invoice.paidAt || today;
 
           return Math.max(
-            Math.floor((endDate.getTime() - invoice.dueDate.getTime()) / (1000 * 60 * 60 * 24)),
+            Math.floor((endDate.getTime() - invoice.issueDate.getTime()) / (1000 * 60 * 60 * 24)),
             0,
           );
         })
@@ -207,11 +207,11 @@ export default async function CustomerAnalysisPage() {
             <Link href="/customer-stats" className="text-sm font-medium text-slate-500 hover:text-blue-600 print:hidden">
               Volver a informes
             </Link>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight">
-              Analisis de clientes y rentabilidad
+            <h1 className="mt-3 text-3xl font-bold tracking-normal">
+              Análisis de clientes y cobros
             </h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-              Vision comercial y financiera de clientes, concentracion de ingresos, rentabilidad y comportamiento de pago.
+              Facturación por cliente, concentración de facturación y plazos de cobro.
             </p>
           </div>
 
@@ -219,29 +219,29 @@ export default async function CustomerAnalysisPage() {
 
         <section className="print-hidden grid gap-4 lg:grid-cols-3">
           <MetricCard
-            label="Periodo medio de cobro"
-            value={`${averageCollectionDays} dias`}
-            detail="Promedio desde emision hasta cobro"
+            label="Período medio de cobro"
+            value={`${averageCollectionDays} días`}
+            detail="Promedio desde emisión hasta cobro"
             tone="blue"
             icon={Clock}
           />
           <MetricCard
-            label="Ratio de morosidad"
+            label="Facturas con incidencias o reclamaciones"
             value={formatPercentage(delinquencyRatio)}
-            detail="Facturas vencidas, disputadas o reclamadas"
+            detail="Vencidas, en disputa o con borradores de reclamación"
             tone="amber"
             icon={Percent}
           />
           <MetricCard
-            label="Concentracion de ingresos"
+            label="Concentración de facturación"
             value={formatPercentage(topCustomerPercentage)}
-            detail={topCustomer ? `${topCustomer.name} concentra mas facturacion` : "Sin facturacion registrada"}
+            detail={topCustomer ? `${topCustomer.name} concentra más facturación` : "Sin facturación registrada"}
             tone={topCustomerPercentage >= 45 ? "red" : "emerald"}
             icon={TrendingUp}
           />
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] print:block">
+        <section className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] print:block">
           <article className="print-report rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-100 px-5 py-4">
               <div className="flex items-center gap-3">
@@ -249,28 +249,28 @@ export default async function CustomerAnalysisPage() {
                   <BarChart3 className="size-5" />
                 </div>
                 <div>
-                  <div className="flex items-center justify-between gap-3">
-                    <h2 className="font-semibold">Ranking de clientes por volumen de facturacion</h2>
-                    <Link href="/customer-stats/customer-analysis/ranking-report" className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="font-semibold">Ranking por facturación</h2>
+                    <Link href="/customer-stats/customer-analysis/ranking-report" className="inline-flex min-h-11 shrink-0 items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 print:hidden">
                       Imprimir / Guardar PDF
                     </Link>
                   </div>
                   <p className="mt-1 text-sm text-slate-500">
-                    Identifica tus clientes VIP y los que generan mayor parte de tus ingresos.
+                    Los ocho clientes con mayor importe facturado.
                   </p>
                 </div>
               </div>
             </div>
 
             {customerRanking.length === 0 ? (
-              <p className="px-5 py-8 text-sm text-slate-500">Todavia no hay facturacion registrada.</p>
+              <p className="px-5 py-8 text-sm text-slate-500">Todavía no hay facturación registrada.</p>
             ) : (
               <div className="divide-y divide-slate-100">
                 {customerRanking.slice(0, 8).map((customer, index) => (
                   <Link
                     key={customer.id}
                     href={`/customers/${customer.id}`}
-                    className="grid gap-3 px-5 py-4 transition hover:bg-slate-50 md:grid-cols-[40px_1fr_140px_80px]"
+                    className="grid items-start gap-3 px-5 py-4 transition hover:bg-slate-50 sm:grid-cols-[24px_minmax(0,1fr)_auto_auto]"
                   >
                     <span className="font-semibold text-slate-400">{index + 1}</span>
                     <div>
@@ -282,7 +282,7 @@ export default async function CustomerAnalysisPage() {
                         />
                       </div>
                     </div>
-                    <span className="font-semibold">{customer.invoicedAmount}</span>
+                    <span className="whitespace-nowrap text-right font-semibold tabular-nums">{customer.invoicedAmount}</span>
                     <span className="text-sm font-semibold text-blue-700">{customer.percentage}%</span>
                   </Link>
                 ))}
@@ -296,7 +296,7 @@ export default async function CustomerAnalysisPage() {
                 <Users className="size-5" />
               </div>
               <div>
-                <h2 className="font-semibold">Concentracion de ingresos</h2>
+                <h2 className="font-semibold">Concentración de facturación</h2>
                 <p className="mt-1 text-sm text-slate-500">{concentrationLabel}</p>
               </div>
             </div>
@@ -315,17 +315,17 @@ export default async function CustomerAnalysisPage() {
               <p className="mt-3 text-sm leading-6 text-slate-500">
                 {topCustomer
                   ? `${topCustomer.name} representa ${topCustomerPercentage}% del volumen facturado.`
-                  : "Cuando haya facturas, aqui veras si dependes demasiado de pocos clientes."}
+                  : "Sin facturación registrada."}
               </p>
             </div>
 
-            <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="mt-6 border-t border-slate-100 pt-5">
               <div className="flex items-center gap-3">
                 <CreditCard className="size-5 text-slate-400" />
-                <h3 className="font-semibold">Metodos de pago</h3>
+                <h3 className="font-semibold">Métodos de pago</h3>
               </div>
               <p className="mt-2 text-sm leading-6 text-slate-500">
-                Todavia no hay metodos de pago registrados en las facturas. Cuando se añada ese campo, aqui se mostrara el reparto entre transferencia, tarjeta o domiciliacion.
+                Datos de métodos de pago no disponibles.
               </p>
             </div>
           </article>
@@ -333,25 +333,25 @@ export default async function CustomerAnalysisPage() {
 
         <section className="print-report rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 px-5 py-4">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="flex size-10 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
                   <Clock className="size-5" />
                 </div>
-                <h2 className="font-semibold">Tasa de retraso por cliente</h2>
+                <h2 className="font-semibold">Días medios desde emisión por cliente</h2>
               </div>
-              <Link href="/customer-stats/customer-analysis/delay-report" className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+              <Link href="/customer-stats/customer-analysis/delay-report" className="inline-flex min-h-11 shrink-0 items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 print:hidden">
                 Imprimir / Guardar PDF
               </Link>
             </div>
             <p className="mt-1 text-sm text-slate-500">
-              Estadisticas individuales sobre cuantos dias tarde paga cada cliente frente a la fecha acordada.
+              Promedio desde la fecha de emisión hasta la fecha de cobro o, si no consta, hasta hoy. Solo incluye facturas con fecha de emisión.
             </p>
           </div>
 
           {delayByCustomer.length === 0 ? (
             <p className="px-5 py-8 text-sm text-slate-500">
-              No hay datos suficientes de vencimiento y cobro para calcular retrasos por cliente.
+              No hay facturas con datos suficientes para mostrar el promedio por cliente.
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -359,8 +359,8 @@ export default async function CustomerAnalysisPage() {
                 <thead className="border-b border-slate-100 bg-slate-50 text-xs text-slate-500">
                   <tr>
                     <th className="px-5 py-3 font-medium">Cliente</th>
-                    <th className="px-5 py-3 font-medium">Facturas</th>
-                    <th className="px-5 py-3 font-medium text-right">Retraso medio</th>
+                    <th className="px-5 py-3 font-medium">Facturas del cliente</th>
+                    <th className="px-5 py-3 font-medium text-right">Días medios desde emisión</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -373,7 +373,7 @@ export default async function CustomerAnalysisPage() {
                       </td>
                       <td className="px-5 py-4 text-slate-500">{customer.invoiceCount}</td>
                       <td className="px-5 py-4 text-right font-semibold">
-                        {customer.averageDelay === null ? "Sin datos" : `${customer.averageDelay} dias`}
+                        {customer.averageDelay === null ? "Sin datos" : `${customer.averageDelay} días`}
                       </td>
                     </tr>
                   ))}
@@ -415,7 +415,7 @@ function MetricCard({
         </div>
         <div>
           <p className="text-sm text-slate-500">{label}</p>
-          <p className="mt-1 text-2xl font-bold tracking-tight">{value}</p>
+          <p className="mt-1 text-2xl font-bold tracking-normal">{value}</p>
           <p className="mt-1 text-sm text-slate-500">{detail}</p>
         </div>
       </div>

@@ -38,30 +38,30 @@ export default async function NewCustomerPage({ searchParams }: NewCustomerPageP
   const extractedData = getExtractedData(invoiceFile?.extractedData);
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-3xl px-6 py-8">
+    <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
+      <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="mb-8">
           <Link
             href={invoiceFile ? `/invoice-files/import-review?fileIds=${invoiceFile.id}` : "/customers"}
-            className="text-sm text-muted-foreground hover:text-foreground"
+            className="text-sm font-medium text-slate-500 hover:text-blue-600"
           >
             {invoiceFile ? "Volver a la factura interpretada" : "Volver a clientes"}
           </Link>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight">Nuevo cliente</h1>
-          <p className="mt-2 text-muted-foreground">
+          <h1 className="mt-3 text-3xl font-bold tracking-normal">Nuevo cliente</h1>
+          <p className="mt-2 text-slate-500">
             {invoiceFile
               ? "Completa los datos del cliente detectado para asociarlo a la factura."
-              : "Crea un cliente para asociarlo despues a facturas en seguimiento."}
+              : "Crea un cliente para asociarlo después a facturas en seguimiento."}
           </p>
         </div>
 
-        <form action={createCustomer} className="rounded-lg border bg-card p-5 shadow-sm">
+        <form action={createCustomer} className="max-w-4xl rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
           {invoiceFile ? <input type="hidden" name="invoiceFileId" value={invoiceFile.id} /> : null}
 
           <div className="grid gap-5">
             <div>
               <label className="text-sm font-medium" htmlFor="name">
-                Nombre de empresa
+                Nombre de empresa (obligatorio)
               </label>
               <input
                 id="name"
@@ -69,7 +69,7 @@ export default async function NewCustomerPage({ searchParams }: NewCustomerPageP
                 required
                 defaultValue={extractedData.customerName || ""}
                 placeholder="Ejemplo: Acme Servicios SL"
-                className="mt-2 h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+                className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
               />
             </div>
 
@@ -82,7 +82,7 @@ export default async function NewCustomerPage({ searchParams }: NewCustomerPageP
                 name="taxId"
                 defaultValue={extractedData.customerTaxId || ""}
                 placeholder="Ejemplo: B12345678"
-                className="mt-2 h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+                className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
               />
             </div>
 
@@ -93,49 +93,50 @@ export default async function NewCustomerPage({ searchParams }: NewCustomerPageP
               <input
                 id="contactName"
                 name="contactName"
-                placeholder="Ejemplo: Maria Lopez"
-                className="mt-2 h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+                placeholder="Ejemplo: María López"
+                className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
               />
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <label className="text-sm font-medium" htmlFor="email">
-                  Email
-                </label>
+                <label className="text-sm font-medium" htmlFor="email">Correo electrónico</label>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   defaultValue={extractedData.customerEmail || ""}
                   placeholder="administracion@cliente.com"
-                  className="mt-2 h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+                  className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                 />
               </div>
 
               <div>
                 <label className="text-sm font-medium" htmlFor="phone">
-                  Telefono
+                  Teléfono
                 </label>
                 <input
                   id="phone"
-                  name="phone"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                defaultValue={extractedData.customerPhone || ""}
                   placeholder="+34 600 000 000"
-                  className="mt-2 h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+                  className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                 />
               </div>
             </div>
 
             <div>
               <label className="text-sm font-medium" htmlFor="address">
-                Direccion
+                Dirección
               </label>
               <input
                 id="address"
                 name="address"
                 defaultValue={extractedData.customerAddress || ""}
-                placeholder="Direccion fiscal o postal"
-                className="mt-2 h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+                placeholder="Dirección fiscal o postal"
+                className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
               />
             </div>
 
@@ -148,16 +149,16 @@ export default async function NewCustomerPage({ searchParams }: NewCustomerPageP
                 name="notes"
                 rows={4}
                 placeholder="Notas internas sobre el cliente."
-                className="mt-2 min-h-28 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+                className="mt-2 min-h-28 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
               />
             </div>
           </div>
 
-          <div className="mt-6 flex justify-end gap-2 border-t pt-5">
-            <Button asChild variant="outline">
+          <div className="mt-6 flex flex-wrap justify-end gap-3 border-t border-slate-100 pt-5">
+            <Button asChild variant="outline" className="min-h-11 px-5">
               <Link href={invoiceFile ? `/invoice-files/import-review?fileIds=${invoiceFile.id}` : "/customers"}>Cancelar</Link>
             </Button>
-            <Button type="submit">Guardar cliente</Button>
+            <Button type="submit" className="min-h-11 bg-blue-600 px-5 text-white hover:bg-blue-700">Guardar cliente</Button>
           </div>
         </form>
       </div>

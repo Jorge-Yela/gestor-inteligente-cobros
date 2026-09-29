@@ -89,7 +89,7 @@ export default async function SentClaimDraftsPage({ searchParams }: SentClaimDra
           <Link href="/claim-drafts" className="text-sm font-medium text-slate-500 hover:text-blue-600">
             Volver a reclamaciones
           </Link>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight">Reclamaciones realizadas</h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-normal">Reclamaciones realizadas</h1>
           <p className="mt-2 text-slate-500">
             Busca correos enviados o registrados por cliente, factura o fecha.
           </p>
@@ -103,12 +103,12 @@ export default async function SentClaimDraftsPage({ searchParams }: SentClaimDra
             <div>
               <h2 className="font-semibold">Buscador</h2>
               <p className="mt-1 text-sm text-slate-500">
-                {filteredDrafts.length} reclamaciones encontradas.
+                {filteredDrafts.length} {filteredDrafts.length === 1 ? "reclamación encontrada." : "reclamaciones encontradas."}
               </p>
             </div>
           </div>
 
-          <form className="mt-5 grid gap-3 md:grid-cols-[1fr_1fr_180px_auto]">
+          <form className="mt-5 grid items-end gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_180px_auto]">
             <CustomerSearch defaultValue={customer} customers={customerOptions} />
 
             <div>
@@ -137,12 +137,12 @@ export default async function SentClaimDraftsPage({ searchParams }: SentClaimDra
               />
             </div>
 
-            <div className="flex items-end gap-2">
-              <Button type="submit" variant="outline" className="rounded-lg border-slate-200">
+            <div className="flex flex-wrap items-end gap-2">
+              <Button type="submit" className="h-10 rounded-lg bg-blue-600 px-4 text-white hover:bg-blue-700">
                 Buscar
               </Button>
               {(customer || invoice || date) ? (
-                <Button asChild variant="outline" className="rounded-lg border-slate-200">
+                <Button asChild variant="outline" className="h-10 rounded-lg border-slate-200 px-4">
                   <Link href="/claim-drafts/sent">Quitar filtros</Link>
                 </Button>
               ) : null}
@@ -153,7 +153,9 @@ export default async function SentClaimDraftsPage({ searchParams }: SentClaimDra
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           {filteredDrafts.length === 0 ? (
             <p className="px-5 py-8 text-sm text-slate-500">
-              No hay reclamaciones realizadas para esta busqueda.
+              {sentDrafts.length === 0
+              ? "Todavía no hay reclamaciones enviadas o registradas."
+              : "No hay reclamaciones que coincidan con los filtros."}
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -165,7 +167,7 @@ export default async function SentClaimDraftsPage({ searchParams }: SentClaimDra
                     <th className="px-5 py-3 font-medium">Asunto</th>
                     <th className="px-5 py-3 font-medium">Plantilla</th>
                     <th className="px-5 py-3 font-medium">Fecha</th>
-                    <th className="px-5 py-3 font-medium">Accion</th>
+                    <th className="px-5 py-3 font-medium">Acción</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">

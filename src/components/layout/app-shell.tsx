@@ -1,3 +1,5 @@
+import Image from "next/image";
+import { UserIdentity } from "./user-identity";
 import Link from "next/link";
 import {
   BarChart3,
@@ -31,7 +33,8 @@ type DashboardCollectionMonth = {
 };
 
 type DashboardPortfolioHealth = {
-  score: number;
+  hasData?: boolean;
+score: number;
   tone: "green" | "amber" | "red";
   label: string;
   detail: string;
@@ -78,7 +81,7 @@ type AppShellProps = {
 };
 
 const navigationItems = [
-  { label: "Panel de control", href: "/", icon: Home },
+  { label: "Inicio", href: "/", icon: Home },
   { label: "Clientes", href: "/customers", icon: Users },
   { label: "Facturas", href: "/invoices", icon: FileText },
   { label: "Reclamaciones", href: "/claim-drafts", icon: Mail },
@@ -99,11 +102,12 @@ export function AppShell({
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
       <div className="grid min-h-screen lg:grid-cols-[260px_1fr]">
-        <aside className="hidden bg-sky-700 text-white lg:flex lg:flex-col">
-          <div className="flex h-20 items-center px-7">
-            <Link href="/" className="text-3xl font-bold tracking-wide">
-              NOR<span className="text-sky-100">VAL</span>OR
-            </Link>
+        <aside className="hidden bg-[#071a3d] text-white lg:flex lg:flex-col">
+          <div className="flex h-20 shrink-0 items-center border-b border-white/10 px-6">
+            <Link href="/" className="flex items-center gap-2 text-xl font-bold">
+      <Image src="/norvalor-logo.png" alt="" width={48} height={48} className="size-12 shrink-0 object-contain" />
+      <span>NORVALOR</span>
+    </Link>
           </div>
 
           <nav className="flex-1 space-y-2 px-4 py-4">
@@ -111,10 +115,10 @@ export function AppShell({
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition ${
+                className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition ${
                   index === 0
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-950/30"
-                    : "text-sky-50/90 hover:bg-white/15 hover:text-white"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-200 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <item.icon className="size-5" />
@@ -123,34 +127,34 @@ export function AppShell({
             ))}
           </nav>
 
-          <div className="space-y-2 border-t border-white/20 p-4">
+          <div className="space-y-2 border-t border-white/10 p-4">
             <Link
               href="/settings"
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-sky-50/90 transition hover:bg-white/15 hover:text-white"
+              className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/10 hover:text-white"
             >
               <Settings className="size-5" />
-              Configuracion
+              Configuración
             </Link>
 
             <form action={signOutUser}>
               <button
                 type="submit"
-                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-sky-50/90 transition hover:bg-white/15 hover:text-white"
+                className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/10 hover:text-white"
               >
                 <LogOut className="size-5" />
-                Cerrar sesion
+                Cerrar sesión
               </button>
             </form>
           </div>
         </aside>
 
         <section className="flex min-w-0 flex-col">
-          <header className="flex min-h-20 items-center justify-between border-b border-slate-200 bg-white px-6">
+          <header className="flex min-h-20 flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-3">
             <div className="relative hidden w-full max-w-md md:block">
               <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
               <input
                 placeholder="Buscar clientes, facturas, reclamaciones..."
-                className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-11 pr-4 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
               />
             </div>
 
@@ -162,10 +166,7 @@ export function AppShell({
                 </Link>
               </Button>
               <div className="hidden items-center gap-3 pl-2 md:flex">
-                <div>
-                  <p className="text-sm font-semibold">Carlos Martinez</p>
-                  <p className="text-xs text-slate-500">Administrador</p>
-                </div>
+                <UserIdentity />
               </div>
             </div>
           </header>
@@ -205,7 +206,7 @@ function DailyTasksCard({ tasks }: { tasks: DashboardDailyTask[] }) {
     return total + Number(match[1].replace(/\./g, "").replace(",", "."));
   }, 0);
   const oldestDays = tasks.reduce((maxDays, task) => {
-    const match = task.detail.match(/(\d+)\s*dias/);
+    const match = task.detail.match(/(\d+)\s*d[ií]as/);
 
     if (!match) {
       return maxDays;
@@ -242,9 +243,9 @@ function DailyTasksCard({ tasks }: { tasks: DashboardDailyTask[] }) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-sm text-slate-500">Agenda inteligente</p>
-            <h2 className="mt-1 font-semibold">Tareas del dia</h2>
+            <h2 className="mt-1 font-semibold">Tareas del día</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Prioridades detectadas segun importe pendiente, antiguedad y seguimiento reciente.
+              Prioridades detectadas según importe pendiente, antigüedad y seguimiento reciente.
             </p>
           </div>
           <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-right">
@@ -263,8 +264,8 @@ function DailyTasksCard({ tasks }: { tasks: DashboardDailyTask[] }) {
             <p className="text-xs text-amber-700">importe en riesgo</p>
           </div>
           <div className="rounded-lg border border-red-100 bg-red-50 px-3 py-2">
-            <p className="text-lg font-bold text-red-700">{oldestDays || 0} dias</p>
-            <p className="text-xs text-red-700">factura mas antigua</p>
+            <p className="text-lg font-bold text-red-700">{oldestDays || 0} días</p>
+            <p className="text-xs text-red-700">factura más antigua</p>
           </div>
         </div>
       </div>
@@ -309,12 +310,35 @@ function DailyTasksCard({ tasks }: { tasks: DashboardDailyTask[] }) {
 }
 
 function CollectionChartCard({ months }: { months: DashboardCollectionMonth[] }) {
+  const hasAmounts = months.some(
+    (month) => month.collectedHeight > 0 || month.pendingHeight > 0
+  );
+
+  if (!hasAmounts) {
+    return (
+      <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="font-semibold">Cobrado y pendiente</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Evolución de los últimos 6 meses.
+        </p>
+        <div className="mt-5 border-t border-slate-100 py-8 text-center">
+          <p className="font-medium text-slate-700">
+            Sin importes registrados en este período
+          </p>
+          <p className="mt-2 text-sm text-slate-500">
+            El gráfico aparecerá cuando haya importes cobrados o pendientes.
+          </p>
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="font-semibold">Cobrado vs pendiente</h2>
-          <p className="mt-1 text-sm text-slate-500">Evolucion de los ultimos 6 meses.</p>
+          <h2 className="font-semibold">Cobrado y pendiente</h2>
+          <p className="mt-1 text-sm text-slate-500">Evolución de los últimos 6 meses.</p>
         </div>
         <div className="flex gap-3 text-xs text-slate-500">
           <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-emerald-500" />Cobrado</span>
@@ -350,6 +374,24 @@ function CollectionChartCard({ months }: { months: DashboardCollectionMonth[] })
 }
 
 function PortfolioHealthCard({ health }: { health?: DashboardPortfolioHealth }) {
+  if (!health || health.hasData === false) {
+    return (
+      <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <p className="text-sm text-slate-500">Salud de cartera</p>
+        <h2 className="mt-1 font-semibold">Sin datos suficientes</h2>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          Aún no hay facturas registradas para evaluar tu cartera.
+        </p>
+        <Button asChild className="mt-5 bg-blue-600 hover:bg-blue-700">
+          <Link href="/invoice-files/upload">
+            <Upload className="size-4" />
+            Subir primera factura
+          </Link>
+        </Button>
+      </article>
+    );
+  }
+
   const score = health?.score ?? 100;
   const tone = health?.tone ?? "green";
   const tones = {
@@ -374,19 +416,19 @@ function PortfolioHealthCard({ health }: { health?: DashboardPortfolioHealth }) 
       detail: health?.trendDetail || "Mide si el ritmo de cobros mejora o empeora frente a la deuda pendiente.",
     },
     {
-      name: "Concentracion",
+      name: "Concentración",
       value: health?.concentrationLabel || "Repartida",
-      detail: health?.concentrationDetail || "Indica si la deuda esta repartida o depende demasiado de pocos clientes.",
+      detail: health?.concentrationDetail || "Indica si la deuda está repartida o depende demasiado de pocos clientes.",
     },
     {
       name: "Seguimiento",
-      value: health?.followUpLabel || "Al dia",
-      detail: health?.followUpDetail || "Revisa si hay facturas pendientes sin recordatorio o accion reciente.",
+      value: health?.followUpLabel || "Al día",
+      detail: health?.followUpDetail || "Revisa si hay facturas pendientes sin recordatorio o acción reciente.",
     },
     {
-      name: "Antiguedad",
+      name: "Antigüedad",
       value: health?.ageLabel || "Controlada",
-      detail: health?.ageDetail || "Mide cuantos dias lleva abierta la deuda pendiente mas antigua.",
+      detail: health?.ageDetail || "Mide cuántos días lleva abierta la deuda pendiente más antigua.",
     },
   ];
 
@@ -398,7 +440,7 @@ function PortfolioHealthCard({ health }: { health?: DashboardPortfolioHealth }) 
           <h2 className="mt-1 font-semibold">{health?.label || "Cartera sana"}</h2>
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${tones[tone].badge}`}>
-          Semaforo
+          Semáforo
         </span>
       </div>
 
@@ -414,9 +456,9 @@ function PortfolioHealthCard({ health }: { health?: DashboardPortfolioHealth }) 
 
       <div className="mt-5 grid gap-2 border-t border-slate-100 pt-4">
         {indicators.map((indicator) => (
-          <div key={indicator.name} className="group relative flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 hover:bg-slate-50">
+          <div key={indicator.name} className="group relative grid grid-cols-2 items-start gap-3 rounded-lg px-2 py-2 hover:bg-slate-50">
             <span className="text-sm text-slate-500">{indicator.name}</span>
-            <span className="max-w-[150px] truncate text-right text-sm font-semibold text-slate-900">
+            <span className="min-w-0 whitespace-normal break-words text-right text-sm font-semibold leading-5 text-slate-900">
               {indicator.value}
             </span>
             <div className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-64 rounded-xl border border-slate-200 bg-white p-3 text-xs leading-5 text-slate-600 shadow-lg group-hover:block">

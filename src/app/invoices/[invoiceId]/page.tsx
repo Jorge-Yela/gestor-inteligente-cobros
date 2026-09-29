@@ -177,9 +177,19 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
       customerInvoice.id !== invoice.id &&
       customerInvoice.paymentStatus !== PaymentStatus.PAID,
   );
-  const paidInvoicesWithDates = customerPaidInvoices.filter(
-    (customerInvoice) => customerInvoice.issueDate && customerInvoice.paidAt,
+
+  const invalidPaymentDates = customerPaidInvoices.filter(
+    (item) => item.issueDate && item.paidAt &&
+      item.paidAt.toISOString().slice(0, 10) <
+      item.issueDate.toISOString().slice(0, 10)
   );
+
+  const paidInvoicesWithDates = customerPaidInvoices.filter(
+    (item) => item.issueDate && item.paidAt &&
+      item.paidAt.toISOString().slice(0, 10) >=
+      item.issueDate.toISOString().slice(0, 10)
+  );
+
   const averagePaymentDays = paidInvoicesWithDates.length > 0
     ? Math.round(
         paidInvoicesWithDates.reduce((total, customerInvoice) => {
@@ -210,11 +220,11 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
   });
   const customerPaymentSummary =
     paidInvoicesWithDates.length === 0
-      ? "Aun no hay historial suficiente de cobros para este cliente."
+      ? "Aún no hay historial suficiente de cobros para este cliente."
       : latePaidInvoices.length > paidInvoicesWithDates.length / 2
         ? "Este cliente suele pagar tarde."
         : averagePaymentDays !== null && averagePaymentDays <= 15
-          ? "Este cliente suele pagar rapido."
+          ? "Este cliente suele pagar rápido."
           : "Este cliente tiene un comportamiento de pago estable.";
 
   return (
@@ -225,7 +235,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
             <Link href="/invoices" className="text-sm text-slate-500 hover:text-foreground">
               Volver a facturas
             </Link>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+            <h1 className="mt-3 text-3xl font-bold tracking-normal">
               {invoice.invoiceNumber}
             </h1>
             <p className="mt-2 text-slate-500">
@@ -236,8 +246,8 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
           <div className="flex flex-wrap gap-2">
             <form action={invoice.paymentStatus === PaymentStatus.PAID ? unmarkInvoiceAsPaid : markInvoiceAsPaid}>
               <input type="hidden" name="invoiceId" value={invoice.id} />
-              <Button type="submit">
-                {invoice.paymentStatus === PaymentStatus.PAID ? "Cobrada" : "Marcar como cobrada"}
+              <Button type="submit" className="min-h-11 rounded-lg bg-blue-600 px-5 text-white hover:bg-blue-700">
+                {invoice.paymentStatus === PaymentStatus.PAID ? "Marcar como pendiente" : "Marcar como cobrada"}
               </Button>
             </form>
 
@@ -246,7 +256,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
               <Button
                 type="submit"
                 variant="outline"
-                className="rounded-lg border-red-200 bg-white text-red-600 hover:bg-red-50 hover:text-red-700"
+                className="min-h-11 rounded-lg border-red-200 bg-white px-5 text-red-600 hover:bg-red-50 hover:text-red-700"
               >
                 Borrar factura
               </Button>
@@ -273,7 +283,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                 <CalendarClock className="size-5" />
               </div>
               <div>
-                <p className="text-sm text-slate-500">Ultima reclamacion</p>
+                <p className="text-sm text-slate-500">Última reclamación</p>
                 <p className="mt-1 text-lg font-bold">{formatDate(lastClaimDate)}</p>
               </div>
             </div>
@@ -296,7 +306,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                 <input type="hidden" name="invoiceId" value={invoice.id} />
                 <input
                   type="date"
-                  name="paidDate"
+                  name="paidDate" aria-label="Fecha de cobro"
                   defaultValue={formatDateInputValue(invoice.paidAt)}
                   className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
                 />
@@ -311,9 +321,9 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                 <AlertTriangle className="size-5" />
               </div>
               <div>
-                <p className="text-sm text-slate-500">Dias de retraso</p>
+                <p className="text-sm text-slate-500">Días de retraso</p>
                 <p className="mt-1 text-2xl font-bold">
-                  {delayDays === null ? "Sin fecha" : `${delayDays} dias`}
+                  {delayDays === null ? "Sin fecha" : `${delayDays} días`}
                 </p>
                 <p className={`mt-1 flex items-center gap-2 text-xs font-semibold ${delayTone.text}`}>
                   <span className={`size-2 rounded-full ${delayTone.dot}`} />
@@ -325,7 +335,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
         </article>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
+        <section className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-6">
             <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -336,13 +346,13 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                   </Button>
                   <div className="flex flex-col gap-2">
                     <Button asChild size="sm" className="rounded-lg bg-blue-600 hover:bg-blue-700">
-                      <Link href={`/invoices/${invoice.id}/claim-preview`}>Preparar reclamacion</Link>
+                      <Link href={`/invoices/${invoice.id}/claim-preview`}>Preparar reclamación</Link>
                     </Button>
                     <form action={registerInvoiceCall}>
                       <input type="hidden" name="invoiceId" value={invoice.id} />
                       <Button type="submit" variant="outline" size="sm" className="w-full rounded-lg border-slate-200">
                         <Phone className="mr-2 size-4" />
-                        Llamada
+                        Registrar llamada
                       </Button>
                     </form>
                   </div>
@@ -359,11 +369,11 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                   <dd className="mt-1 font-medium">{formatAmount(invoice.amountCents)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-slate-500">Fecha de emision</dt>
+                  <dt className="text-sm text-slate-500">Fecha de emisión</dt>
                   <dd className="mt-1 font-medium">{formatDate(invoice.issueDate)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-slate-500">Ultima reclamacion</dt>
+                  <dt className="text-sm text-slate-500">Última reclamación</dt>
                   <dd className="mt-1 font-medium">{formatDate(lastClaimDate)}</dd>
                 </div>
                 <div>
@@ -394,7 +404,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
               ) : (
                 <div>
                   <p className="mt-5 text-sm text-slate-500">
-                    Esta factura no tiene ningun PDF asociado.
+                    Esta factura no tiene ningún PDF asociado.
                   </p>
                   <AttachInvoicePdf invoiceId={invoice.id} />
                 </div>
@@ -402,7 +412,15 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
               </section>
 
               <section className="mt-6 border-t border-slate-100 pt-5">
-                <h3 className="font-semibold">Relacion con el cliente</h3>
+                <h3 className="font-semibold">Relación con el cliente</h3>
+              {invalidPaymentDates.length > 0 ? (
+                <p role="status" className="mt-3 text-sm leading-6 text-amber-800">
+                  Hay facturas cobradas con fecha de cobro anterior a su emisión.
+                  No se incluyen en el cálculo del plazo medio ni en la valoración
+                  del historial de pago.
+                </p>
+              ) : null}
+
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
                   <div className="rounded-lg bg-slate-50 px-4 py-3">
@@ -413,7 +431,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
                   <div className="rounded-lg bg-slate-50 px-4 py-3">
                     <p className="text-xs font-medium text-slate-500">Plazo medio</p>
                     <p className="mt-2 text-sm font-semibold">
-                      {averagePaymentDays === null ? "Sin datos" : `${averagePaymentDays} dias`}
+                      {averagePaymentDays === null ? "Sin datos" : `${averagePaymentDays} días`}
                     </p>
                   </div>
 
@@ -427,21 +445,21 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
 
                 {customerPendingInvoices.length > 0 ? (
                   <div className="mt-4 overflow-hidden rounded-lg border border-slate-200">
-                    <div className="grid grid-cols-[1fr_auto_auto] gap-3 bg-slate-50 px-4 py-2 text-xs font-medium text-slate-500">
+                    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_100px] items-center gap-5 bg-slate-50 px-4 py-2 text-xs font-medium text-slate-500">
                       <span>Factura</span>
-                      <span>Fecha</span>
-                      <span>Importe</span>
+                      <span className="text-right">Fecha</span>
+                      <span className="text-right">Importe</span>
                     </div>
                     <div className="divide-y divide-slate-100">
                       {customerPendingInvoices.slice(0, 5).map((customerInvoice) => (
                         <Link
                           key={customerInvoice.id}
                           href={`/invoices/${customerInvoice.id}`}
-                          className="grid grid-cols-[1fr_auto_auto] gap-3 px-4 py-3 text-sm transition hover:bg-slate-50"
+                          className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_100px] items-center gap-5 px-4 py-3 text-sm transition hover:bg-slate-50"
                         >
                           <span className="font-medium">{customerInvoice.invoiceNumber}</span>
-                          <span className="text-slate-500">{formatDate(customerInvoice.issueDate)}</span>
-                          <span className="font-semibold">{formatAmount(customerInvoice.amountCents)}</span>
+                          <span className="text-right text-slate-500">{formatDate(customerInvoice.issueDate)}</span>
+                          <span className="whitespace-nowrap text-right font-semibold tabular-nums">{formatAmount(customerInvoice.amountCents)}</span>
                         </Link>
                       ))}
                     </div>
@@ -457,20 +475,20 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
 
 
 
-            
+
 
           </div>
 
           <aside className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="font-semibold">Cronologia de reclamaciones</h2>
+            <h2 className="font-semibold">Cronología de seguimiento</h2>
             <p className="mt-2 text-sm text-slate-500">
-              Seguimiento de las reclamaciones preparadas para esta factura.
+              Reclamaciones enviadas y llamadas registradas para esta factura.
             </p>
 
             <div className="mt-5 space-y-4">
               {claimTimelineItems.length === 0 ? (
                 <p className="text-sm text-slate-500">
-                  Todavia no hay reclamaciones preparadas.
+                  Todavía no hay reclamaciones enviadas ni llamadas registradas.
                 </p>
               ) : (
                 claimTimelineItems.map((item) => (

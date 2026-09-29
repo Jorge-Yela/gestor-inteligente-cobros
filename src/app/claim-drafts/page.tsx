@@ -186,7 +186,7 @@ export default async function ClaimDraftsPage() {
         dueDate: invoice.dueDate,
         lastClaimDate: lastClaim?.createdAt || null,
         reason: lastClaim
-          ? "Ultima reclamacion hace mas de 7 dias"
+          ? "Última reclamación hace más de 7 días"
           : "Sin reclamaciones previas",
         shouldClaim,
       };
@@ -204,16 +204,16 @@ export default async function ClaimDraftsPage() {
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         <div>
           <Link href="/" className="text-sm font-medium text-slate-500 hover:text-blue-600">
-            Dashboard
+            Inicio
           </Link>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight">Reclamaciones</h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-normal">Reclamaciones</h1>
           <p className="mt-2 text-slate-500">
-            Comunicaciones preparadas para reclamar facturas pendientes. Nada se envia automaticamente.
+            Comunicaciones preparadas para reclamar facturas pendientes. Nada se envía automáticamente.
           </p>
         </div>
 
-        <section className="grid gap-4 md:grid-cols-3">
-          <div className="space-y-3">
+        <section className="grid items-start gap-4 lg:grid-cols-2">
+          <div className="min-w-0 space-y-3">
             <Link href="/claim-drafts/sent" className="block">
               <SummaryCard label="Reclamaciones realizadas" value={String(sentDrafts.length)} detail="Correos enviados o registrados" tone="blue" icon={PencilLine} />
             </Link>
@@ -258,6 +258,11 @@ function ClaimCollectionCard({
   pendingAmount: number;
 }) {
   const totalCount = collectedCount + pendingCount;
+  if (totalCount === 0) {
+    return <div className="border-t border-slate-200 px-4 py-6 text-sm text-slate-500">
+      Todavía no hay reclamaciones enviadas o registradas.
+    </div>;
+  }
   const maxCount = Math.max(collectedCount, pendingCount, 1);
   const bars = [
     {
@@ -290,7 +295,7 @@ function ClaimCollectionCard({
 
       <div className="mt-4 flex h-32 items-end justify-between gap-4">
         {bars.map((bar) => {
-          const height = Math.max((bar.count / maxCount) * 100, bar.count > 0 ? 12 : 3);
+          const height = (bar.count / maxCount) * 100;
 
           return (
             <div key={bar.label} className="flex flex-1 flex-col items-center justify-end gap-2">
@@ -340,7 +345,7 @@ function ClaimedAmountChart({
     : [{ label: "Sin datos", amountCents: 0 }];
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article className="order-last min-w-0 border-t border-slate-200 py-5 lg:col-span-2">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm text-slate-500">Importe reclamado</p>
@@ -355,9 +360,14 @@ function ClaimedAmountChart({
       <div className="mt-5 grid gap-5">
         <div>
           <p className="mb-3 text-xs font-semibold text-slate-500">Importe reclamado por mes</p>
-          <div className="flex h-32 items-end justify-between gap-4">
+          {!bars.some((bar) => bar.amountCents > 0) && (
+    <p className="py-6 text-sm text-slate-500">No hay importes reclamados en este período.</p>
+  )}
+  <div className={bars.some((bar) => bar.amountCents > 0)
+    ? "grid grid-flow-col auto-cols-[minmax(100px,1fr)] gap-4 overflow-x-auto pb-3"
+    : "hidden"}>
             {bars.map((bar) => {
-              const height = Math.max((bar.amountCents / maxAmount) * 100, bar.amountCents > 0 ? 8 : 2);
+              const height = (bar.amountCents / maxAmount) * 100;
 
               return (
                 <div key={bar.label} className="flex flex-1 flex-col items-center justify-end gap-2">
@@ -379,9 +389,14 @@ function ClaimedAmountChart({
 
         <div>
           <p className="mb-3 text-xs font-semibold text-slate-500">Importe pendiente no reclamado por mes</p>
-          <div className="flex h-32 items-end justify-between gap-4">
+          {!unreclaimedBars.some((bar) => bar.amountCents > 0) && (
+    <p className="py-6 text-sm text-slate-500">No hay importes pendientes sin reclamar en este período.</p>
+  )}
+  <div className={unreclaimedBars.some((bar) => bar.amountCents > 0)
+    ? "grid grid-flow-col auto-cols-[minmax(100px,1fr)] gap-4 overflow-x-auto pb-3"
+    : "hidden"}>
             {unreclaimedBars.map((bar) => {
-              const height = Math.max((bar.amountCents / maxUnreclaimedAmount) * 100, bar.amountCents > 0 ? 8 : 2);
+              const height = (bar.amountCents / maxUnreclaimedAmount) * 100;
 
               return (
                 <div key={bar.label} className="flex flex-1 flex-col items-center justify-end gap-2">
@@ -463,7 +478,7 @@ function RecommendedClaimsCard({
               </div>
 
               <div className="mt-3 grid gap-2 text-xs text-slate-500">
-                <p>Ultima reclamacion: {invoice.lastClaimDate ? formatDate(invoice.lastClaimDate) : "Sin reclamaciones"}</p>
+                <p>Última reclamación: {invoice.lastClaimDate ? formatDate(invoice.lastClaimDate) : "Sin reclamaciones"}</p>
               </div>
             </div>
           ))

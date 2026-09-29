@@ -76,7 +76,7 @@ function updateRow(rows: InvoiceImportRow[], index: number, field: keyof Invoice
 export function ImportInvoicesExcel() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<InvoiceImportRow[]>([]);
-  const [message, setMessage] = useState("Todavia no has seleccionado ningun Excel.");
+  const [message, setMessage] = useState("Todavía no has seleccionado ningún archivo.");
 
   async function handleSelectFile(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -124,7 +124,7 @@ export function ImportInvoicesExcel() {
           <div>
             <h2 className="font-semibold">Importar facturas desde Excel</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Sube un listado con cliente, factura, fecha e importe. Podras revisar las filas antes de registrarlas.
+              Sube un listado con cliente, factura, fecha e importe. Podrás revisar las filas antes de registrarlas.
             </p>
           </div>
         </div>
@@ -140,7 +140,7 @@ export function ImportInvoicesExcel() {
               <div>
                 <h3 className="font-semibold">Seleccionar Excel</h3>
                 <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
-                  Columnas recomendadas: cliente, CIF, email, numero factura, fecha factura, importe y fecha vencimiento.
+                  Formatos admitidos: .xlsx, .xls y .csv.
                 </p>
               </div>
             </div>
@@ -156,7 +156,7 @@ export function ImportInvoicesExcel() {
               <Button
                 type="button"
                 variant="outline"
-                className="rounded-lg border-slate-200 bg-white"
+                className="min-h-11 rounded-lg border-blue-600 bg-blue-600 px-5 text-white hover:border-blue-700 hover:bg-blue-700 hover:text-white"
                 onClick={() => inputRef.current?.click()}
               >
                 Seleccionar Excel
@@ -165,7 +165,7 @@ export function ImportInvoicesExcel() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+        <div role="status" aria-live="polite" className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
           {message}
         </div>
 
@@ -179,9 +179,9 @@ export function ImportInvoicesExcel() {
                   <tr>
                     <th className="px-3 py-3 font-medium">Cliente</th>
                     <th className="px-3 py-3 font-medium">CIF/NIF</th>
-                    <th className="px-3 py-3 font-medium">Email</th>
+                    <th className="px-3 py-3 font-medium">Correo electrónico</th>
                     <th className="px-3 py-3 font-medium">Factura</th>
-                    <th className="px-3 py-3 font-medium">Fecha factura</th>
+                    <th className="px-3 py-3 font-medium">Fecha de factura</th>
                     <th className="px-3 py-3 font-medium">Vencimiento</th>
                     <th className="px-3 py-3 font-medium">Importe</th>
                     <th className="px-3 py-3 font-medium">Moneda</th>
@@ -209,7 +209,7 @@ export function ImportInvoicesExcel() {
                           type="button"
                           className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600"
                           onClick={() => removeRow(index)}
-                          aria-label="Eliminar fila"
+                          aria-label="Eliminar fila" title="Eliminar fila"
                         >
                           <Trash2 className="size-4" />
                         </button>
@@ -220,19 +220,19 @@ export function ImportInvoicesExcel() {
               </table>
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-wrap justify-end gap-3">
               <Button
                 type="button"
                 variant="outline"
-                className="rounded-lg border-slate-200"
+                className="min-h-11 rounded-lg border-slate-200 px-5"
                 onClick={() => {
                   setRows([]);
-                  setMessage("Todavia no has seleccionado ningun Excel.");
+                  setMessage("Todavía no has seleccionado ningún archivo.");
                 }}
               >
                 Limpiar
               </Button>
-              <Button type="submit" className="rounded-lg bg-blue-600 hover:bg-blue-700">
+              <Button type="submit" className="min-h-11 rounded-lg bg-blue-600 px-5 text-white hover:bg-blue-700">
                 Registrar facturas pendientes
               </Button>
             </div>

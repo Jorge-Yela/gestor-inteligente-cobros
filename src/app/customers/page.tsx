@@ -129,8 +129,8 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
       id: customer.id,
       name: customer.name,
       contactName: customer.contactName || "Sin contacto",
-      email: customer.email || "Sin email",
-      phone: customer.phone || "Sin telefono",
+      email: customer.email || "Sin correo electrónico",
+      phone: customer.phone || "Sin teléfono",
       invoiceCount: customer.invoices.length,
       unpaidCount: unpaidInvoices.length,
       pendingAmountCents,
@@ -170,9 +170,9 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <Link href="/" className="text-sm font-medium text-slate-500 hover:text-blue-600">
-              Dashboard
+              Inicio
             </Link>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight">Clientes</h1>
+            <h1 className="mt-3 text-3xl font-bold tracking-normal">Clientes</h1>
             <p className="mt-2 text-slate-500">
               Empresas, contactos y deuda pendiente agrupada por cliente.
             </p>
@@ -187,7 +187,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
         </div>
 
         <section className="grid gap-4 md:grid-cols-3">
-          <SummaryCard label="Total clientes" value={String(totalCustomers)} detail="Registrados en la plataforma" tone="blue" icon={Users} />
+          <SummaryCard label="Total de clientes" value={String(totalCustomers)} detail="Registrados en la plataforma" tone="blue" icon={Users} />
           <SummaryCard label="Pendiente total" value={formatAmount(totalPendingCents)} detail="Por cobrar" tone="amber" icon={CircleDollarSign} />
           <Link href="/invoices" className="group relative block">
             <SummaryCard label="Facturas" value={String(totalInvoices)} detail="Asociadas a clientes" tone="emerald" icon={Building2} />
@@ -211,16 +211,32 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
               <input
                 name="q"
                 defaultValue={query}
-                placeholder="Buscar cliente..."
+                placeholder="Buscar cliente..." aria-label="Buscar clientes"
                 className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
               />
             </form>
           </div>
 
           {rows.length === 0 ? (
-            <p className="px-5 py-8 text-sm text-slate-500">
-              {query ? "No hay clientes que coincidan con la busqueda." : "Todavia no hay clientes registrados."}
-            </p>
+
+          <div className="px-5 py-10 text-center">
+            <Users className="mx-auto size-8 text-blue-600" aria-hidden="true" />
+            <h3 className="mt-3 font-semibold text-slate-900">
+              {query ? "No se han encontrado clientes" : "Todavía no hay clientes registrados"}
+            </h3>
+            {query ? (
+              <p className="mt-2 break-words text-sm text-slate-500">
+                No hay coincidencias para «{query}».
+              </p>
+            ) : null}
+            <Button asChild className="mt-5 bg-blue-600 hover:bg-blue-700">
+              <Link href={query ? "/customers" : "/customers/new"}>
+                {!query ? <Plus className="size-4" aria-hidden="true" /> : null}
+                {query ? "Limpiar búsqueda" : "Crear primer cliente"}
+              </Link>
+            </Button>
+          </div>
+
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[820px] text-left text-sm">
