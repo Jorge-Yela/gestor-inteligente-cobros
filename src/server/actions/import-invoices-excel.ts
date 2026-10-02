@@ -145,9 +145,9 @@ async function findOrCreateCustomer(organizationId: string, row: InvoiceRow) {
   const customerEmail = normalizeText(row.customerEmail).toLowerCase();
 
   const filters = [
-    ...(customerTaxId ? [{ taxId: { equals: customerTaxId, mode: "insensitive" as const } }] : []),
-    ...(customerEmail ? [{ email: { equals: customerEmail, mode: "insensitive" as const } }] : []),
-    { name: { equals: customerName, mode: "insensitive" as const } },
+    ...(customerTaxId ? [{ taxId: { equals: customerTaxId } }] : []),
+    ...(customerEmail ? [{ email: { equals: customerEmail } }] : []),
+    { name: { equals: customerName } },
   ];
 
   const existingCustomer = await prisma.customer.findFirst({
