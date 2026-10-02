@@ -64,8 +64,8 @@ export default async function LoginPage() {
                     id="email"
                     name="email"
                     type="email"
-                    defaultValue="demo@gestorcobros.local"
-                    className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-300"
+
+                                     className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-300"
                     required
                   />
                 </div>
@@ -81,7 +81,7 @@ export default async function LoginPage() {
                     id="password"
                     name="password"
                     type="password"
-                    defaultValue="demo1234"
+
                     className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-300"
                     required
                   />
@@ -94,7 +94,7 @@ export default async function LoginPage() {
               </Button>
 
               <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                Demo: demo@gestorcobros.local · demo1234
+                Introduce tu correo y contraseña.
               </div>
             </form>
 

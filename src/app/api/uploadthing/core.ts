@@ -50,9 +50,9 @@ async function findMatchingCustomer({
   const customerName = normalizeText(extractedData.customerName);
 
   const filters = [
-    ...(customerTaxId ? [{ taxId: { equals: customerTaxId, mode: "insensitive" as const } }] : []),
-    ...(customerEmail ? [{ email: { equals: customerEmail, mode: "insensitive" as const } }] : []),
-    ...(customerName ? [{ name: { equals: customerName, mode: "insensitive" as const } }] : []),
+    ...(customerTaxId ? [{ taxId: { equals: customerTaxId } }] : []),
+    ...(customerEmail ? [{ email: { equals: customerEmail } }] : []),
+    ...(customerName ? [{ name: { equals: customerName } }] : []),
   ];
 
   if (filters.length === 0) {

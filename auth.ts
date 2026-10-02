@@ -18,15 +18,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const email = String(credentials?.email || "").trim().toLowerCase();
         const password = String(credentials?.password || "");
 
-        if (email === "demo@gestorcobros.local" && password === "demo1234") {
-          return {
-            id: "demo-user",
-            name: "Jorge Demo",
-            email: "demo@gestorcobros.local",
-          };
-        }
-
-        const user = await prisma.user.findUnique({
+          const user = await prisma.user.findUnique({
           where: {
             email,
           },

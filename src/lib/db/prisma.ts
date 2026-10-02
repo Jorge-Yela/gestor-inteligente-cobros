@@ -1,4 +1,4 @@
-import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
 import { PrismaClient } from "@/generated/prisma/client";
 
@@ -6,8 +6,25 @@ const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
 };
 
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
+function getRequiredEnvironmentVariable(name: string) {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(`Falta la variable de entorno ${name}.`);
+  }
+
+  return value;
+}
+
+const adapter = new PrismaMariaDb({
+  host: getRequiredEnvironmentVariable("DATABASE_HOST"),
+  port: Number(process.env.DATABASE_PORT || "3306"),
+  user: getRequiredEnvironmentVariable("DATABASE_USER"),
+  password: getRequiredEnvironmentVariable("DATABASE_PASSWORD"),
+  database: getRequiredEnvironmentVariable("DATABASE_NAME"),
+  connectionLimit: 5,
+  acquireTimeout: 30_000,
+connectTimeout: 30_000,
 });
 
 export const prisma =
@@ -17,6 +34,4 @@ export const prisma =
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+globalForPrisma.prisma = prisma;
