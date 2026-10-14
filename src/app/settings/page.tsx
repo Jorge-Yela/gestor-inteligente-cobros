@@ -18,7 +18,14 @@ function formatRole(role: string) {
   return labels[role] || role;
 }
 
-export default async function SettingsPage() {
+type SettingsPageProps = {
+  searchParams?: Promise<{
+    billingError?: string;
+  }>;
+};
+
+export default async function SettingsPage({ searchParams }: SettingsPageProps) {
+  const params = await searchParams;
   const organizationId = await getCurrentOrganizationId();
   const role = await getCurrentUserRole();
 
@@ -45,6 +52,18 @@ export default async function SettingsPage() {
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
+        {params?.billingError === "missing_details" ? (
+          <div role="alert" className="rounded-lg border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+            Completa el NIF/CIF, correo de facturacion, direccion fiscal, localidad y codigo postal antes de iniciar la suscripcion.
+          </div>
+        ) : null}
+
+        {params?.billingError === "unsupported_region" ? (
+          <div role="alert" className="rounded-lg border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+            Actualmente NORVALOR admite suscripciones para clientes de la Peninsula. Revisa tu codigo postal.
+          </div>
+        ) : null}
+
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <Link href="/" className="text-sm font-medium text-slate-500 hover:text-blue-600">
@@ -143,6 +162,50 @@ export default async function SettingsPage() {
                 <p className="mt-2 flex h-10 items-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-semibold">
                   {organization.defaultCurrency}
                 </p>
+              </div>
+
+              <div className="sm:col-span-2">
+                <label htmlFor="billingAddress" className="text-sm font-medium text-slate-700">
+                  Direccion fiscal
+                </label>
+                <input
+                  id="billingAddress"
+                  name="billingAddress"
+                  autoComplete="address-line1"
+                  maxLength={191}
+                  defaultValue={organization.billingAddress || ""}
+                  className="mt-2 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="billingCity" className="text-sm font-medium text-slate-700">
+                  Localidad
+                </label>
+                <input
+                  id="billingCity"
+                  name="billingCity"
+                  autoComplete="address-level2"
+                  maxLength={191}
+                  defaultValue={organization.billingCity || ""}
+                  className="mt-2 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="billingPostalCode" className="text-sm font-medium text-slate-700">
+                  Codigo postal
+                </label>
+                <input
+                  id="billingPostalCode"
+                  name="billingPostalCode"
+                  autoComplete="postal-code"
+                  inputMode="numeric"
+                  maxLength={5}
+                  pattern="(0[1-9]|[1-4][0-9]|5[0-2])[0-9]{3}"
+                  defaultValue={organization.billingPostalCode || ""}
+                  className="mt-2 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
               </div>
 
               <div className="sm:col-span-2">

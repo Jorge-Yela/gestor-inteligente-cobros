@@ -97,10 +97,14 @@ model Organization {
   name            String
   taxId           String?
   billingEmail    String?
+  billingAddress    String?
+  billingCity       String?
+  billingPostalCode String?
   defaultCurrency String   @default("EUR")
   stripeCustomerId             String?
   stripeSubscriptionId         String?
   subscriptionStatus           String?
+  subscriptionCancelAtPeriodEnd Boolean @default(false)
   subscriptionCurrentPeriodEnd DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

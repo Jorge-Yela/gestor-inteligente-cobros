@@ -4,8 +4,10 @@ import { CheckCircle2, CreditCard } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { createStripeCheckoutSession } from "@/server/actions/create-stripe-checkout-session";
+import { createStripePortalSession } from "@/server/actions/create-stripe-portal-session";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
+import { canManageSettings, getCurrentUserRole } from "@/lib/permissions/current-role";
 
 type BillingPageProps = {
   searchParams?: Promise<{
@@ -17,13 +19,16 @@ type BillingPageProps = {
 export default async function BillingPage({ searchParams }: BillingPageProps) {
   const params = await searchParams;
   const organizationId = await getCurrentOrganizationId();
+  const canManageBilling = canManageSettings(await getCurrentUserRole());
   const organization = await prisma.organization.findUnique({
     where: {
       id: organizationId,
     },
     select: {
       subscriptionStatus: true,
+      subscriptionCancelAtPeriodEnd: true,
       subscriptionCurrentPeriodEnd: true,
+      stripeCustomerId: true,
     },
   });
   const subscriptionActive = organization?.subscriptionStatus === "active" || organization?.subscriptionStatus === "trialing";
@@ -75,13 +80,24 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
 
         {params?.success ? (
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-medium text-emerald-800">
-            Pago de prueba completado correctamente.
+            {subscriptionActive
+              ? "Tu suscripcion se ha activado correctamente."
+              : "Estamos confirmando tu suscripcion. Actualiza esta pagina en unos instantes."}
           </div>
         ) : null}
 
         {params?.canceled ? (
           <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm font-medium text-amber-800">
             Has cancelado el proceso de suscripción.
+          </div>
+        ) : null}
+
+        {subscriptionActive && organization?.subscriptionCancelAtPeriodEnd ? (
+          <div role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+            Tu suscripcion tiene una cancelacion programada y no se renovara.
+            {organization.subscriptionCurrentPeriodEnd
+              ? ` Puedes seguir usando NORVALOR hasta el ${organization.subscriptionCurrentPeriodEnd.toLocaleDateString("es-ES")}.`
+              : " Puedes seguir usando NORVALOR hasta que finalice el periodo actual."}
           </div>
         ) : null}
 
@@ -109,14 +125,23 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                   </p>
                 ) : null}
               </div>
-            ) : (
+            ) : canManageBilling ? (
               <form action={createStripeCheckoutSession}>
                 <Button type="submit" className="rounded-lg bg-blue-600 hover:bg-blue-700">
                   Empezar prueba gratuita
                 </Button>
               </form>
-            )}
+            ) : null}
           </div>
+
+          {canManageBilling && organization?.stripeCustomerId ? (
+            <form action={createStripePortalSession} className="mt-5">
+              <Button type="submit" variant="outline" className="rounded-lg">
+                <CreditCard className="size-4" />
+                Gestionar suscripcion
+              </Button>
+            </form>
+          ) : null}
 
           <div className="mt-6 grid gap-3 border-t border-slate-100 pt-5 sm:grid-cols-2">
             {[

@@ -7,7 +7,14 @@ import { prisma } from "@/lib/db/prisma";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 
 function getSubscriptionPeriodEnd(subscription: Stripe.Subscription) {
-  const periodEnd = (subscription as Stripe.Subscription & { current_period_end?: number }).current_period_end;
+  const legacyPeriodEnd = (subscription as Stripe.Subscription & { current_period_end?: number }).current_period_end;
+  const itemPeriodEnds = subscription.items.data
+    .map((item) => (item as Stripe.SubscriptionItem & { current_period_end?: number }).current_period_end)
+    .filter((end): end is number => typeof end === "number");
+  const periodEnd = subscription.cancel_at ??
+    (subscription.status === "trialing" ? subscription.trial_end : null) ??
+    legacyPeriodEnd ??
+    (itemPeriodEnds.length ? Math.min(...itemPeriodEnds) : null);
 
   return periodEnd ? new Date(periodEnd * 1000) : null;
 }
@@ -28,6 +35,7 @@ async function updateOrganizationSubscription(subscription: Stripe.Subscription)
       stripeCustomerId: customerId,
       stripeSubscriptionId: subscription.id,
       subscriptionStatus: subscription.status,
+      subscriptionCancelAtPeriodEnd: subscription.cancel_at_period_end || subscription.cancel_at !== null,
       subscriptionCurrentPeriodEnd: getSubscriptionPeriodEnd(subscription),
     },
   });
