@@ -14,6 +14,12 @@ import {
 import { signInWithCredentials } from "@/server/actions/sign-in";
 import { Button } from "@/components/ui/button";
 
+type LoginPageProps = {
+  searchParams?: Promise<{
+    error?: string;
+  }>;
+};
+
 const highlights = [
   {
     label: "Cobros priorizados",
@@ -32,7 +38,10 @@ const highlights = [
   },
 ];
 
-export default async function LoginPage() {
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams;
+  const invalidCredentials = params?.error === "invalid-credentials";
+
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
       <div className="grid min-h-screen lg:grid-cols-[46%_54%]">
@@ -54,6 +63,12 @@ export default async function LoginPage() {
             </div>
 
             <form action={signInWithCredentials} className="space-y-5 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+              {invalidCredentials ? (
+                <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                  No se ha podido iniciar sesión. Comprueba el correo electrónico y la contraseña.
+                </p>
+              ) : null}
+
               <div className="grid gap-2">
                 <label htmlFor="email" className="text-sm font-medium text-slate-800">
                   Correo electrónico
