@@ -1,9 +1,11 @@
 import { revalidatePath } from "next/cache";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
+import { UploadThingError } from "uploadthing/server";
 import { z } from "zod";
 
 import { InvoiceFileStatus } from "@/generated/prisma/enums";
 import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { requireActiveSubscription } from "@/lib/billing/require-active-subscription";
 import { prisma } from "@/lib/db/prisma";
 import { canManageData, getCurrentUserRole } from "@/lib/permissions/current-role";
 import { readInvoiceFileData } from "@/server/services/read-invoice-file-data";
@@ -91,6 +93,12 @@ export const uploadRouter = {
       }
 
       const organizationId = await getCurrentOrganizationId();
+      await requireActiveSubscription(organizationId, () => {
+        throw new UploadThingError({
+          code: "FORBIDDEN",
+          message: "Necesitas una suscripcion activa para subir facturas",
+        });
+      });
 
       let customerId = input.customerId;
       let invoiceId = input.invoiceId;

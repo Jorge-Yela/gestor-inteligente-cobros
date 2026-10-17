@@ -5,7 +5,7 @@ import {
   FollowUpStepStatus,
   PaymentStatus,
 } from "@/generated/prisma/enums";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,7 @@ function startOfToday() {
 }
 
 export default async function FollowUpsPage() {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const today = startOfToday();
 
   const [plans, invoicesWithoutPlan] = await Promise.all([

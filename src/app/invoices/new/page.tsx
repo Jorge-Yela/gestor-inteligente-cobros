@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { registerInvoice } from "@/server/actions/register-invoice";
 
 import { Button } from "@/components/ui/button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 
 type RegisterInvoicePageProps = {
   searchParams: Promise<{
@@ -23,7 +23,7 @@ function getErrorMessage(error?: string) {
 }
 
 export default async function RegisterInvoicePage({ searchParams }: RegisterInvoicePageProps) {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const { error } = await searchParams;
   const errorMessage = getErrorMessage(error);
 

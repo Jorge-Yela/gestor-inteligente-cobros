@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { registerInvoiceFromFile } from "@/server/actions/register-invoice-from-file";
 
@@ -48,7 +48,7 @@ export default async function ImportReviewPage({ searchParams }: ImportReviewPag
     notFound();
   }
 
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
 
   const files = await prisma.invoiceFile.findMany({
     where: {

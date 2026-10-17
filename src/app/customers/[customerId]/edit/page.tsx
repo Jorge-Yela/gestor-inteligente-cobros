@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { updateCustomer } from "@/server/actions/update-customer";
 
@@ -13,7 +13,7 @@ type EditCustomerPageProps = {
 };
 
 export default async function EditCustomerPage({ params }: EditCustomerPageProps) {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const { customerId } = await params;
 
   const customer = await prisma.customer.findFirst({

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 import { ClaimDraftStatus } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
 const dateFormatter = new Intl.DateTimeFormat("es-ES", {
@@ -35,7 +35,7 @@ type ClaimDraftDetailPageProps = {
 };
 
 export default async function ClaimDraftDetailPage({ params }: ClaimDraftDetailPageProps) {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const { claimDraftId } = await params;
 
   const draft = await prisma.claimDraft.findFirst({

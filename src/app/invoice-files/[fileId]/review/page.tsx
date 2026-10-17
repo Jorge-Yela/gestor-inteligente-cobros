@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { createInvoiceFromOcr } from "@/server/actions/create-invoice-from-ocr";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
 type ReviewInvoiceFilePageProps = {
@@ -53,7 +53,7 @@ export default async function ReviewInvoiceFilePage({ params, searchParams }: Re
   const { fileId } = await params;
   const { error } = await searchParams;
   const errorMessage = getErrorMessage(error);
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
 
   const file = await prisma.invoiceFile.findFirst({
     where: {

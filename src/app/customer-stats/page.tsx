@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { ArrowRight, Calculator, FileSpreadsheet, ReceiptText } from "lucide-react";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 
-export default function CustomerStatsPage() {
+export default async function CustomerStatsPage() {
+  await getSubscribedOrganizationId();
+
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">

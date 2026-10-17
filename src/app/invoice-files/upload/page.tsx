@@ -2,8 +2,11 @@ import Link from "next/link";
 import { CheckCircle2, FileCheck2, FileSpreadsheet, SearchCheck } from "lucide-react";
 
 import { ImportInvoicesExcel } from "@/app/invoice-files/upload/import-invoices-excel";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 
-export default function UploadInvoiceFilePage() {
+export default async function UploadInvoiceFilePage() {
+  await getSubscribedOrganizationId();
+
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">

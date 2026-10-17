@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { InvoiceStatus, TimelineEventType } from "@/generated/prisma/enums";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { canManageData, getCurrentUserRole } from "@/lib/permissions/current-role";
 
@@ -38,7 +38,7 @@ export async function updateInvoice(formData: FormData) {
     throw new Error("No tienes permisos para realizar esta accion");
   }
 
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
 
   const invoiceId = String(formData.get("invoiceId") || "");
   const customerId = String(formData.get("customerId") || "");

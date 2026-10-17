@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { TemplateTone } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { archiveTemplate } from "@/server/actions/archive-template";
 import { deleteTemplate } from "@/server/actions/delete-template";
@@ -33,7 +33,7 @@ export default async function TemplateDetailPage({
   const { templateId } = await params;
   const { error } = await searchParams;
   const errorMessage = getErrorMessage(error);
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
 
   const template = await prisma.template.findFirst({
     where: {

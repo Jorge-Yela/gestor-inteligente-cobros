@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { InvoiceStatus, PaymentStatus, TimelineEventType } from "@/generated/prisma/enums";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { canManageData, getCurrentUserRole } from "@/lib/permissions/current-role";
 
@@ -41,7 +41,7 @@ export async function markInvoiceAsPaid(formData: FormData) {
     throw new Error("No tienes permisos para realizar esta accion");
   }
 
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const invoiceId = String(formData.get("invoiceId") || "");
   const redirectTo = String(formData.get("redirectTo") || `/invoices/${invoiceId}`);
   const customerId = String(formData.get("customerId") || "");
@@ -86,7 +86,7 @@ export async function unmarkInvoiceAsPaid(formData: FormData) {
     throw new Error("No tienes permisos para realizar esta accion");
   }
 
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const invoiceId = String(formData.get("invoiceId") || "");
   const redirectTo = String(formData.get("redirectTo") || `/invoices/${invoiceId}`);
 
@@ -131,7 +131,7 @@ export async function updateInvoicePaidDate(formData: FormData) {
     throw new Error("No tienes permisos para realizar esta accion");
   }
 
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const invoiceId = String(formData.get("invoiceId") || "");
   const paidDate = String(formData.get("paidDate") || "");
 

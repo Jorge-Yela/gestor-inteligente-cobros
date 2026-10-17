@@ -3,7 +3,7 @@ import { Archive, ArchiveRestore } from "lucide-react";
 
 import { TemplateTone } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { restoreTemplate } from "@/server/actions/restore-template";
 
@@ -28,7 +28,7 @@ function formatDate(date: Date | null) {
 }
 
 export default async function ArchivedTemplatesPage() {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
 
   const templates = await prisma.template.findMany({
     where: {

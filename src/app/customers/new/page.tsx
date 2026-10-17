@@ -3,7 +3,7 @@ import Link from "next/link";
 import { createCustomer } from "@/server/actions/create-customer";
 
 import { Button } from "@/components/ui/button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
 type NewCustomerPageProps = {
@@ -26,7 +26,7 @@ function getExtractedData(value: unknown): ExtractedInvoiceData {
 
 export default async function NewCustomerPage({ searchParams }: NewCustomerPageProps) {
   const { invoiceFileId = "" } = await searchParams;
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const invoiceFile = invoiceFileId
     ? await prisma.invoiceFile.findFirst({
         where: {

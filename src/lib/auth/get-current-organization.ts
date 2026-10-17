@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
+import { requireActiveSubscription } from "@/lib/billing/require-active-subscription";
 
 export async function getCurrentOrganizationId() {
   const user = await getCurrentUser();
@@ -26,4 +27,11 @@ export async function getCurrentOrganizationId() {
   }
 
   return organizationMember.organizationId;
+}
+
+export async function getSubscribedOrganizationId() {
+  const organizationId = await getCurrentOrganizationId();
+  await requireActiveSubscription(organizationId);
+
+  return organizationId;
 }

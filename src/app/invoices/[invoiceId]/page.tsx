@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { AttachInvoicePdf } from "@/app/invoices/[invoiceId]/attach-invoice-pdf";
 import { deleteInvoice } from "@/server/actions/delete-invoice";
 import { markInvoiceAsPaid, unmarkInvoiceAsPaid, updateInvoicePaidDate } from "@/server/actions/mark-invoice-paid";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { registerInvoiceCall } from "@/server/actions/register-invoice-call";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
@@ -97,7 +97,7 @@ type InvoiceDetailPageProps = {
 };
 
 export default async function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const { invoiceId } = await params;
 
   const invoice = await prisma.invoice.findFirst({

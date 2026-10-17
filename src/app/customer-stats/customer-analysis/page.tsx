@@ -2,7 +2,7 @@ import Link from "next/link";
 import { BarChart3, Clock, CreditCard, Percent, TrendingUp, Users } from "lucide-react";
 
 import { InvoiceStatus, PaymentStatus } from "@/generated/prisma/enums";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
@@ -30,7 +30,7 @@ function getDaysBetween(start: Date | null, end: Date | null) {
 }
 
 export default async function CustomerAnalysisPage() {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const today = new Date();
 
   const customers = await prisma.customer.findMany({

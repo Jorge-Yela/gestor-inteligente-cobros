@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { InvoiceStatus, PaymentStatus, TimelineEventType } from "@/generated/prisma/enums";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { canManageData, getCurrentUserRole } from "@/lib/permissions/current-role";
 
@@ -55,7 +55,7 @@ export async function registerInvoiceFromFile(formData: FormData) {
     throw new Error("No tienes permisos para registrar facturas");
   }
 
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const fileId = String(formData.get("fileId") || "");
 
   if (!fileId) {

@@ -3,7 +3,7 @@ import { Search } from "lucide-react";
 
 import { ClaimDraftStatus } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { CustomerSearch } from "./customer-search";
 
@@ -26,7 +26,7 @@ type SentClaimDraftsPageProps = {
 };
 
 export default async function SentClaimDraftsPage({ searchParams }: SentClaimDraftsPageProps) {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const {
     customer = "",
     invoice = "",

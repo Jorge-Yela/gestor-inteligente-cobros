@@ -3,7 +3,7 @@ import { AlertTriangle, CheckCircle2, FileText, Upload } from "lucide-react";
 
 import { PaymentStatus } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { markInvoiceAsPaid, unmarkInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
 
@@ -88,7 +88,7 @@ type InvoicesPageProps = {
 };
 
 export default async function InvoicesPage({ searchParams }: InvoicesPageProps) {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const {
     filter = "all",
     column = "",

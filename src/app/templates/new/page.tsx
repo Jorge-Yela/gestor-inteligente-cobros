@@ -3,6 +3,7 @@ import Link from "next/link";
 import { TemplateTone } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
 import { createTemplate } from "@/server/actions/create-template";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 
 type NewTemplatePageProps = {
   searchParams: Promise<{
@@ -19,6 +20,8 @@ function getErrorMessage(error?: string) {
 }
 
 export default async function NewTemplatePage({ searchParams }: NewTemplatePageProps) {
+  await getSubscribedOrganizationId();
+
   const { error } = await searchParams;
   const errorMessage = getErrorMessage(error);
 

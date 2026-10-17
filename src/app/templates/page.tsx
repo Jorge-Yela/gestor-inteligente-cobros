@@ -3,7 +3,7 @@ import { Archive, FileText, Plus, ShieldCheck } from "lucide-react";
 
 import { TemplateTone } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
 function formatTone(tone: TemplateTone) {
@@ -50,7 +50,7 @@ type TemplatesPageProps = {
 };
 
 export default async function TemplatesPage({ searchParams }: TemplatesPageProps) {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const { tone = "" } = await searchParams;
   const selectedTone = toneGroups.find((group) => group.tone === tone)?.tone || null;
 

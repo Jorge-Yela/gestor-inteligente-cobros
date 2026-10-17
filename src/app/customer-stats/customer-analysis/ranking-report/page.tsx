@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { PaymentStatus } from "@/generated/prisma/enums";
 import { PrintReportButton } from "@/app/customer-stats/issued-invoices/print-report-button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
@@ -15,7 +15,7 @@ function formatAmount(cents: number) {
 }
 
 export default async function CustomerRankingReportPage() {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
 
   const customers = await prisma.customer.findMany({
     where: { organizationId },

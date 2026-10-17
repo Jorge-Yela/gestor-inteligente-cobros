@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/db/prisma";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { updateInvoice } from "@/server/actions/update-invoice";
 
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ function getErrorMessage(error?: string) {
 }
 
 export default async function EditInvoicePage({ params, searchParams }: EditInvoicePageProps) {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const { invoiceId } = await params;
   const { error } = await searchParams;
   const errorMessage = getErrorMessage(error);

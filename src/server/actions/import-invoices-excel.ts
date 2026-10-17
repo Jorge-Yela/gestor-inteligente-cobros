@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { InvoiceStatus, PaymentStatus, TimelineEventType } from "@/generated/prisma/enums";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { canManageData, getCurrentUserRole } from "@/lib/permissions/current-role";
 
@@ -185,7 +185,7 @@ export async function importInvoicesFromExcelRows(formData: FormData) {
     throw new Error("No tienes permisos para importar facturas");
   }
 
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const rowsValue = String(formData.get("rows") || "[]");
   const rows = normalizeImportedRows(JSON.parse(rowsValue));
   const invalidRows = getInvalidRows(rows);

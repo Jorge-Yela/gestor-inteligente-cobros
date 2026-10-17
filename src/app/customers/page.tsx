@@ -5,7 +5,7 @@ import { PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -29,7 +29,7 @@ function getSearchValue(value?: string | string[]) {
 }
 
 export default async function CustomersPage({ searchParams }: CustomersPageProps) {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const params = await searchParams;
   const query = getSearchValue(params?.q).trim();
   const sort = getSearchValue(params?.sort);

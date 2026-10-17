@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { PrintReportButton } from "@/app/customer-stats/issued-invoices/print-report-button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
 function getDelayDays(issueDate: Date | null, paidAt: Date | null, today: Date) {
@@ -18,7 +18,7 @@ function getDelayDays(issueDate: Date | null, paidAt: Date | null, today: Date) 
 }
 
 export default async function CustomerDelayReportPage() {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const today = new Date();
 
   const customers = await prisma.customer.findMany({

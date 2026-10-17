@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 import { PaymentStatus, TemplateTone } from "@/generated/prisma/enums";
 import { Button } from "@/components/ui/button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { renderTemplate } from "@/modules/templates/render-template";
 import { createBulkClaimDrafts } from "@/server/actions/create-bulk-claim-drafts";
@@ -49,7 +49,7 @@ type ClaimPreviewPageProps = {
 };
 
 export default async function ClaimPreviewPage({ params }: ClaimPreviewPageProps) {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const { invoiceId } = await params;
 
   const invoice = await prisma.invoice.findFirst({

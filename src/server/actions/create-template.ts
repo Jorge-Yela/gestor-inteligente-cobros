@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { TemplateTone } from "@/generated/prisma/enums";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { canManageData, getCurrentUserRole } from "@/lib/permissions/current-role";
 import { prisma } from "@/lib/db/prisma";
 
@@ -14,7 +14,7 @@ export async function createTemplate(formData: FormData) {
     throw new Error("No tienes permisos para realizar esta accion");
   }
 
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
 
   const name = String(formData.get("name") || "").trim();
   const subject = String(formData.get("subject") || "").trim();

@@ -4,7 +4,7 @@ import { BarChart3, Bot, CheckCircle2, FileText, PencilLine } from "lucide-react
 import { ClaimDraftStatus, PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/db/prisma";
 
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 
 const dateFormatter = new Intl.DateTimeFormat("es-ES", {
   day: "2-digit",
@@ -26,7 +26,7 @@ function formatAmount(amountCents: number) {
 }
 
 export default async function ClaimDraftsPage() {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
 
   const [drafts, unpaidInvoices] = await Promise.all([
     prisma.claimDraft.findMany({

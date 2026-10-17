@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { PrintReportButton } from "@/app/customer-stats/issued-invoices/print-report-button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
@@ -58,7 +58,7 @@ type IssuedInvoicesReportPageProps = {
 export default async function IssuedInvoicesReportPage({
   searchParams,
 }: IssuedInvoicesReportPageProps) {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const params = await searchParams;
 
   const customerId = getSearchValue(params?.customerId);

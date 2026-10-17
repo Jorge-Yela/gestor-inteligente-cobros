@@ -14,7 +14,7 @@ import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
 import { markInvoiceAsPaid, unmarkInvoiceAsPaid } from "@/server/actions/mark-invoice-paid";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 
 const currencyFormatter = new Intl.NumberFormat("es-ES", {
   style: "currency",
@@ -49,7 +49,7 @@ type CustomerDetailPageProps = {
 };
 
 export default async function CustomerDetailPage({ params, searchParams }: CustomerDetailPageProps) {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const { customerId } = await params;
   const {
     invoices: invoiceFilter = "pending",

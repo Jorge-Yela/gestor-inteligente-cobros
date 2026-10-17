@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ function formatEventType(type: string) {
 }
 
 export default async function TimelinePage() {
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
 
   const events = await prisma.timelineEvent.findMany({
     where: {

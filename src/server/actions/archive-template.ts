@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { canManageData, getCurrentUserRole } from "@/lib/permissions/current-role";
 import { prisma } from "@/lib/db/prisma";
 
@@ -14,7 +14,7 @@ export async function archiveTemplate(formData: FormData) {
     throw new Error("No tienes permisos para realizar esta accion");
   }
 
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const templateId = String(formData.get("templateId") || "");
 
   if (!templateId) {

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, FilePlus2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { createCustomerInvoice } from "@/server/actions/create-customer-invoice";
 
@@ -15,7 +15,7 @@ type NewCustomerInvoicePageProps = {
 
 export default async function NewCustomerInvoicePage({ params }: NewCustomerInvoicePageProps) {
   const { customerId } = await params;
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
 
   const customer = await prisma.customer.findFirst({
     where: {

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { InvoiceStatus, PaymentStatus, TimelineEventType } from "@/generated/prisma/enums";
-import { getCurrentOrganizationId } from "@/lib/auth/get-current-organization";
+import { getSubscribedOrganizationId } from "@/lib/auth/get-current-organization";
 import { prisma } from "@/lib/db/prisma";
 import { canManageData, getCurrentUserRole } from "@/lib/permissions/current-role";
 
@@ -73,7 +73,7 @@ export async function createCustomerInvoice(formData: FormData) {
     throw new Error("No tienes permisos para crear facturas");
   }
 
-  const organizationId = await getCurrentOrganizationId();
+  const organizationId = await getSubscribedOrganizationId();
   const customerId = String(formData.get("customerId") || "");
   const invoiceNumber = String(formData.get("invoiceNumber") || "").trim();
   const issueDate = String(formData.get("issueDate") || "");
